@@ -1,8 +1,8 @@
 spring:
-  application:
-    name: api
-  profiles:
-    active: local
+    application:
+        name: api
+    profiles:
+        active: local, env
 server:
-  servlet:
-    context-path: /api/v1
+    servlet:
+        context-path: /api/v1
