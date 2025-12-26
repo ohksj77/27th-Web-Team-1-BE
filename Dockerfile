@@ -14,7 +14,7 @@ COPY --link src src
 
 RUN --mount=type=cache,target=/root/.gradle \
     --mount=type=cache,target=/app/build \
-    gradle clean bootJar --no-daemon -x test --parallel --build-cache && \
+    gradle bootJar --no-daemon -x test --parallel --build-cache && \
     cp build/libs/*.jar app.jar
 
 FROM eclipse-temurin:24-jre-alpine
