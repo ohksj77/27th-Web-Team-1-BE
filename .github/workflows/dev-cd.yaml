@@ -59,7 +59,6 @@ jobs:
                             --name $CONTAINER_NAME \
                             --restart unless-stopped \
                             -p 8080:8080 \
-                            -v /var/log/springboot:/var/log/springboot \
                             -e SPRING_PROFILES_ACTIVE=dev \
                             -e POSTGRES_HOST=$POSTGRES_HOST \
                             -e POSTGRES_PORT=$POSTGRES_PORT \
@@ -67,6 +66,11 @@ jobs:
                             -e POSTGRES_USER=$POSTGRES_USER \
                             -e POSTGRES_PASSWORD=$POSTGRES_PASSWORD \
                             -e TZ=Asia/Seoul \
+                            --log-driver=awslogs \
+                            --log-opt awslogs-region=$AWS_REGION \
+                            --log-opt awslogs-group=/docker/lokit-api-dev \
+                            --log-opt awslogs-stream=$CONTAINER_NAME-$(date +%Y%m%d-%H%M%S) \
+                            --log-opt awslogs-create-group=true \
                             --memory="700m" \
                             --memory-swap="1400m" \
                             --cpus="1.5" \
