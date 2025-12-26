@@ -119,7 +119,6 @@ Temporary Items
 .mtj.tmp/
 
 # Package Files #
-*.jar
 *.war
 *.nar
 *.ear
@@ -143,3 +142,6 @@ HELP.md
 .env.prod
 
 application-env.yaml
+.kotlin
+.claude
+.idea
