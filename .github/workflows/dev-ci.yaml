@@ -24,7 +24,7 @@ on:
     workflow_dispatch:
 
 env:
-    AWS_REGION: ${{ env.AWS_REGION }}
+    AWS_REGION: ap-northeast-2
 
 jobs:
     build-and-test:
