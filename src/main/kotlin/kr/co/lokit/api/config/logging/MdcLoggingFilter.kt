@@ -119,7 +119,7 @@ class MdcLoggingFilter : OncePerRequestFilter() {
                 body
             }
 
-        return LogMaskingUtils.mask(truncated)
+        return truncated
     }
 
     private fun getResponseBody(response: ContentCachingResponseWrapper): String {
@@ -140,7 +140,7 @@ class MdcLoggingFilter : OncePerRequestFilter() {
                 body
             }
 
-        return LogMaskingUtils.mask(truncated)
+        return truncated
     }
 
     private fun isLoggableContentType(contentType: String?): Boolean {
