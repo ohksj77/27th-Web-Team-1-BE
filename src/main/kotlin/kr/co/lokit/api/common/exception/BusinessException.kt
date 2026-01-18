@@ -34,4 +34,9 @@ sealed class BusinessException(
         message: String = ErrorCode.BUSINESS_RULE_VIOLATION.message,
         cause: Throwable? = null,
     ) : BusinessException(ErrorCode.BUSINESS_RULE_VIOLATION, message, cause)
+
+    class UserAlreadyExistsException(
+        message: String = ErrorCode.EMAIL_ALREADY_EXISTS.message,
+        cause: Throwable? = null,
+    ) : BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS, message, cause)
 }
