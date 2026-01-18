@@ -13,12 +13,12 @@ class AuthenticationFilter(
     private val compositeAuthenticationResolver: CompositeAuthenticationResolver,
 ) : OncePerRequestFilter() {
     companion object {
-        private val EXCLUDED_PATHS = listOf("/api/auth/", "/actuator/health")
+        private val EXCLUDED_PATHS = listOf("/auth/", "/actuator/health")
     }
 
     override fun shouldNotFilter(request: HttpServletRequest): Boolean {
         val uri = request.requestURI
-        logger.info("Request URI: $uri")
+        logger.debug("Request URI: $uri")
         return EXCLUDED_PATHS.any { uri.startsWith(it) }
     }
 

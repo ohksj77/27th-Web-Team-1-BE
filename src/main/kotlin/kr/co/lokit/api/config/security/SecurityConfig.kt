@@ -24,7 +24,7 @@ class SecurityConfig(
                 auth
                     .requestMatchers("/auth/**")
                     .permitAll()
-                    .requestMatchers("/actuator/**")
+                    .requestMatchers("/actuator/health")
                     .permitAll()
                     .anyRequest()
                     .authenticated()
