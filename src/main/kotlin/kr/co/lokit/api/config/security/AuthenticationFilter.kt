@@ -12,14 +12,10 @@ import org.springframework.web.filter.OncePerRequestFilter
 class AuthenticationFilter(
     private val compositeAuthenticationResolver: CompositeAuthenticationResolver,
 ) : OncePerRequestFilter() {
-    companion object {
-        private val EXCLUDED_PATHS = listOf("/auth/", "/actuator/health")
-    }
-
     override fun shouldNotFilter(request: HttpServletRequest): Boolean {
         val uri = request.requestURI
-        logger.debug("Request URI: $uri")
-        return EXCLUDED_PATHS.any { uri.startsWith(it) }
+        logger.debug("Should Not Filter That Request URI: $uri")
+        return false
     }
 
     override fun doFilterInternal(
