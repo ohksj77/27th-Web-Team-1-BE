@@ -22,10 +22,15 @@ class SecurityConfig(
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests { auth ->
                 auth
-                    .requestMatchers("/auth/**")
+                    .requestMatchers("/auth/register")
                     .permitAll()
                     .requestMatchers("/actuator/health")
                     .permitAll()
+                    .requestMatchers(
+                        "/swagger-ui/**",
+                        "/v3/api-docs/**",
+                        "/docs/**",
+                    ).permitAll()
                     .anyRequest()
                     .authenticated()
             }.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
