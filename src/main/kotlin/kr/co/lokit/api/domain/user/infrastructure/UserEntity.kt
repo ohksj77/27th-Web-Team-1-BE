@@ -4,11 +4,9 @@ import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
+import kr.co.lokit.api.common.entity.BaseEntity
 import kr.co.lokit.api.domain.user.domain.User
 import kr.co.lokit.api.domain.user.domain.UserRole
 import org.springframework.security.core.GrantedAuthority
@@ -21,9 +19,6 @@ import org.springframework.security.core.userdetails.UserDetails
     uniqueConstraints = [UniqueConstraint(name = "uk_users_email", columnNames = ["email"])],
 )
 class UserEntity(
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long = 0,
     @Column(nullable = false)
     private val email: String,
     @Column(nullable = false)
@@ -31,7 +26,8 @@ class UserEntity(
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     val role: Role = Role.USER,
-) : UserDetails {
+) : BaseEntity(),
+    UserDetails {
     override fun getAuthorities(): Collection<GrantedAuthority> = listOf(SimpleGrantedAuthority("ROLE_${role.name}"))
 
     override fun getPassword(): String? = null
@@ -51,7 +47,6 @@ class UserEntity(
     companion object {
         fun from(user: User): UserEntity =
             UserEntity(
-                id = user.id,
                 email = user.email,
                 name = user.name,
                 role = Role.valueOf(user.role.name),
