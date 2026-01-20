@@ -1,6 +1,6 @@
 package kr.co.lokit.api.config.security
 
-import org.springframework.core.annotation.Order
+import org.springframework.core.annotation.AnnotationAwareOrderComparator
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.stereotype.Component
 
@@ -9,14 +9,8 @@ class CompositeAuthenticationResolver(
     resolvers: List<AuthenticationResolver>,
 ) {
     private val orderedResolvers =
-        resolvers.sortedBy {
-            javaClass.getAnnotation(Order::class.java)?.value ?: Int.MAX_VALUE
-        }
+        resolvers.sortedWith(AnnotationAwareOrderComparator.INSTANCE)
 
-    fun authenticate(credentials: String): UsernamePasswordAuthenticationToken? {
-        val resolver =
-            orderedResolvers.firstOrNull { it.support(credentials) }
-                ?: return null
-        return resolver.authenticate(credentials)
-    }
+    fun authenticate(credentials: String): UsernamePasswordAuthenticationToken? =
+        orderedResolvers.firstOrNull { it.support(credentials) }?.authenticate(credentials)
 }
