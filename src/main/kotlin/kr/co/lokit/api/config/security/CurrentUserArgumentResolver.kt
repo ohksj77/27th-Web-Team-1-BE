@@ -3,7 +3,6 @@ package kr.co.lokit.api.config.security
 import kr.co.lokit.api.common.exception.BusinessException
 import kr.co.lokit.api.domain.user.domain.User
 import kr.co.lokit.api.domain.user.infrastructure.UserEntity
-import kr.co.lokit.api.domain.user.infrastructure.UserRepository
 import org.springframework.core.MethodParameter
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
@@ -13,9 +12,7 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver
 import org.springframework.web.method.support.ModelAndViewContainer
 
 @Component
-class CurrentUserArgumentResolver(
-    private val userRepository: UserRepository,
-) : HandlerMethodArgumentResolver {
+class CurrentUserArgumentResolver : HandlerMethodArgumentResolver {
     override fun supportsParameter(parameter: MethodParameter): Boolean =
         parameter.hasParameterAnnotation(CurrentUser::class.java) &&
             parameter.parameterType == User::class.java
@@ -34,7 +31,7 @@ class CurrentUserArgumentResolver(
             authentication.principal as? UserEntity
                 ?: throw BusinessException.UnauthorizedException("Invalid authentication principal")
 
-        return userRepository.findById(userEntity.id)
-            ?: throw BusinessException.ResourceNotFoundException("User not found: ${userEntity.id}")
+        // DB 조회 없이 detached entity에서 직접 도메인 객체로 변환
+        return userEntity.toDomain()
     }
 }
