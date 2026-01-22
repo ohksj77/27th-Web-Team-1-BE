@@ -6,8 +6,7 @@ data class Photo(
     val id: Long,
     val url: String,
     val album: Album,
-    val longitude: Double,
-    val latitude: Double,
+    val location: Location,
+    val description: String? = null,
 ) {
-    var description: String? = null
 }
