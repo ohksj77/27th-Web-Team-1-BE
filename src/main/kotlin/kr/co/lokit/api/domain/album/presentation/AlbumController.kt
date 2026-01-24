@@ -25,8 +25,8 @@ class AlbumController(
 ) : AlbumApi {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    override fun create(@RequestBody @Valid albumRequest: AlbumRequest, @CurrentUserId userId: Long): IdResponse =
-        albumService.create(albumRequest.toDomain(userId)).toIdResponse(Album::id)
+    override fun create(@RequestBody @Valid albumRequest: AlbumRequest): IdResponse =
+        albumService.create(albumRequest.toDomain(albumRequest.workspaceId)).toIdResponse(Album::id)
 
     @GetMapping("selectable")
     @ResponseStatus(HttpStatus.OK)

@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service
 
 @Service
 class AlbumService(
-    private val albumRepository: AlbumRepository
+    private val albumRepository: AlbumRepository,
 ) {
     fun create(album: Album): Album {
         return albumRepository.save(album)
