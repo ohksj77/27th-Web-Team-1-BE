@@ -20,7 +20,7 @@ interface AlbumApi {
             ApiResponse(responseCode = "500", description = "초기화되지 않은 값 접근 (COMMON_006)"),
         ],
     )
-    fun create(albumRequest: AlbumRequest, userId: Long): IdResponse
+    fun create(albumRequest: AlbumRequest): IdResponse
 
     @Operation(
         summary = "선택 가능한 앨범 조회",

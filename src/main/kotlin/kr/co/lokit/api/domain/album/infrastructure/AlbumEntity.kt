@@ -6,11 +6,13 @@ import jakarta.persistence.Entity
 import jakarta.persistence.FetchType
 import jakarta.persistence.Index
 import jakarta.persistence.JoinColumn
+import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
 import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 import kr.co.lokit.api.common.entity.BaseEntity
 import kr.co.lokit.api.domain.photo.infrastructure.PhotoEntity
+import kr.co.lokit.api.domain.workspace.infrastructure.WorkSpaceEntity
 import java.time.LocalDateTime
 
 @Entity
@@ -18,11 +20,10 @@ import java.time.LocalDateTime
 class AlbumEntity(
     @Column(nullable = false, length = 10)
     val title: String,
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(nullable = false)
+    val workspace: WorkSpaceEntity,
 ) : BaseEntity() {
-
-    @Column(unique = true)
-    var inviteCode: String? = null
-
     @Column(nullable = false)
     var photoCount: Int = 0
         get() = photos.size
@@ -34,10 +35,6 @@ class AlbumEntity(
         mappedBy = "album"
     )
     var photos: MutableList<PhotoEntity> = mutableListOf()
-        protected set
-
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "album")
-    var albumUsers: MutableList<AlbumUserEntity> = mutableListOf()
         protected set
 
     @JoinColumn
