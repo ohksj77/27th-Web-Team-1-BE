@@ -16,7 +16,10 @@ import kr.co.lokit.api.domain.workspace.infrastructure.WorkSpaceEntity
 import java.time.LocalDateTime
 
 @Entity
-@Table(indexes = [Index(columnList = "photo_added_at, created_at")])
+@Table(
+    name = "album",
+    indexes = [Index(columnList = "photo_added_at, created_at")],
+)
 class AlbumEntity(
     @Column(nullable = false, length = 10)
     val title: String,

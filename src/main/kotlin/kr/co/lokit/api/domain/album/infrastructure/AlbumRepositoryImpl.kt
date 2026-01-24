@@ -26,4 +26,8 @@ class AlbumRepositoryImpl(
     override fun findAllByUserId(userId: Long): List<Album> {
         return albumRepository.findAllByUserId(userId).map { it.toDomain() }
     }
+
+    override fun findAllWithPhotos(): List<AlbumEntity> {
+        return albumRepository.findAllWithPhotos()
+    }
 }

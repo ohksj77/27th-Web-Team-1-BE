@@ -4,5 +4,8 @@ import kr.co.lokit.api.domain.album.domain.Album
 
 interface AlbumRepository {
     fun save(album: Album): Album
+
     fun findAllByUserId(userId: Long): List<Album>
+
+    fun findAllWithPhotos(): List<AlbumEntity>
 }
