@@ -47,4 +47,19 @@ sealed class BusinessException(
             fun entityId() = NotInitializedException("Entity id is not initialized")
         }
     }
+
+    class AlbumNotFoundException(
+        message: String = ErrorCode.ALBUM_NOT_FOUND.message,
+        cause: Throwable? = null,
+    ) : BusinessException(ErrorCode.ALBUM_NOT_FOUND, message, cause)
+
+    class UserNotFoundException(
+        message: String = ErrorCode.USER_NOT_FOUND.message,
+        cause: Throwable? = null,
+    ) : BusinessException(ErrorCode.USER_NOT_FOUND, message, cause)
+
+    class WorkspaceNotFoundException(
+        message: String = ErrorCode.WORKSPACE_NOT_FOUND.message,
+        cause: Throwable? = null,
+    ) : BusinessException(ErrorCode.WORKSPACE_NOT_FOUND, message, cause)
 }
