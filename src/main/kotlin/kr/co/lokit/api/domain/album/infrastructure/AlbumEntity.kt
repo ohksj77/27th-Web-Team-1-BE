@@ -22,7 +22,7 @@ import java.time.LocalDateTime
 )
 class AlbumEntity(
     @Column(nullable = false, length = 10)
-    val title: String,
+    var title: String,
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false)
     val workspace: WorkSpaceEntity,
@@ -60,5 +60,9 @@ class AlbumEntity(
         photos.add(photo)
         photoAddedAt = LocalDateTime.now()
         photoCount++
+    }
+
+    fun updateTitle(title: String) {
+        this.title = title
     }
 }
