@@ -6,9 +6,9 @@ import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
+import kr.co.lokit.api.common.constant.UserRole
 import kr.co.lokit.api.common.entity.BaseEntity
 import kr.co.lokit.api.domain.user.domain.User
-import kr.co.lokit.api.domain.user.domain.UserRole
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
@@ -25,7 +25,7 @@ class UserEntity(
     private val name: String,
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    val role: Role = Role.USER,
+    val role: UserRole = UserRole.USER,
 ) : BaseEntity(),
     UserDetails {
     override fun getAuthorities(): Collection<GrantedAuthority> = listOf(SimpleGrantedAuthority("ROLE_${role.name}"))
@@ -41,7 +41,7 @@ class UserEntity(
             id = id,
             email = email,
             name = name,
-            role = UserRole.valueOf(role.name),
+            role = UserRole.USER,
         )
 
     companion object {
@@ -49,14 +49,7 @@ class UserEntity(
             UserEntity(
                 email = user.email,
                 name = user.name,
-                role = Role.valueOf(user.role.name),
+                role = UserRole.valueOf(user.role.name),
             )
     }
-}
-
-enum class Role(
-    val authority: String,
-) {
-    USER("ROLE_USER"),
-    ADMIN("ROLE_ADMIN"),
 }
