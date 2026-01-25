@@ -9,6 +9,7 @@ import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import kr.co.lokit.api.common.entity.BaseEntity
 import kr.co.lokit.api.domain.album.infrastructure.AlbumEntity
+import kr.co.lokit.api.domain.user.infrastructure.UserEntity
 import org.locationtech.jts.geom.Coordinate
 import org.locationtech.jts.geom.GeometryFactory
 import org.locationtech.jts.geom.Point
@@ -30,6 +31,9 @@ class PhotoEntity(
     val album: AlbumEntity,
     @Column(nullable = false, columnDefinition = "geometry(Point,4326)")
     val location: Point,
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "uploaded_by", nullable = false)
+    val uploadedBy: UserEntity,
 ) : BaseEntity() {
     val longitude: Double
         get() = location.x

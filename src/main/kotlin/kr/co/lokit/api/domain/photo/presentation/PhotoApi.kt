@@ -1,6 +1,7 @@
 package kr.co.lokit.api.domain.photo.presentation
 
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -9,6 +10,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import kr.co.lokit.api.common.dto.IdResponse
 import kr.co.lokit.api.domain.photo.dto.CreatePhotoRequest
+import kr.co.lokit.api.domain.photo.dto.PhotoDetailResponse
 import kr.co.lokit.api.domain.photo.dto.PhotoListResponse
 import kr.co.lokit.api.domain.photo.dto.PresignedUrl
 import kr.co.lokit.api.domain.photo.dto.PresignedUrlRequest
@@ -60,4 +62,41 @@ interface PhotoApi {
         request: CreatePhotoRequest,
         userId: Long,
     ): IdResponse
+
+    @Operation(
+        summary = "사진 상세 조회",
+        description = """
+            사진 ID를 기반으로 사진 상세 정보를 조회합니다.
+
+            - 촬영일, 앨범명, 등록자명, 주소, 설명 포함
+            - 주소는 좌표 기반 역지오코딩으로 조회
+        """,
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "조회 성공",
+                content = [Content(schema = Schema(implementation = PhotoDetailResponse::class))],
+            ),
+            ApiResponse(
+                responseCode = "401",
+                description = "인증 필요",
+                content = [Content()],
+            ),
+            ApiResponse(
+                responseCode = "404",
+                description = "사진을 찾을 수 없음 (PHOTO_001)",
+                content = [Content()],
+            ),
+        ],
+    )
+    fun getPhotoDetail(
+        @Parameter(
+            description = "사진 ID",
+            example = "1",
+            required = true,
+        )
+        photoId: Long,
+    ): PhotoDetailResponse
 }

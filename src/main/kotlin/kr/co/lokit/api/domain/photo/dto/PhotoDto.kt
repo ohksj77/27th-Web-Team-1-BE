@@ -74,3 +74,21 @@ data class PresignedUrlRequest(
     @Schema(description = "파일 MIME 타입", example = "image/jpeg")
     val contentType: String,
 )
+
+@Schema(description = "사진 상세 정보")
+data class PhotoDetailResponse(
+    @Schema(description = "사진 ID", example = "1")
+    val id: Long,
+    @Schema(description = "사진 URL", example = "https://bucket.s3.amazonaws.com/photos/1/image.jpg")
+    val url: String,
+    @Schema(description = "촬영일 (yyyy.MM.dd 형식)", example = "2026.01.06")
+    val takenAt: String,
+    @Schema(description = "앨범명", example = "가족여행")
+    val albumName: String,
+    @Schema(description = "등록자 이름", example = "홍길동")
+    val uploaderName: String,
+    @Schema(description = "도로명 주소", example = "서울 강남구 테헤란로 123")
+    val address: String?,
+    @Schema(description = "사진 설명", example = "가족 여행 사진")
+    val description: String?,
+)
