@@ -1,6 +1,7 @@
 package kr.co.lokit.api.domain.map.infrastructure.geocoding
 
 import kr.co.lokit.api.domain.map.dto.LocationInfoResponse
+import kr.co.lokit.api.domain.map.dto.PlaceResponse
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.http.HttpHeaders
@@ -9,10 +10,10 @@ import org.springframework.web.client.RestClient
 
 @Component
 @ConditionalOnProperty(name = ["kakao.api.key"])
-class KakaoGeocodingClient(
+class KakaoMapClient(
     @Value("\${kakao.api.key}")
     private val apiKey: String,
-) : GeocodingClient {
+) : MapClient {
 
     private val restClient = RestClient.builder()
         .baseUrl(BASE_URL)
@@ -42,7 +43,37 @@ class KakaoGeocodingClient(
         )
     }
 
+    override fun searchPlaces(query: String): List<PlaceResponse> {
+        val response = restClient.get()
+            .uri { uriBuilder ->
+                uriBuilder
+                    .path("/v2/local/search/keyword.json")
+                    .queryParam("query", query)
+                    .queryParam("size", MAX_SEARCH_RESULTS)
+                    .build()
+            }
+            .retrieve()
+            .body(KakaoPlaceSearchResponse::class.java)
+
+        return response?.documents?.map { doc ->
+            PlaceResponse(
+                placeName = doc.placeName,
+                address = doc.addressName,
+                roadAddress = doc.roadAddressName.takeIf { it.isNotBlank() },
+                longitude = doc.x.toDoubleOrNull() ?: 0.0,
+                latitude = doc.y.toDoubleOrNull() ?: 0.0,
+                category = extractCategory(doc.categoryName),
+            )
+        } ?: emptyList()
+    }
+
+    private fun extractCategory(categoryName: String): String? {
+        val parts = categoryName.split(" > ")
+        return parts.lastOrNull()?.takeIf { it.isNotBlank() }
+    }
+
     companion object {
         private const val BASE_URL = "https://dapi.kakao.com"
+        private const val MAX_SEARCH_RESULTS = 15
     }
 }

@@ -6,6 +6,7 @@ import kr.co.lokit.api.domain.map.dto.AlbumMapInfoResponse
 import kr.co.lokit.api.domain.map.dto.ClusterPhotosPageResponse
 import kr.co.lokit.api.domain.map.dto.LocationInfoResponse
 import kr.co.lokit.api.domain.map.dto.MapPhotosResponse
+import kr.co.lokit.api.domain.map.dto.PlaceSearchResponse
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
@@ -44,4 +45,9 @@ class MapController(
         @RequestParam lng: Double,
         @RequestParam lat: Double,
     ): LocationInfoResponse = mapService.getLocationInfo(lng, lat)
+
+    @GetMapping("/places/search")
+    override fun searchPlaces(
+        @RequestParam query: String,
+    ): PlaceSearchResponse = mapService.searchPlaces(query)
 }

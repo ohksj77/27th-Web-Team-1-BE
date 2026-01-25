@@ -7,9 +7,10 @@ import kr.co.lokit.api.domain.map.dto.AlbumMapInfoResponse
 import kr.co.lokit.api.domain.map.dto.ClusterPhotosPageResponse
 import kr.co.lokit.api.domain.map.dto.LocationInfoResponse
 import kr.co.lokit.api.domain.map.dto.MapPhotosResponse
+import kr.co.lokit.api.domain.map.dto.PlaceSearchResponse
 import kr.co.lokit.api.domain.map.infrastructure.AlbumBoundsRepository
 import kr.co.lokit.api.domain.map.infrastructure.MapRepository
-import kr.co.lokit.api.domain.map.infrastructure.geocoding.GeocodingClient
+import kr.co.lokit.api.domain.map.infrastructure.geocoding.MapClient
 import kr.co.lokit.api.domain.map.mapping.toAlbumMapInfoResponse
 import kr.co.lokit.api.domain.map.mapping.toClusterPhotosPageResponse
 import kr.co.lokit.api.domain.map.mapping.toMapPhotoResponse
@@ -21,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional
 class MapService(
     private val mapRepository: MapRepository,
     private val albumBoundsRepository: AlbumBoundsRepository,
-    private val geocodingClient: GeocodingClient,
+    private val mapClient: MapClient,
 ) {
     companion object {
         private const val CLUSTER_ZOOM_THRESHOLD = 15
@@ -103,5 +104,8 @@ class MapService(
     }
 
     fun getLocationInfo(longitude: Double, latitude: Double): LocationInfoResponse =
-        geocodingClient.reverseGeocode(longitude, latitude)
+        mapClient.reverseGeocode(longitude, latitude)
+
+    fun searchPlaces(query: String): PlaceSearchResponse =
+        PlaceSearchResponse(places = mapClient.searchPlaces(query))
 }

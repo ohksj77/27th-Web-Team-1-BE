@@ -12,6 +12,7 @@ import kr.co.lokit.api.domain.map.dto.AlbumMapInfoResponse
 import kr.co.lokit.api.domain.map.dto.ClusterPhotosPageResponse
 import kr.co.lokit.api.domain.map.dto.LocationInfoResponse
 import kr.co.lokit.api.domain.map.dto.MapPhotosResponse
+import kr.co.lokit.api.domain.map.dto.PlaceSearchResponse
 
 @SecurityRequirement(name = "Authorization")
 @Tag(name = "Map", description = "지도 API")
@@ -188,4 +189,37 @@ interface MapApi {
         )
         lat: Double,
     ): LocationInfoResponse
+
+    @Operation(
+        summary = "장소 검색",
+        description = """
+            키워드로 장소를 검색합니다.
+
+            - Kakao 키워드 검색 API를 사용하여 장소 정보 조회
+            - 최대 15개의 검색 결과 반환
+            - 장소명, 주소, 좌표, 카테고리 정보 포함
+        """,
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "검색 성공",
+                content = [Content(schema = Schema(implementation = PlaceSearchResponse::class))],
+            ),
+            ApiResponse(
+                responseCode = "401",
+                description = "인증 필요",
+                content = [Content()],
+            ),
+        ],
+    )
+    fun searchPlaces(
+        @Parameter(
+            description = "검색 키워드",
+            example = "스타벅스 강남",
+            required = true,
+        )
+        query: String,
+    ): PlaceSearchResponse
 }

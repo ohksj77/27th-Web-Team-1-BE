@@ -100,3 +100,25 @@ data class LocationInfoResponse(
     @Schema(description = "지역명", example = "강남구")
     val regionName: String?,
 )
+
+@Schema(description = "장소 정보")
+data class PlaceResponse(
+    @Schema(description = "장소명", example = "스타벅스 강남역점")
+    val placeName: String,
+    @Schema(description = "지번 주소", example = "서울 강남구 역삼동 858")
+    val address: String,
+    @Schema(description = "도로명 주소", example = "서울 강남구 강남대로 396")
+    val roadAddress: String?,
+    @Schema(description = "경도", example = "127.0276")
+    val longitude: Double,
+    @Schema(description = "위도", example = "37.4979")
+    val latitude: Double,
+    @Schema(description = "카테고리", example = "카페")
+    val category: String?,
+)
+
+@Schema(description = "장소 검색 응답")
+data class PlaceSearchResponse(
+    @Schema(description = "검색된 장소 목록")
+    val places: List<PlaceResponse>,
+)
