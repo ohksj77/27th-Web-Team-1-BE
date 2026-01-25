@@ -14,7 +14,9 @@ class MapRepositoryImpl(
         east: Double,
         north: Double,
         gridSize: Double,
+        albumId: Long?,
     ): List<ClusterProjection> {
+        val albumFilter = if (albumId != null) "AND album_id = ?" else ""
         val sql =
             """
             WITH clustered AS (
@@ -29,6 +31,7 @@ class MapRepositoryImpl(
                 FROM photo
                 WHERE location && ST_MakeEnvelope(?, ?, ?, ?, 4326)
                   AND is_deleted = false
+                  $albumFilter
             ),
             ranked AS (
                 SELECT
@@ -56,6 +59,9 @@ class MapRepositoryImpl(
             ORDER BY cluster_count DESC
             """.trimIndent()
 
+        val params = mutableListOf<Any>(gridSize, gridSize, west, south, east, north)
+        if (albumId != null) params.add(albumId)
+
         return jdbcTemplate.query(
             sql,
             { rs, _ ->
@@ -68,12 +74,7 @@ class MapRepositoryImpl(
                     centerLatitude = rs.getDouble("center_latitude"),
                 )
             },
-            gridSize,
-            gridSize,
-            west,
-            south,
-            east,
-            north,
+            *params.toTypedArray(),
         )
     }
 
@@ -82,15 +83,21 @@ class MapRepositoryImpl(
         south: Double,
         east: Double,
         north: Double,
+        albumId: Long?,
     ): List<PhotoProjection> {
+        val albumFilter = if (albumId != null) "AND album_id = ?" else ""
         val sql =
             """
-            SELECT id, url, ST_X(location) as longitude, ST_Y(location) as latitude
+            SELECT id, url, ST_X(location) as longitude, ST_Y(location) as latitude, taken_at
             FROM photo
             WHERE location && ST_MakeEnvelope(?, ?, ?, ?, 4326)
               AND is_deleted = false
-            ORDER BY created_at DESC
+              $albumFilter
+            ORDER BY taken_at DESC
             """.trimIndent()
+
+        val params = mutableListOf<Any>(west, south, east, north)
+        if (albumId != null) params.add(albumId)
 
         return jdbcTemplate.query(
             sql,
@@ -100,12 +107,10 @@ class MapRepositoryImpl(
                     url = rs.getString("url"),
                     longitude = rs.getDouble("longitude"),
                     latitude = rs.getDouble("latitude"),
+                    takenAt = rs.getTimestamp("taken_at").toLocalDateTime(),
                 )
             },
-            west,
-            south,
-            east,
-            north,
+            *params.toTypedArray(),
         )
     }
 
@@ -125,11 +130,11 @@ class MapRepositoryImpl(
 
         val sql =
             """
-            SELECT id, url, ST_X(location) as longitude, ST_Y(location) as latitude, created_at
+            SELECT id, url, ST_X(location) as longitude, ST_Y(location) as latitude, taken_at
             FROM photo
             WHERE location && ST_MakeEnvelope(?, ?, ?, ?, 4326)
               AND is_deleted = false
-            ORDER BY created_at DESC
+            ORDER BY taken_at DESC
             LIMIT ? OFFSET ?
             """.trimIndent()
 
@@ -142,7 +147,7 @@ class MapRepositoryImpl(
                         url = rs.getString("url"),
                         longitude = rs.getDouble("longitude"),
                         latitude = rs.getDouble("latitude"),
-                        createdAt = rs.getTimestamp("created_at").toLocalDateTime(),
+                        takenAt = rs.getTimestamp("taken_at").toLocalDateTime(),
                     )
                 },
                 west,

@@ -1,6 +1,7 @@
 package kr.co.lokit.api.domain.map.mapping
 
 import kr.co.lokit.api.common.dto.PageResult
+import kr.co.lokit.api.common.util.DateTimeUtils.toDateString
 import kr.co.lokit.api.domain.map.domain.ClusterId
 import kr.co.lokit.api.domain.map.dto.ClusterPhotoResponse
 import kr.co.lokit.api.domain.map.dto.ClusterPhotosPageResponse
@@ -25,6 +26,7 @@ fun PhotoProjection.toMapPhotoResponse(): MapPhotoResponse =
         thumbnailUrl = url,
         longitude = longitude,
         latitude = latitude,
+        date = takenAt.toDateString(),
     )
 
 fun ClusterPhotoProjection.toClusterPhotoResponse(): ClusterPhotoResponse =
@@ -33,7 +35,7 @@ fun ClusterPhotoProjection.toClusterPhotoResponse(): ClusterPhotoResponse =
         url = url,
         longitude = longitude,
         latitude = latitude,
-        createdAt = createdAt,
+        date = takenAt.toDateString(),
     )
 
 fun PageResult<ClusterPhotoProjection>.toClusterPhotosPageResponse(): ClusterPhotosPageResponse =
