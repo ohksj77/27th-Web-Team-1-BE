@@ -11,7 +11,8 @@ import kr.co.lokit.api.domain.user.infrastructure.UserEntity
 
 @Entity
 @Table(
-    uniqueConstraints = [UniqueConstraint(columnNames = ["workspace_id", "user_id"])]
+    name = "workspace_user",
+    uniqueConstraints = [UniqueConstraint(columnNames = ["workspace_id", "user_id"])],
 )
 class WorkspaceUserEntity(
     @ManyToOne(fetch = FetchType.LAZY)
