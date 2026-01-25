@@ -57,7 +57,7 @@ jobs:
                     AWS_S3_BUCKET: ${{ secrets.DEV_AWS_S3_BUCKET }}
                     CORS_ALLOWED_ORIGINS: ${{ secrets.DEV_CORS_ALLOWED_ORIGINS }}
                     JWT_REFRESH_EXPIRATION: ${{ secrets.DEV_JWT_REFRESH_EXPIRATION }}
-                    KAKAO_API_KEY: ${{kakao.api.key.KAKAO_API_KEY}}
+                    KAKAO_API_KEY: ${{ secrets.DEV_KAKAO_API_KEY}}
                 with:
                     host: ${{ secrets.DEV_EC2_HOST }}
                     username: ${{ secrets.DEV_EC2_USERNAME }}
