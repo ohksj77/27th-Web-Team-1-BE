@@ -9,6 +9,7 @@ import kr.co.lokit.api.domain.user.infrastructure.RefreshTokenJpaRepository
 import kr.co.lokit.api.domain.user.infrastructure.UserJpaRepository
 import kr.co.lokit.api.domain.user.infrastructure.UserRepository
 import kr.co.lokit.api.domain.user.mapping.toDomain
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -49,9 +50,7 @@ class AuthService(
         val refreshToken = jwtTokenProvider.generateRefreshToken()
 
         val userEntity =
-            userJpaRepository.findById(user.id).orElseThrow {
-                BusinessException.UserNotFoundException()
-            }
+            userJpaRepository.findByIdOrNull(user.id) ?: throw BusinessException.UserNotFoundException()
 
         refreshTokenJpaRepository.deleteByUser(userEntity)
 
