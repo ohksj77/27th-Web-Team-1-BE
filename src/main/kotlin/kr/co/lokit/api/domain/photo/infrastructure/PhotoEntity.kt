@@ -2,16 +2,19 @@ package kr.co.lokit.api.domain.photo.infrastructure
 
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.FetchType
 import jakarta.persistence.Index
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import kr.co.lokit.api.common.entity.BaseEntity
 import kr.co.lokit.api.domain.album.infrastructure.AlbumEntity
+import kr.co.lokit.api.domain.user.infrastructure.UserEntity
 import org.locationtech.jts.geom.Coordinate
 import org.locationtech.jts.geom.GeometryFactory
 import org.locationtech.jts.geom.Point
 import org.locationtech.jts.geom.PrecisionModel
+import java.time.LocalDateTime
 
 @Entity
 @Table(
@@ -28,6 +31,9 @@ class PhotoEntity(
     val album: AlbumEntity,
     @Column(nullable = false, columnDefinition = "geometry(Point,4326)")
     val location: Point,
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "uploaded_by", nullable = false)
+    val uploadedBy: UserEntity,
 ) : BaseEntity() {
     val longitude: Double
         get() = location.x
@@ -41,6 +47,9 @@ class PhotoEntity(
 
     @Column(length = 1000)
     var description: String? = null
+
+    @Column(name = "taken_at", nullable = false)
+    var takenAt: LocalDateTime = LocalDateTime.now()
 
     companion object {
         private val geometryFactory = GeometryFactory(PrecisionModel(), 4326)

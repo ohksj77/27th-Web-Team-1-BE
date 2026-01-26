@@ -2,8 +2,11 @@ package kr.co.lokit.api.domain.map.presentation
 
 import kr.co.lokit.api.domain.map.application.MapService
 import kr.co.lokit.api.domain.map.domain.BBox
+import kr.co.lokit.api.domain.map.dto.AlbumMapInfoResponse
 import kr.co.lokit.api.domain.map.dto.ClusterPhotosPageResponse
+import kr.co.lokit.api.domain.map.dto.LocationInfoResponse
 import kr.co.lokit.api.domain.map.dto.MapPhotosResponse
+import kr.co.lokit.api.domain.map.dto.PlaceSearchResponse
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
@@ -15,14 +18,14 @@ import org.springframework.web.bind.annotation.RestController
 class MapController(
     private val mapService: MapService,
 ) : MapApi {
-    // TODO 응답 response에 위치 데이터 포함 예정, resource 변경 예정
     @GetMapping("/photos")
     override fun getPhotos(
         @RequestParam zoom: Int,
         @RequestParam bbox: String,
+        @RequestParam(required = false) albumId: Long?,
     ): MapPhotosResponse {
         val bboxParsed = BBox.fromString(bbox)
-        return mapService.getPhotos(zoom, bboxParsed)
+        return mapService.getPhotos(zoom, bboxParsed, albumId)
     }
 
     @GetMapping("/clusters/{clusterId}/photos")
@@ -31,4 +34,20 @@ class MapController(
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "20") size: Int,
     ): ClusterPhotosPageResponse = mapService.getClusterPhotos(clusterId, page, size)
+
+    @GetMapping("/albums/{albumId}")
+    override fun getAlbumMapInfo(
+        @PathVariable albumId: Long,
+    ): AlbumMapInfoResponse = mapService.getAlbumMapInfo(albumId)
+
+    @GetMapping("/location")
+    override fun getLocationInfo(
+        @RequestParam lng: Double,
+        @RequestParam lat: Double,
+    ): LocationInfoResponse = mapService.getLocationInfo(lng, lat)
+
+    @GetMapping("/places/search")
+    override fun searchPlaces(
+        @RequestParam query: String,
+    ): PlaceSearchResponse = mapService.searchPlaces(query)
 }

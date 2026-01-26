@@ -17,6 +17,7 @@ data class PhotoProjection(
     val url: String,
     val longitude: Double,
     val latitude: Double,
+    val takenAt: LocalDateTime,
 )
 
 data class ClusterPhotoProjection(
@@ -24,7 +25,7 @@ data class ClusterPhotoProjection(
     val url: String,
     val longitude: Double,
     val latitude: Double,
-    val createdAt: LocalDateTime,
+    val takenAt: LocalDateTime,
 )
 
 interface MapRepository {
@@ -34,6 +35,7 @@ interface MapRepository {
         east: Double,
         north: Double,
         gridSize: Double,
+        albumId: Long? = null,
     ): List<ClusterProjection>
 
     fun findPhotosWithinBBox(
@@ -41,6 +43,7 @@ interface MapRepository {
         south: Double,
         east: Double,
         north: Double,
+        albumId: Long? = null,
     ): List<PhotoProjection>
 
     fun findPhotosInGridCell(

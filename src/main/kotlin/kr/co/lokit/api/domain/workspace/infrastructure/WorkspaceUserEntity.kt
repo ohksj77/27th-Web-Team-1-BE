@@ -11,13 +11,14 @@ import kr.co.lokit.api.domain.user.infrastructure.UserEntity
 
 @Entity
 @Table(
-    uniqueConstraints = [UniqueConstraint(columnNames = ["workspace_id", "user_id"])]
+    name = "workspace_user",
+    uniqueConstraints = [UniqueConstraint(columnNames = ["workspace_id", "user_id"])],
 )
 class WorkspaceUserEntity(
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false)
+    @JoinColumn(name = "workspace_id", nullable = false)
     val workspace: WorkSpaceEntity,
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false)
+    @JoinColumn(name = "user_id", nullable = false)
     val user: UserEntity,
 ) : BaseEntity()
