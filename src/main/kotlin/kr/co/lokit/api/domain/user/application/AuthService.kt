@@ -31,10 +31,10 @@ class AuthService(
     // 임시 회원가입/로그인 기능
     @Transactional
     fun login(user: User): LoginResponse {
-        userRepository.findByEmail(user.email) ?: userRepository.save(user)
+        val userId = (userRepository.findByEmail(user.email) ?: userRepository.save(user)).id
 
-        val workspace = workSpaceService.create(Workspace(name = "default workspace"), user.id)
-        val album = albumService.create(Album(title = "default album", workspaceId = workspace.id))
+        val workspace = workSpaceService.create(Workspace(name = "default workspace"), userId)
+        val album = albumService.create(Album(title = "default album", workspaceId = userId))
 
         return LoginResponse(
             userId = user.id,
