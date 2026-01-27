@@ -27,9 +27,13 @@ class AlbumEntity(
     @JoinColumn(nullable = false)
     val workspace: WorkSpaceEntity,
 ) : BaseEntity() {
+    
+    init {
+        workspace.addAlbum(this)
+    }
+
     @Column(nullable = false)
     var photoCount: Int = 0
-        get() = photos.size
         protected set
 
     @OneToMany(

@@ -38,4 +38,8 @@ class WorkSpaceEntity(
     fun addUser(workspaceUser: WorkspaceUserEntity) {
         workspaceUsers.add(workspaceUser)
     }
+
+    fun addAlbum(album: AlbumEntity) {
+        albums.add(album)
+    }
 }
