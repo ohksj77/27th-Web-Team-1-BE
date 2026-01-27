@@ -33,8 +33,8 @@ class AuthService(
     fun login(user: User): LoginResponse {
         val userId = (userRepository.findByEmail(user.email) ?: userRepository.save(user)).id
 
-        val workspace = workSpaceService.create(Workspace(name = "default workspace"), userId)
-        val album = albumService.create(Album(title = "default album", workspaceId = userId))
+        val workspace = workSpaceService.create(Workspace(name = "defaultW"), userId)
+        val album = albumService.create(Album(title = "defaultA", workspaceId = userId))
 
         return LoginResponse(
             userId = user.id,
