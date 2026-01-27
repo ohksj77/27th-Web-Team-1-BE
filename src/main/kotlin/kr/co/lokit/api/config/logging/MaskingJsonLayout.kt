@@ -17,10 +17,6 @@ class MaskingJsonLayout : LayoutBase<ILoggingEvent>() {
             .withZone(ZoneId.systemDefault())
     private val maskPatterns = mutableListOf<Pattern>()
 
-    fun addMaskPattern(pattern: String) {
-        maskPatterns.add(Pattern.compile(pattern, Pattern.CASE_INSENSITIVE or Pattern.MULTILINE))
-    }
-
     private fun mask(input: String?): String {
         if (input.isNullOrEmpty()) return ""
         var result = input

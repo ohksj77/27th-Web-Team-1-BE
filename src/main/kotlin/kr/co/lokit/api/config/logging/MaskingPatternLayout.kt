@@ -8,7 +8,7 @@ class MaskingPatternLayout : PatternLayout() {
     private val maskPatterns = mutableListOf<Pattern>()
 
     fun addMaskPattern(pattern: String) {
-        maskPatterns.add(Pattern.compile(pattern, Pattern.CASE_INSENSITIVE or Pattern.MULTILINE))
+        maskPatterns.add(Pattern.compile(pattern.trim(), Pattern.CASE_INSENSITIVE or Pattern.MULTILINE))
     }
 
     override fun doLayout(event: ILoggingEvent): String {
