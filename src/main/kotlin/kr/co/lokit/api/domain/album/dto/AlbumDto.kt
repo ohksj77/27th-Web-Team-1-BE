@@ -26,6 +26,6 @@ data class SelectableAlbumResponse(
         val id: Long,
         val title: String,
         val photoCount: Int,
-        val thumbnailUrl: String?,
+        val thumbnailUrls: List<String>,
     )
 }
