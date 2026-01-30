@@ -7,8 +7,8 @@ data class Photo(
     val albumId: Long,
     val location: Location,
     val description: String? = null,
+    var url: String,
+    var uploadedById: Long,
+    var takenAt: LocalDateTime = LocalDateTime.now(),
 ) {
-    var url: String? = null
-    var uploadedById: Long? = null
-    var takenAt: LocalDateTime? = null
 }

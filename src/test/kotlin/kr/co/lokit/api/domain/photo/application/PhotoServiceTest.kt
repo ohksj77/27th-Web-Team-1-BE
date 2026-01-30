@@ -1,27 +1,25 @@
 package kr.co.lokit.api.domain.photo.application
 
 import kr.co.lokit.api.common.exception.BusinessException
-import kr.co.lokit.api.domain.album.infrastructure.AlbumEntity
 import kr.co.lokit.api.domain.album.infrastructure.AlbumRepository
 import kr.co.lokit.api.domain.map.application.AlbumBoundsService
-import kr.co.lokit.api.domain.map.infrastructure.geocoding.MapClient
-import kr.co.lokit.api.domain.photo.domain.Location
-import kr.co.lokit.api.domain.photo.domain.Photo
-import kr.co.lokit.api.domain.photo.domain.PhotoDetail
-import kr.co.lokit.api.domain.photo.dto.UpdatePhotoRequest
 import kr.co.lokit.api.domain.map.dto.LocationInfoResponse
+import kr.co.lokit.api.domain.map.infrastructure.geocoding.MapClient
 import kr.co.lokit.api.domain.photo.infrastructure.PhotoRepository
 import kr.co.lokit.api.domain.photo.infrastructure.file.S3PresignedUrlGenerator
+import kr.co.lokit.api.fixture.createLocation
+import kr.co.lokit.api.fixture.createPhoto
+import kr.co.lokit.api.fixture.createPhotoDetail
+import kr.co.lokit.api.fixture.createUpdatePhotoRequest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.doNothing
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 import org.mockito.junit.jupiter.MockitoExtension
-import java.time.LocalDateTime
 import kotlin.test.assertEquals
 
 @ExtendWith(MockitoExtension::class)
@@ -47,11 +45,8 @@ class PhotoServiceTest {
 
     @Test
     fun `사진을 생성할 수 있다`() {
-        val photo = Photo(albumId = 1L, location = Location(127.0, 37.5)).apply {
-            url = "https://example.com/photo.jpg"
-            uploadedById = 1L
-        }
-        val savedPhoto = Photo(id = 1L, albumId = 1L, location = Location(127.0, 37.5))
+        val photo = createPhoto()
+        val savedPhoto = createPhoto(id = 1L, url = "https://example.com/picture.png")
         `when`(photoRepository.save(photo)).thenReturn(savedPhoto)
         doNothing().`when`(albumBoundsService).updateBoundsOnPhotoAdd(1L, 127.0, 37.5)
 
@@ -63,16 +58,7 @@ class PhotoServiceTest {
 
     @Test
     fun `사진 상세 정보를 조회할 수 있다`() {
-        val takenAt = LocalDateTime.of(2026, 1, 1, 12, 0)
-        val photoDetail = PhotoDetail(
-            id = 1L,
-            url = "https://example.com/photo.jpg",
-            takenAt = takenAt,
-            albumName = "여행",
-            uploaderName = "테스트",
-            location = Location(127.0, 37.5),
-            description = "테스트 사진",
-        )
+        val photoDetail = createPhotoDetail(description = "테스트 사진")
         `when`(photoRepository.findDetailById(1L)).thenReturn(photoDetail)
         `when`(mapClient.reverseGeocode(127.0, 37.5)).thenReturn(
             LocationInfoResponse(address = "서울 강남구", placeName = null, regionName = "강남구"),
@@ -103,8 +89,8 @@ class PhotoServiceTest {
 
     @Test
     fun `사진을 수정할 수 있다`() {
-        val request = UpdatePhotoRequest(description = "수정된 설명")
-        val updatedPhoto = Photo(id = 1L, albumId = 1L, location = Location(127.0, 37.5), description = "수정된 설명")
+        val request = createUpdatePhotoRequest(description = "수정된 설명")
+        val updatedPhoto = createPhoto(id = 1L, description = "수정된 설명")
         `when`(photoRepository.update(1L, request)).thenReturn(updatedPhoto)
 
         val result = photoService.update(1L, request)
@@ -114,8 +100,8 @@ class PhotoServiceTest {
 
     @Test
     fun `사진 위치 수정 시 앨범 바운드도 업데이트된다`() {
-        val request = UpdatePhotoRequest(longitude = 128.0, latitude = 38.0)
-        val updatedPhoto = Photo(id = 1L, albumId = 1L, location = Location(128.0, 38.0))
+        val request = createUpdatePhotoRequest(longitude = 128.0, latitude = 38.0)
+        val updatedPhoto = createPhoto(id = 1L, location = createLocation(longitude = 128.0, latitude = 38.0))
         `when`(photoRepository.update(1L, request)).thenReturn(updatedPhoto)
         doNothing().`when`(albumBoundsService).updateBoundsOnPhotoAdd(1L, 128.0, 38.0)
 

@@ -17,10 +17,10 @@ fun CreatePhotoRequest.toDomain(userId: Long): Photo =
         albumId = albumId,
         location = Location(longitude, latitude),
         description = description,
-    ).apply {
-        uploadedById = userId
+        uploadedById = userId,
+        url = url,
         takenAt = this@toDomain.takenAt
-    }
+    )
 
 fun Photo.toEntity(album: AlbumEntity, uploadedBy: UserEntity): PhotoEntity =
     PhotoEntity(
@@ -39,10 +39,10 @@ fun PhotoEntity.toDomain(): Photo =
         albumId = this.album.id,
         location = Location(longitude = this.longitude, latitude = this.latitude),
         description = this.description,
-    ).apply {
-        uploadedById = this@toDomain.uploadedBy.id
+        url = this.url,
+        uploadedById = this@toDomain.uploadedBy.id,
         takenAt = this@toDomain.takenAt
-    }
+    )
 
 fun PhotoEntity.toResponse(): PhotoResponse =
     PhotoResponse(

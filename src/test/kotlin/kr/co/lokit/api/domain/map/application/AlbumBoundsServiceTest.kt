@@ -2,13 +2,14 @@ package kr.co.lokit.api.domain.map.application
 
 import kr.co.lokit.api.domain.map.domain.AlbumBounds
 import kr.co.lokit.api.domain.map.infrastructure.AlbumBoundsRepository
+import kr.co.lokit.api.fixture.createAlbumBounds
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.doReturn
-import org.mockito.Mockito.`when`
 import org.mockito.Mockito.verify
+import org.mockito.Mockito.`when`
 import org.mockito.junit.jupiter.MockitoExtension
 
 @ExtendWith(MockitoExtension::class)
@@ -36,14 +37,7 @@ class AlbumBoundsServiceTest {
 
     @Test
     fun `기존 바운드가 있을 때 확장한다`() {
-        val existingBounds = AlbumBounds(
-            id = 1L,
-            albumId = 1L,
-            minLongitude = 127.0,
-            maxLongitude = 127.0,
-            minLatitude = 37.5,
-            maxLatitude = 37.5,
-        )
+        val existingBounds = createAlbumBounds(id = 1L)
         `when`(albumBoundsRepository.findByAlbumId(1L)).thenReturn(existingBounds)
         doReturn(existingBounds).`when`(albumBoundsRepository).updateBounds(anyObject())
 

@@ -58,20 +58,21 @@ class TempLoginService(
                         latitude = latitude,
                     ),
                     description = DESCRIPTIONS.get(ThreadLocalRandom.current().nextInt(DESCRIPTIONS.size)),
-                ).apply {
                     url = S3PresignedUrlGenerator.OBJECT_URL_TEMPLATE.format(
                         bucket,
                         tempPhoto
-                    )
-                    uploadedById = userId
+                    ),
+                    uploadedById = userId,
                     takenAt = LocalDateTime.now().minusDays(ThreadLocalRandom.current().nextInt(100).toLong())
-                }
+                )
             )
             photos.add(photo)
             albumBoundsService.updateBoundsOnPhotoAdd(album.id, longitude, latitude)
         }
 
         val albumMapInfo = mapService.getAlbumMapInfo(album.id)
+
+        photos.forEach { println(it) } // 왜 url 같은 3개 데이터가 출력이 안되지?
 
         return LoginResponse(
             userId = userId,
