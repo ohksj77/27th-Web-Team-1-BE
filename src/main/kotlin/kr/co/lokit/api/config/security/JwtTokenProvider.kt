@@ -7,8 +7,7 @@ import kr.co.lokit.api.domain.user.domain.User
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.stereotype.Component
-import java.util.Date
-import java.util.UUID
+import java.util.*
 import javax.crypto.SecretKey
 
 @Component
@@ -58,7 +57,7 @@ class JwtTokenProvider(
         return username == userDetails.username && !isTokenExpired(token)
     }
 
-    fun canParse(token: String): Boolean = token.startsWith("bearer")
+    fun canParse(token: String): Boolean = token.startsWith("bearer") || token.startsWith("Bearer")
 
     private fun isTokenExpired(token: String): Boolean = getClaims(token).expiration.before(Date())
 

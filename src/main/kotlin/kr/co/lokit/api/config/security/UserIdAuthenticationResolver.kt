@@ -14,7 +14,12 @@ class UserIdAuthenticationResolver(
     override fun support(credentials: String): Boolean = credentials.toLongOrNull() != null
 
     override fun authenticate(credentials: String): UsernamePasswordAuthenticationToken {
-        val userId = credentials.toLong()
+        val userId = if (credentials.startsWith("bearer") || credentials.startsWith("Bearer")) {
+            credentials.substringAfter(" ").trim().toLong()
+        } else {
+            credentials.toLong()
+        }
+
         val userDetails = userDetailsService.loadUserById(userId)
 
         return UsernamePasswordAuthenticationToken(
