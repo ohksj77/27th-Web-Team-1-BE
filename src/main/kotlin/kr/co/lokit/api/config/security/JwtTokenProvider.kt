@@ -12,7 +12,7 @@ import java.util.*
 import javax.crypto.SecretKey
 
 @Component
-@Profile("!local", "!dev")
+@Profile(value = ["!dev", "!local"])
 class JwtTokenProvider(
     @Value("\${jwt.secret}") private val secret: String,
     @Value("\${jwt.expiration}") private val expiration: Long,
@@ -55,7 +55,7 @@ class JwtTokenProvider(
     }
 
     fun canParse(token: String): Boolean =
-        profile != "local" && (token.startsWith("bearer") || token.startsWith("Bearer"))
+        !setOf("dev", "local").contains(token) && (token.startsWith("bearer") || token.startsWith("Bearer"))
 
     private fun isTokenExpired(token: String): Boolean = getClaims(token).expiration.before(Date())
 
