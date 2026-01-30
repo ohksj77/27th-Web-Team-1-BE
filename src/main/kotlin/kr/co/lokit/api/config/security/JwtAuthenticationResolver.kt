@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component
 
 @Component
 @Order(1)
-@Profile("!local", "!dev")
+@Profile(value = ["!dev", "!local"])
 class JwtAuthenticationResolver(
     private val jwtTokenProvider: JwtTokenProvider,
     private val userDetailsService: CustomUserDetailsService,
