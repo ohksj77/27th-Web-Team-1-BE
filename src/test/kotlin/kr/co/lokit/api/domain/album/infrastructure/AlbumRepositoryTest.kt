@@ -89,11 +89,4 @@ class AlbumRepositoryTest {
 
         assertNull(albumRepository.findById(saved.id))
     }
-
-    @Test
-    fun `존재하지 않는 앨범을 삭제하면 예외가 발생한다`() {
-        assertThrows<BusinessException.ResourceNotFoundException> {
-            albumRepository.deleteById(999L)
-        }
-    }
 }

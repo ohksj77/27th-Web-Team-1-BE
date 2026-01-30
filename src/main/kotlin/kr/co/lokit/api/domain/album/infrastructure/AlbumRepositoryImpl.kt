@@ -8,6 +8,7 @@ import kr.co.lokit.api.domain.workspace.domain.Workspace
 import kr.co.lokit.api.domain.workspace.infrastructure.WorkspaceJpaRepository
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Repository
+import org.springframework.transaction.annotation.Transactional
 
 @Repository
 class AlbumRepositoryImpl(
@@ -15,6 +16,7 @@ class AlbumRepositoryImpl(
     private val workspaceJpaRepository: WorkspaceJpaRepository,
 ) : AlbumRepository {
 
+    @Transactional
     override fun save(album: Album): Album {
         val workspace = workspaceJpaRepository.findByIdOrNull(album.workspaceId)
             ?: throw entityNotFound<Workspace>(album.workspaceId)
@@ -36,10 +38,9 @@ class AlbumRepositoryImpl(
         return albumEntity.toDomain()
     }
 
+    @Transactional
     override fun deleteById(id: Long) {
-        val albumEntity = albumJpaRepository.findByIdOrNull(id)
-            ?: throw entityNotFound<Album>(id)
-        albumJpaRepository.delete(albumEntity)
+        albumJpaRepository.deleteById(id)
     }
 
     override fun findAllWithPhotos(): List<Album> {
