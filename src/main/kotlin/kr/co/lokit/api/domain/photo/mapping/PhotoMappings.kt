@@ -36,12 +36,12 @@ fun Photo.toEntity(album: AlbumEntity, uploadedBy: UserEntity): PhotoEntity =
 
 fun PhotoEntity.toDomain(): Photo =
     Photo(
-        id = this.id,
-        albumId = this.album.id,
+        id = this.nonNullId(),
+        albumId = this.album.nonNullId(),
         location = Location(longitude = this.longitude, latitude = this.latitude),
         description = this.description,
         url = this.url,
-        uploadedById = this@toDomain.uploadedBy.id,
+        uploadedById = this@toDomain.uploadedBy.nonNullId(),
         takenAt = this@toDomain.takenAt
     )
 
@@ -74,7 +74,7 @@ fun List<Album>.toPhotoListResponse(): PhotoListResponse =
 
 fun PhotoEntity.toPhotoDetail(): PhotoDetail =
     PhotoDetail(
-        id = this.id,
+        id = this.nonNullId(),
         url = this.url,
         takenAt = this.takenAt,
         albumName = this.album.title,

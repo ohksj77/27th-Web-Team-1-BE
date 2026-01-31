@@ -1,5 +1,6 @@
 package kr.co.lokit.api.domain.user.presentation
 
+import kr.co.lokit.api.common.dto.IdResponse
 import kr.co.lokit.api.domain.user.application.AuthService
 import kr.co.lokit.api.domain.user.application.TempLoginService
 import kr.co.lokit.api.domain.user.dto.JwtTokenResponse
@@ -27,6 +28,16 @@ class AuthController(
     ): LoginResponse =
         tempLoginService
             .login(request.toDomain())
+
+    @PostMapping("login/simple")
+    @ResponseStatus(HttpStatus.OK)
+    override fun simpleLogin(
+        @RequestBody request: LoginRequest,
+    ): IdResponse =
+        IdResponse(
+            tempLoginService
+                .login(request.email)
+        )
 
     @PostMapping("refresh")
     override fun refresh(

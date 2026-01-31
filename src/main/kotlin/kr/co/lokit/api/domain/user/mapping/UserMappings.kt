@@ -7,7 +7,7 @@ import kr.co.lokit.api.domain.user.infrastructure.UserEntity
 
 fun UserEntity.toDomain(): User =
     User(
-        id = id,
+        id = nonNullId(),
         email = username,
         name = name,
         role = UserRole.valueOf(role.name),

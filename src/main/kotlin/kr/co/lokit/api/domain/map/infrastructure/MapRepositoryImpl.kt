@@ -16,6 +16,18 @@ class MapRepositoryImpl(
         gridSize: Double,
         albumId: Long?,
     ): List<ClusterProjection> {
+        val candidates = findClusterCandidates(west, south, east, north, gridSize, albumId)
+        return deduplicateThumbnails(candidates)
+    }
+
+    internal fun findClusterCandidates(
+        west: Double,
+        south: Double,
+        east: Double,
+        north: Double,
+        gridSize: Double,
+        albumId: Long?,
+    ): List<ClusterCandidate> {
         val albumFilter = if (albumId != null) "AND album_id = ?" else ""
         val sql =
             """
@@ -37,10 +49,7 @@ class MapRepositoryImpl(
                 SELECT
                     cell_x,
                     cell_y,
-                    id,
                     url,
-                    longitude,
-                    latitude,
                     ROW_NUMBER() OVER (PARTITION BY cell_x, cell_y ORDER BY created_at DESC) as rn,
                     COUNT(*) OVER (PARTITION BY cell_x, cell_y) as cluster_count,
                     AVG(longitude) OVER (PARTITION BY cell_x, cell_y) as center_longitude,
@@ -53,10 +62,10 @@ class MapRepositoryImpl(
                 cluster_count as count,
                 url as thumbnail_url,
                 center_longitude,
-                center_latitude
+                center_latitude,
+                rn as rank
             FROM ranked
-            WHERE rn = 1
-            ORDER BY cluster_count DESC
+            ORDER BY cluster_count DESC, cell_x, cell_y, rn
             """.trimIndent()
 
         val params = mutableListOf<Any>(gridSize, gridSize, west, south, east, north)
@@ -65,17 +74,43 @@ class MapRepositoryImpl(
         return jdbcTemplate.query(
             sql,
             { rs, _ ->
-                ClusterProjection(
+                ClusterCandidate(
                     cellX = rs.getLong("cell_x"),
                     cellY = rs.getLong("cell_y"),
                     count = rs.getInt("count"),
                     thumbnailUrl = rs.getString("thumbnail_url"),
                     centerLongitude = rs.getDouble("center_longitude"),
                     centerLatitude = rs.getDouble("center_latitude"),
+                    rank = rs.getInt("rank"),
                 )
             },
             *params.toTypedArray(),
         )
+    }
+
+    internal fun deduplicateThumbnails(candidates: List<ClusterCandidate>): List<ClusterProjection> {
+        val grouped = candidates.groupBy { it.cellX to it.cellY }
+        val usedUrls = mutableSetOf<String>()
+
+        return grouped.entries
+            .sortedByDescending { it.value.first().count }
+            .map { (_, clusterCandidates) ->
+                val first = clusterCandidates.first()
+                val selectedUrl = clusterCandidates
+                    .sortedBy { it.rank }
+                    .firstOrNull { it.thumbnailUrl !in usedUrls }
+                    ?.thumbnailUrl ?: first.thumbnailUrl
+                usedUrls.add(selectedUrl)
+                ClusterProjection(
+                    cellX = first.cellX,
+                    cellY = first.cellY,
+                    count = first.count,
+                    thumbnailUrl = selectedUrl,
+                    centerLongitude = first.centerLongitude,
+                    centerLatitude = first.centerLatitude,
+                )
+            }
+            .sortedByDescending { it.count }
     }
 
     override fun findPhotosWithinBBox(

@@ -32,6 +32,9 @@ class TempLoginService(
     @Value("\${aws.s3.region}") private val region: String,
     @Value("\${aws.s3.bucket}") private val bucket: String
 ) {
+    @Transactional
+    fun login(email: String): Long = (userRepository.findByEmail(email) ?: saveUserOrFindOnConflict(email)).id
+
     // 임시 회원가입/로그인 기능
     @Transactional
     fun login(user: User): LoginResponse {
@@ -43,7 +46,8 @@ class TempLoginService(
             Album(
                 title = "ab" + ThreadLocalRandom.current().nextInt(100, 1000),
                 workspaceId = workspace.id
-            )
+            ),
+            userId
         )
         val photoRequests = TEMP_PHOTOS.map { tempPhoto ->
             val longitude = GANGNAM_LONGITUDE - ThreadLocalRandom.current().nextDouble(-0.01, 0.01)
@@ -80,6 +84,14 @@ class TempLoginService(
             albumLocation = albumMapInfo
         )
     }
+
+    private fun saveUserOrFindOnConflict(email: String): User =
+        try {
+            userRepository.save(User(email = email, name = "user"))
+        } catch (e: DataIntegrityViolationException) {
+            userRepository.findByEmail(email)
+                ?: throw e
+        }
 
     private fun saveUserOrFindOnConflict(user: User): User =
         try {

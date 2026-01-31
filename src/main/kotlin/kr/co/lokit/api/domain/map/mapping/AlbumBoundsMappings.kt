@@ -16,7 +16,7 @@ fun AlbumBounds.toEntity(): AlbumBoundsEntity =
 
 fun AlbumBoundsEntity.toDomain(): AlbumBounds =
     AlbumBounds(
-        id = id,
+        id = nonNullId(),
         albumId = standardId,
         minLongitude = minLongitude,
         maxLongitude = maxLongitude,

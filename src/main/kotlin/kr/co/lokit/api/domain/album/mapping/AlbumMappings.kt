@@ -9,9 +9,9 @@ import kr.co.lokit.api.domain.workspace.infrastructure.WorkspaceEntity
 
 fun AlbumEntity.toDomain(): Album =
     Album(
-        id = this.id,
+        id = this.nonNullId(),
         title = this.title,
-        workspaceId = this.workspace.id,
+        workspaceId = this.workspace.nonNullId(),
         photoCount = this.photoCount,
     ).apply {
         this.photos = this@toDomain.photos.map { it.toDomain() }
@@ -23,10 +23,10 @@ fun Album.toEntity(workspace: WorkspaceEntity): AlbumEntity =
         workspace = workspace,
     )
 
-fun AlbumRequest.toDomain(workspaceId: Long): Album =
+fun AlbumRequest.toDomain(): Album =
     Album(
         title = this.title,
-        workspaceId = workspaceId,
+        workspaceId = 0,
     )
 
 fun List<Album>.toSelectableResponse(): SelectableAlbumResponse =
