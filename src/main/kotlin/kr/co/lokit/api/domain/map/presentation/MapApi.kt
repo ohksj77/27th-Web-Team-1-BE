@@ -188,13 +188,13 @@ interface MapApi {
             example = "127.0276",
             required = true,
         )
-        lng: Double,
+        longitude: Double,
         @Parameter(
             description = "위도",
             example = "37.4979",
             required = true,
         )
-        lat: Double,
+        latitude: Double,
     ): LocationInfoResponse
 
     @Operation(

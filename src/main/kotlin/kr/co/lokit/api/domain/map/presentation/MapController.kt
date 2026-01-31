@@ -48,9 +48,9 @@ class MapController(
 
     @GetMapping("/location")
     override fun getLocationInfo(
-        @RequestParam lng: Double,
-        @RequestParam lat: Double,
-    ): LocationInfoResponse = mapService.getLocationInfo(lng, lat)
+        @RequestParam longitude: Double,
+        @RequestParam latitude: Double,
+    ): LocationInfoResponse = mapService.getLocationInfo(longitude, latitude)
 
     @GetMapping("/places/search")
     override fun searchPlaces(
