@@ -53,7 +53,7 @@ class AlbumRepositoryTest {
     fun `앨범을 저장할 수 있다`() {
         val album = createAlbum(title = "여행", workspaceId = workspace.nonNullId())
 
-        val saved = albumRepository.save(album)
+        val saved = albumRepository.save(album, user.nonNullId())
 
         assertNotNull(saved.id)
         assertEquals("여행", saved.title)
@@ -62,7 +62,7 @@ class AlbumRepositoryTest {
 
     @Test
     fun `ID로 앨범을 조회할 수 있다`() {
-        val saved = albumRepository.save(createAlbum(title = "여행", workspaceId = workspace.nonNullId()))
+        val saved = albumRepository.save(createAlbum(title = "여행", workspaceId = workspace.nonNullId()), user.nonNullId())
 
         val found = albumRepository.findById(saved.id)
 
@@ -80,7 +80,7 @@ class AlbumRepositoryTest {
 
     @Test
     fun `앨범 제목을 수정할 수 있다`() {
-        val saved = albumRepository.save(createAlbum(title = "여행", workspaceId = workspace.nonNullId()))
+        val saved = albumRepository.save(createAlbum(title = "여행", workspaceId = workspace.nonNullId()), user.nonNullId())
 
         val updated = albumRepository.applyTitle(saved.id, "새 제목")
 

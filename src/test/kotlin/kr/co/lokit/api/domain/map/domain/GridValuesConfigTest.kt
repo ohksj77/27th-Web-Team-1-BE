@@ -27,6 +27,6 @@ class GridValuesConfigTest {
 
         assertTrue(levels.contains(10))
         assertTrue(levels.contains(14))
-        assertEquals(6, levels.size)
+        assertEquals(8, levels.size)
     }
 }

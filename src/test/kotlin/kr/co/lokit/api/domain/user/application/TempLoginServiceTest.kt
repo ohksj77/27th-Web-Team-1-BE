@@ -78,7 +78,7 @@ class TempLoginServiceTest {
         doReturn(null).`when`(userRepository).findByEmail("new@test.com")
         doReturn(savedUser).`when`(userRepository).save(anyObject())
         doReturn(workspace).`when`(workSpaceService).create(anyObject(), anyLong())
-        doReturn(album).`when`(albumService).create(anyObject())
+        doReturn(album).`when`(albumService).create(anyObject(), anyLong())
         doReturn(photos).`when`(photoRepository).saveAll(anyObject())
         doReturn(albumMapInfo).`when`(mapService).getAlbumMapInfo(1L)
 
@@ -106,7 +106,7 @@ class TempLoginServiceTest {
 
         doReturn(existingUser).`when`(userRepository).findByEmail("existing@test.com")
         doReturn(workspace).`when`(workSpaceService).create(anyObject(), anyLong())
-        doReturn(album).`when`(albumService).create(anyObject())
+        doReturn(album).`when`(albumService).create(anyObject(), anyLong())
         doReturn(photos).`when`(photoRepository).saveAll(anyObject())
         doReturn(albumMapInfo).`when`(mapService).getAlbumMapInfo(2L)
 

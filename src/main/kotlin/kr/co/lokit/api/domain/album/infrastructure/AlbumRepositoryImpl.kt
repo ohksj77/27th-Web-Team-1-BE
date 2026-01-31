@@ -17,9 +17,9 @@ class AlbumRepositoryImpl(
 ) : AlbumRepository {
 
     @Transactional
-    override fun save(album: Album): Album {
-        val workspace = workspaceJpaRepository.findByIdOrNull(album.workspaceId)
-            ?: throw entityNotFound<Workspace>(album.workspaceId)
+    override fun save(album: Album, userId: Long): Album {
+        val workspace = workspaceJpaRepository.findByUserId(userId)
+            ?: throw entityNotFound<Workspace>(userId)
         val albumEntity = album.toEntity(workspace)
         val savedEntity = albumJpaRepository.save(albumEntity)
         return savedEntity.toDomain()
