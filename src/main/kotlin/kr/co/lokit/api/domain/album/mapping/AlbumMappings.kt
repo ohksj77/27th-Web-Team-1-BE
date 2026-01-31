@@ -9,9 +9,9 @@ import kr.co.lokit.api.domain.workspace.infrastructure.WorkspaceEntity
 
 fun AlbumEntity.toDomain(): Album =
     Album(
-        id = this.id,
+        id = this.nonNullId(),
         title = this.title,
-        workspaceId = this.workspace.id,
+        workspaceId = this.workspace.nonNullId(),
         photoCount = this.photoCount,
     ).apply {
         this.photos = this@toDomain.photos.map { it.toDomain() }

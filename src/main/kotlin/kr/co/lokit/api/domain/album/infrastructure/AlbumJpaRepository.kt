@@ -11,7 +11,7 @@ interface AlbumJpaRepository : JpaRepository<AlbumEntity, Long> {
         left join fetch p.uploadedBy
         join a.workspace w
         join w.workspaceUsers wu
-        where wu.user._id = :userId
+        where wu.user.id = :userId
         order by a.updatedAt desc, a.createdAt desc
         """
     )
@@ -32,18 +32,8 @@ interface AlbumJpaRepository : JpaRepository<AlbumEntity, Long> {
         select distinct a from Album a
         left join fetch a.photos p
         left join fetch p.uploadedBy
-        where a._id = :id
+        where a.id = :id
         """
     )
     fun findByIdWithPhotos(id: Long): List<AlbumEntity>
-
-    @Query(
-        """
-        select a from Album a
-        left join fetch a.photos p
-        left join fetch p.uploadedBy
-        where a._id = :id
-        """
-    )
-    fun findByIdFetchPhotos(id: Long): AlbumEntity?
 }

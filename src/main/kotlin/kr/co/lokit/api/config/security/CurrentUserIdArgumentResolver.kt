@@ -31,6 +31,6 @@ class CurrentUserIdArgumentResolver : HandlerMethodArgumentResolver {
             authentication.principal as? UserEntity
                 ?: throw BusinessException.UnauthorizedException("Invalid authentication principal")
 
-        return userEntity.id
+        return userEntity.nonNullId()
     }
 }

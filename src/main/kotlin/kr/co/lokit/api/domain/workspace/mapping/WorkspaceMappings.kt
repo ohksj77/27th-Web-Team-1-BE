@@ -10,8 +10,8 @@ fun Workspace.toEntity(): WorkspaceEntity =
 
 fun WorkspaceEntity.toDomain(): Workspace =
     Workspace(
-        id = this.id,
+        id = this.nonNullId(),
         name = this.name,
         inviteCode = this.inviteCode,
-        userIds = this.workspaceUsers.map { it.user.id },
+        userIds = this.workspaceUsers.map { it.user.nonNullId() },
     )

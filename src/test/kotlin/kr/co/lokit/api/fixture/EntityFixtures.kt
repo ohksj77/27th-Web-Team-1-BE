@@ -12,13 +12,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import java.time.LocalDateTime
 
 private fun setEntityId(entity: BaseEntity, id: Long) {
-    val idField = BaseEntity::class.java.getDeclaredField("_id")
+    val idField = BaseEntity::class.java.getDeclaredField("id")
     idField.isAccessible = true
     idField.set(entity, id)
-
-    val isNewField = BaseEntity::class.java.getDeclaredField("_isNew")
-    isNewField.isAccessible = true
-    isNewField.set(entity, false)
 
     val versionField = BaseEntity::class.java.getDeclaredField("version")
     versionField.isAccessible = true

@@ -19,7 +19,7 @@ interface WorkspaceJpaRepository : JpaRepository<WorkspaceEntity, Long> {
         select w from Workspace w
         left join fetch w.workspaceUsers wu
         left join fetch wu.user
-        where w._id = :id
+        where w.id = :id
         """
     )
     fun findByIdFetchUsers(id: Long): WorkspaceEntity?
