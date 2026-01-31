@@ -16,11 +16,12 @@ object GridValues {
             12 to 0.00390625,    // 1/256 degrees
             13 to 0.001953125,   // 1/512 degrees
             14 to 0.0009765625,  // 1/1024 degrees
+            15 to 0.00048828125, // 1/2048 degrees
         )
 
     private const val DEFAULT_GRID_SIZE = 0.001953125 // ~210m
     const val HOME_ZOOM_LEVEL = 13
-    const val CLUSTER_ZOOM_THRESHOLD = 15
+    const val CLUSTER_ZOOM_THRESHOLD = 16
 
     fun getGridSize(zoom: Int): Double = GRID_SIZES[zoom] ?: DEFAULT_GRID_SIZE
 
