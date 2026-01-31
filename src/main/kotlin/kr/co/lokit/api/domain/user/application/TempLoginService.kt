@@ -60,7 +60,7 @@ class TempLoginService(
                 url = S3PresignedUrlGenerator.OBJECT_URL_TEMPLATE.format(
                     bucket,
                     region,
-                    tempPhoto + UUID.randomUUID().toString()
+                    tempPhoto.format(UUID.randomUUID().toString())
                 ),
                 uploadedById = userId,
                 takenAt = LocalDateTime.now().minusDays(ThreadLocalRandom.current().nextInt(100).toLong())
@@ -109,15 +109,15 @@ class TempLoginService(
     companion object {
         private val TEMP_PHOTOS =
             listOf(
-                "photos/dunamu.jpg",
-                "photos/moloco.jpeg",
-                "photos/sendbird.png",
-                "photos/naver.jpg",
-                "photos/kakao.png",
-                "photos/line.png",
-                "photos/woowahan.png",
-                "photos/daangn.png",
-                "photos/toss.jpg"
+                "photos/dunamu-%s.jpg",
+                "photos/moloco-%s.jpeg",
+                "photos/sendbird-%s.png",
+                "photos/naver-%s.jpg",
+                "photos/kakao-%s.png",
+                "photos/line-%s.png",
+                "photos/woowahan-%s.png",
+                "photos/daangn-%s.png",
+                "photos/toss-%s.jpg"
             )
         private val DESCRIPTIONS = listOf(
             "매일 꿈꾸는 바로 한가지, 퇴사",
