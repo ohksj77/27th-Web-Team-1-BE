@@ -15,6 +15,20 @@ class S3FileVerifier(
     @Value("\${aws.s3.bucket}") private val bucket: String,
     @Value("\${aws.s3.region}") private val region: String,
 ) {
+    fun verifyNotExists(key: String) {
+        try {
+            s3Client.headObject(
+                HeadObjectRequest.builder()
+                    .bucket(bucket)
+                    .key(key)
+                    .build()
+            )
+            throw BusinessException.InvalidInputException("S3에 이미 파일이 존재합니다: $key")
+        } catch (_: NoSuchKeyException) {
+            // 존재하지 않으면 정상
+        }
+    }
+
     fun verify(objectUrl: String) {
         val key = extractKey(objectUrl)
         try {
