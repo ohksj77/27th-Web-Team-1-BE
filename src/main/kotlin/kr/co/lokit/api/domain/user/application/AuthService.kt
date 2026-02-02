@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.support.TransactionTemplate
 import java.time.LocalDateTime
+import java.util.concurrent.StructuredTaskScope
 
 @Service
 class AuthService(
@@ -52,7 +53,7 @@ class AuthService(
         val refreshToken: String
         val userEntity: kr.co.lokit.api.domain.user.infrastructure.UserEntity
 
-        java.util.concurrent.StructuredTaskScope.ShutdownOnFailure().use { scope ->
+        StructuredTaskScope.ShutdownOnFailure().use { scope ->
             val accessTokenFuture = scope.fork { jwtTokenProvider.generateAccessToken(user) }
             val refreshTokenFuture = scope.fork { jwtTokenProvider.generateRefreshToken() }
             val userEntityFuture = scope.fork {

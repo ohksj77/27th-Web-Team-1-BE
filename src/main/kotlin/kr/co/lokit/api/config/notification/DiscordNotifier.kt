@@ -1,12 +1,13 @@
 package kr.co.lokit.api.config.notification
 
 import com.github.benmanes.caffeine.cache.Caffeine
+import jakarta.annotation.PreDestroy
 import jakarta.servlet.http.HttpServletRequest
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import jakarta.annotation.PreDestroy
 import org.springframework.boot.context.event.ApplicationReadyEvent
+import org.springframework.context.annotation.Profile
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClient
@@ -20,27 +21,25 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 @Component
 @ConditionalOnProperty(name = ["discord.webhook.url"])
+@Profile("!local")
 class DiscordNotifier(
     @Value("\${discord.webhook.url}") private val webhookUrl: String,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
     private val restClient = RestClient.builder().build()
 
-    /** 백오프: 같은 에러 키 → 다음 알림 허용 시각 */
     private val backoffUntil =
         Caffeine.newBuilder()
             .expireAfterWrite(2, TimeUnit.HOURS)
             .maximumSize(200)
             .build<String, Instant>()
 
-    /** 백오프 단계 (0→5분, 1→15분, 2→1시간) */
     private val backoffStep =
         Caffeine.newBuilder()
             .expireAfterWrite(2, TimeUnit.HOURS)
             .maximumSize(200)
             .build<String, Int>()
 
-    /** 배칭용 큐 */
     private val pendingErrors = ConcurrentLinkedQueue<ErrorSnapshot>()
     private val flushScheduled = AtomicBoolean(false)
 
@@ -115,17 +114,14 @@ class DiscordNotifier(
         val deduplicationKey = "${ex::class.simpleName}:${ex.message.hashCode()}"
         val now = Instant.now()
 
-        // 백오프 체크
         val until = backoffUntil.getIfPresent(deduplicationKey)
         if (until != null && now.isBefore(until)) return
 
-        // 백오프 갱신
         val step = (backoffStep.getIfPresent(deduplicationKey) ?: -1) + 1
         val cappedStep = step.coerceAtMost(BACKOFF_DURATIONS.size - 1)
         backoffStep.put(deduplicationKey, cappedStep)
         backoffUntil.put(deduplicationKey, now.plus(BACKOFF_DURATIONS[cappedStep]))
 
-        // 큐에 추가
         pendingErrors.add(
             ErrorSnapshot(
                 exceptionClass = ex::class.simpleName ?: "Unknown",
@@ -137,7 +133,6 @@ class DiscordNotifier(
             ),
         )
 
-        // 배치 플러시 스케줄 (최초 1회만)
         if (flushScheduled.compareAndSet(false, true)) {
             Thread.startVirtualThread {
                 try {
