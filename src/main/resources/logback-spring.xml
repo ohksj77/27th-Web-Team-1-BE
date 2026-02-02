@@ -1,20 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
-            <layout class="kr.co.lokit.api.config.logging.MaskingPatternLayout">
-                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [%X{requestId}] [%X{clientIp}] [%X{requestMethod}
-                    %X{requestUri}] %-5level %logger{36} - %msg%n
-                </pattern>
-            </layout>
-        </encoder>
-    </appender>
-
-    <root level="INFO">
-        <appender-ref ref="CONSOLE"/>
-    </root>
+    <property name="MASK_PATTERN"
+              value="(&quot;?(?:access_?token|refresh_?token|token|authorization)&quot;?\s*[:=]\s*&quot;?(?:Bearer\s*)?)[^&quot;,\s}]+"/>
 
     <springProfile name="local">
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+                <layout class="kr.co.lokit.api.config.logging.MaskingPatternLayout">
+                    <maskPattern>${MASK_PATTERN}</maskPattern>
+                    <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [%X{requestId}] [%X{clientIp}] [%X{requestMethod} %X{requestUri}] %-5level %logger{36} - %msg%n</pattern>
+                </layout>
+            </encoder>
+        </appender>
+
         <root level="INFO">
             <appender-ref ref="CONSOLE"/>
         </root>
@@ -25,9 +23,7 @@
         <appender name="JSON" class="ch.qos.logback.core.ConsoleAppender">
             <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
                 <layout class="kr.co.lokit.api.config.logging.MaskingJsonLayout">
-                    <maskPattern>
-                        ("?(?:access_?token|refresh_?token|token|authorization)"?\s*[:=]\s*"?(?:Bearer\s*)?)[^",\s}]+
-                    </maskPattern>
+                    <maskPattern>${MASK_PATTERN}</maskPattern>
                 </layout>
             </encoder>
         </appender>

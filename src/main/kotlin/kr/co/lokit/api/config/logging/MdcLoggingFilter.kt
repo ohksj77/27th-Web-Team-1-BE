@@ -72,34 +72,18 @@ class MdcLoggingFilter : OncePerRequestFilter() {
                 MDC.put(RESPONSE_BODY, responseBody)
             }
 
-            logRequest(status, latency, requestBody, responseBody)
+            logRequest(status)
 
             wrappedResponse.copyBodyToResponse()
             MDC.clear()
         }
     }
 
-    private fun logRequest(
-        status: Int,
-        latency: Long,
-        requestBody: String,
-        responseBody: String,
-    ) {
-        val sb = StringBuilder()
-        sb.append("status=$status, latency=${latency}ms")
-
-        if (requestBody.isNotEmpty()) {
-            sb.append(", request=$requestBody")
-        }
-
-        if (isErrorStatus(status) && responseBody.isNotEmpty()) {
-            sb.append(", response=$responseBody")
-        }
-
+    private fun logRequest(status: Int) {
         if (isErrorStatus(status)) {
-            log.warn("completed: {}", sb.toString())
+            log.warn("request completed")
         } else {
-            log.info("completed: {}", sb.toString())
+            log.info("request completed")
         }
     }
 
