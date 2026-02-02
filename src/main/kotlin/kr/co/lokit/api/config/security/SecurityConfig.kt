@@ -30,8 +30,13 @@ class SecurityConfig(
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests { auth ->
                 auth
-                    .requestMatchers("/auth/register", "/auth/login", "/auth/refresh")
-                    .permitAll()
+                    .requestMatchers(
+                        "/auth/register",
+                        "/auth/login",
+                        "/auth/refresh",
+                        "/auth/kakao",
+                        "/auth/kakao/callback",
+                    ).permitAll()
                     .requestMatchers("/actuator/health")
                     .permitAll()
                     .requestMatchers(
@@ -47,12 +52,13 @@ class SecurityConfig(
 
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
-        val configuration = CorsConfiguration().apply {
-            allowedOrigins = corsProperties.allowedOrigins
-            allowedMethods = listOf("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
-            allowedHeaders = listOf("*")
-            allowCredentials = true
-        }
+        val configuration =
+            CorsConfiguration().apply {
+                allowedOrigins = corsProperties.allowedOrigins
+                allowedMethods = listOf("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
+                allowedHeaders = listOf("*")
+                allowCredentials = true
+            }
         return UrlBasedCorsConfigurationSource().apply {
             registerCorsConfiguration("/**", configuration)
         }
