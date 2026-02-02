@@ -37,7 +37,7 @@ interface PhotoApi {
             ),
         ],
     )
-    fun getPhotos(albumId: Long): PhotoListResponse
+    fun getPhotos(@Parameter(description = "앨범 ID (0이면 전체 조회)", example = "1") albumId: Long): PhotoListResponse
 
     @Operation(
         summary = "Presigned URL 발급",

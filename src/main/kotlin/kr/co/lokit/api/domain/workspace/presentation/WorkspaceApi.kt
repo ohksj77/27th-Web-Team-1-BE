@@ -14,6 +14,7 @@ import kr.co.lokit.api.domain.workspace.dto.JoinWorkspaceRequest
 interface WorkspaceApi {
 
     @Operation(
+        hidden = true,
         summary = "워크스페이스 생성",
         description = "새로운 워크스페이스를 생성합니다.",
         responses = [
@@ -24,6 +25,7 @@ interface WorkspaceApi {
     fun create(request: CreateWorkspaceRequest, @Parameter(hidden = true) userId: Long): IdResponse
 
     @Operation(
+        hidden = true,
         summary = "초대 코드로 워크스페이스 합류",
         description = "초대 코드를 통해 워크스페이스에 합류합니다.",
         responses = [

@@ -41,7 +41,7 @@ interface AlbumApi {
             ApiResponse(responseCode = "404", description = "앨범을 찾을 수 없음"),
         ],
     )
-    fun updateTitle(id: Long, request: UpdateAlbumTitleRequest): IdResponse
+    fun updateTitle(@Parameter(description = "앨범 ID", example = "1", required = true) id: Long, request: UpdateAlbumTitleRequest): IdResponse
 
     @Operation(
         summary = "앨범 삭제",
@@ -51,5 +51,5 @@ interface AlbumApi {
             ApiResponse(responseCode = "404", description = "앨범을 찾을 수 없음"),
         ],
     )
-    fun delete(id: Long)
+    fun delete(@Parameter(description = "앨범 ID", example = "1", required = true) id: Long)
 }

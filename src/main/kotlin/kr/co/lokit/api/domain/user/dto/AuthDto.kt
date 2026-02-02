@@ -5,7 +5,7 @@ import kr.co.lokit.api.domain.user.domain.User
 
 @Schema(description = "로그인 요청")
 data class LoginRequest(
-    @Schema(description = "사용자 이메일", example = "user@example.com")
+    @Schema(description = "사용자 이메일", example = "user@example.com", requiredMode = Schema.RequiredMode.REQUIRED)
     val email: String,
 ) {
     fun toDomain(): User =
@@ -17,7 +17,7 @@ data class LoginRequest(
 
 @Schema(description = "리프레시 토큰 요청")
 data class RefreshTokenRequest(
-    @Schema(description = "리프레시 토큰", example = "eyJhbGciOiJIUzI1NiJ9...")
+    @Schema(description = "리프레시 토큰", example = "eyJhbGciOiJIUzI1NiJ9...", requiredMode = Schema.RequiredMode.REQUIRED)
     val refreshToken: String,
 )
 

@@ -49,15 +49,15 @@ data class PhotoListResponse(
 @Schema(description = "사진 생성 요청")
 data class CreatePhotoRequest(
     @field:NotBlank(message = "사진 URL은 필수입니다.")
-    @Schema(description = "사진 URL", example = "https://bucket.s3.amazonaws.com/photos/1/image.jpg")
+    @Schema(description = "사진 URL", example = "https://bucket.s3.amazonaws.com/photos/1/image.jpg", requiredMode = Schema.RequiredMode.REQUIRED)
     val url: String,
-    @Schema(description = "앨범 ID", example = "1")
+    @Schema(description = "앨범 ID", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
     val albumId: Long,
-    @Schema(description = "경도", example = "127.0276")
+    @Schema(description = "경도", example = "127.0276", requiredMode = Schema.RequiredMode.REQUIRED)
     val longitude: Double,
-    @Schema(description = "위도", example = "37.4979")
+    @Schema(description = "위도", example = "37.4979", requiredMode = Schema.RequiredMode.REQUIRED)
     val latitude: Double,
-    @Schema(description = "촬영일시 (EXIF 데이터)", example = "2026-01-06T14:30:00")
+    @Schema(description = "촬영일시 (EXIF 데이터)", example = "2026-01-06T14:30:00", requiredMode = Schema.RequiredMode.REQUIRED)
     val takenAt: LocalDateTime,
     @Schema(description = "사진 설명", example = "가족 여행 사진")
     val description: String? = null,
@@ -74,20 +74,20 @@ data class PresignedUrl(
 @Schema(description = "Presigned URL 요청")
 data class PresignedUrlRequest(
     @field:NotBlank(message = "파일명은 필수입니다.")
-    @Schema(description = "파일명", example = "image.jpg")
+    @Schema(description = "파일명", example = "image.jpg", requiredMode = Schema.RequiredMode.REQUIRED)
     val fileName: String,
     @field:NotBlank(message = "파일 MIME 타입은 필수입니다.")
-    @Schema(description = "파일 MIME 타입", example = "image/jpeg")
+    @Schema(description = "파일 MIME 타입", example = "image/jpeg", requiredMode = Schema.RequiredMode.REQUIRED)
     val contentType: String,
 )
 
 @Schema(description = "사진 수정 요청")
 data class UpdatePhotoRequest(
-    @Schema(description = "앨범 ID", example = "1")
+    @Schema(description = "앨범 ID", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
     val albumId: Long,
-    @Schema(description = "경도", example = "127.0276")
+    @Schema(description = "경도", example = "127.0276", requiredMode = Schema.RequiredMode.REQUIRED)
     val longitude: Double,
-    @Schema(description = "위도", example = "37.4979")
+    @Schema(description = "위도", example = "37.4979", requiredMode = Schema.RequiredMode.REQUIRED)
     val latitude: Double,
     @Schema(description = "사진 설명", example = "수정된 사진 설명")
     val description: String? = null,
