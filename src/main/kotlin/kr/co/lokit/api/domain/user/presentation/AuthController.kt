@@ -1,11 +1,11 @@
 package kr.co.lokit.api.domain.user.presentation
 
+import io.swagger.v3.oas.annotations.Operation
 import kr.co.lokit.api.common.dto.IdResponse
 import kr.co.lokit.api.domain.user.application.AuthService
 import kr.co.lokit.api.domain.user.application.KakaoLoginService
 import kr.co.lokit.api.domain.user.application.TempLoginService
 import kr.co.lokit.api.domain.user.dto.JwtTokenResponse
-import kr.co.lokit.api.domain.user.dto.KakaoLoginRequest
 import kr.co.lokit.api.domain.user.dto.LoginRequest
 import kr.co.lokit.api.domain.user.dto.RefreshTokenRequest
 import kr.co.lokit.api.domain.user.infrastructure.oauth.KakaoOAuthProperties
@@ -40,7 +40,7 @@ class AuthController(
     ): IdResponse =
         IdResponse(
             tempLoginService
-                .login(request.email)
+                .login(request.email),
         )
 
     @PostMapping("refresh")
@@ -51,35 +51,49 @@ class AuthController(
             .refresh(request.refreshToken)
             .toJwtTokenResponse()
 
-    @PostMapping("kakao")
-    override fun kakaoLogin(
-        @RequestBody request: KakaoLoginRequest,
-    ): JwtTokenResponse =
-        kakaoLoginService.login(request.code)
+    @GetMapping("kakao/authorize")
+    override fun kakaoAuthorize(): ResponseEntity<Unit> {
+        val authUrl =
+            KakaoOAuthProperties.AUTHORIZATION_URL +
+                "?client_id=${kakaoOAuthProperties.clientId}" +
+                "&redirect_uri=${kakaoOAuthProperties.redirectUri}" +
+                "&response_type=code"
 
+        return ResponseEntity
+            .status(HttpStatus.FOUND)
+            .location(URI.create(authUrl))
+            .build()
+    }
+
+    @Operation(hidden = true)
     @GetMapping("kakao/callback")
     fun kakaoCallback(
         @RequestParam code: String,
     ): ResponseEntity<Unit> {
         val tokens = kakaoLoginService.login(code)
 
-        val accessTokenCookie = ResponseCookie.from("accessToken", tokens.accessToken)
-            .httpOnly(true)
-            .secure(cookieSecure)
-            .path("/")
-            .maxAge(86400)
-            .sameSite("Lax")
-            .build()
+        val accessTokenCookie =
+            ResponseCookie
+                .from("accessToken", tokens.accessToken)
+                .httpOnly(true)
+                .secure(cookieSecure)
+                .path("/")
+                .maxAge(86400)
+                .sameSite("Lax")
+                .build()
 
-        val refreshTokenCookie = ResponseCookie.from("refreshToken", tokens.refreshToken)
-            .httpOnly(true)
-            .secure(cookieSecure)
-            .path("/")
-            .maxAge(604800)
-            .sameSite("Lax")
-            .build()
+        val refreshTokenCookie =
+            ResponseCookie
+                .from("refreshToken", tokens.refreshToken)
+                .httpOnly(true)
+                .secure(cookieSecure)
+                .path("/")
+                .maxAge(604800)
+                .sameSite("Lax")
+                .build()
 
-        return ResponseEntity.status(HttpStatus.FOUND)
+        return ResponseEntity
+            .status(HttpStatus.FOUND)
             .header(HttpHeaders.SET_COOKIE, accessTokenCookie.toString())
             .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
             .location(URI.create(kakaoOAuthProperties.frontRedirectUri))
