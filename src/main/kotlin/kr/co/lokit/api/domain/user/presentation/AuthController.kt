@@ -26,8 +26,8 @@ class AuthController(
     private val kakaoLoginService: KakaoLoginService,
     private val kakaoOAuthProperties: KakaoOAuthProperties,
     @Value("\${cookie.secure:false}") private val cookieSecure: Boolean,
-    @Value("\${jwt.expiration}") private val accessTokenExpiration: Int,
-    @Value("\${jwt.refresh-expiration}") private val refreshTokenExpiration: Int,
+    @Value("\${jwt.expiration}") private val accessTokenExpiration: Long,
+    @Value("\${jwt.refresh-expiration}") private val refreshTokenExpiration: Long,
 ) : AuthApi {
 
     @PostMapping("refresh")
@@ -53,7 +53,7 @@ class AuthController(
     }
 
     @GetMapping("kakao/callback")
-    fun kakaoCallback(
+    override fun kakaoCallback(
         @RequestParam code: String,
     ): ResponseEntity<Unit> {
         val tokens = kakaoLoginService.login(code)
@@ -64,7 +64,7 @@ class AuthController(
                 .httpOnly(true)
                 .secure(cookieSecure)
                 .path("/")
-                .maxAge(accessTokenExpiration.toLong())
+                .maxAge(accessTokenExpiration)
                 .sameSite("Lax")
                 .build()
 
@@ -74,7 +74,7 @@ class AuthController(
                 .httpOnly(true)
                 .secure(cookieSecure)
                 .path("/")
-                .maxAge(refreshTokenExpiration.toLong())
+                .maxAge(refreshTokenExpiration)
                 .sameSite("Lax")
                 .build()
 

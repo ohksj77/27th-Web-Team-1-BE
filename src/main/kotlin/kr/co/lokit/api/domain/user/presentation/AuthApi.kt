@@ -11,6 +11,7 @@ import kr.co.lokit.api.domain.user.dto.JwtTokenResponse
 import kr.co.lokit.api.domain.user.dto.RefreshTokenRequest
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestParam
 
 @Tag(name = "Auth", description = "인증 API")
 interface AuthApi {
@@ -38,7 +39,6 @@ interface AuthApi {
     ): JwtTokenResponse
 
     @Operation(
-        hidden = true,
         summary = "카카오 로그인 페이지로 리다이렉트",
         description = "카카오 OAuth 인증 페이지로 리다이렉트합니다. 프론트엔드에서 이 URL로 이동하면 카카오 로그인 화면이 표시됩니다.",
     )
@@ -52,4 +52,9 @@ interface AuthApi {
     )
     @SecurityRequirements
     fun kakaoAuthorize(): ResponseEntity<Unit>
+
+    @Operation(hidden = true)
+    fun kakaoCallback(
+        @RequestParam code: String,
+    ): ResponseEntity<Unit>
 }
