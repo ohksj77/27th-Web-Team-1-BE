@@ -72,3 +72,10 @@ cors:
 kakao:
     api:
         key: ${KAKAO_API_KEY:}
+    client-id: ${KAKAO_CLIENT_ID}
+    client-secret: ${KAKAO_CLIENT_SECRET}
+    redirect-uri: ${KAKAO_REDIRECT_URI}
+    front-redirect-uri: ${KAKAO_FRONT_REDIRECT_URI}
+
+cookie:
+    secure: false

@@ -59,3 +59,10 @@ cors:
 kakao:
     api:
         key: test-key
+    client-id: test-client-id
+    client-secret: test-client-secret
+    redirect-uri: http://localhost:8080/api/auth/kakao/callback
+    front-redirect-uri: http://localhost:3000
+
+cookie:
+    secure: false

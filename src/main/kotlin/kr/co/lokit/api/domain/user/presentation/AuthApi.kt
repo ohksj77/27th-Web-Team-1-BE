@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirements
 import io.swagger.v3.oas.annotations.tags.Tag
 import kr.co.lokit.api.common.dto.IdResponse
 import kr.co.lokit.api.domain.user.dto.JwtTokenResponse
+import kr.co.lokit.api.domain.user.dto.KakaoLoginRequest
 import kr.co.lokit.api.domain.user.dto.LoginRequest
 import kr.co.lokit.api.domain.user.dto.RefreshTokenRequest
 import org.springframework.web.bind.annotation.RequestBody
@@ -64,5 +65,40 @@ interface AuthApi {
     @SecurityRequirements
     fun refresh(
         @RequestBody request: RefreshTokenRequest,
+    ): JwtTokenResponse
+
+    @Operation(
+        summary = "카카오 로그인",
+        description =
+            "카카오 인가 코드(Authorization Code)로 로그인/회원가입을 처리합니다. " +
+                "서버에서 카카오 토큰을 발급받아 사용자 정보를 조회하고, 기존 회원이면 로그인, 신규 회원이면 회원가입 후 JWT 토큰을 발급합니다.",
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "로그인/회원가입 성공",
+                content = [Content(schema = Schema(implementation = JwtTokenResponse::class))],
+            ),
+            ApiResponse(
+                responseCode = "400",
+                description = "카카오 계정에서 이메일 정보를 제공받지 못함",
+                content = [Content()],
+            ),
+            ApiResponse(
+                responseCode = "401",
+                description = "유효하지 않은 카카오 인가 코드",
+                content = [Content()],
+            ),
+            ApiResponse(
+                responseCode = "502",
+                description = "카카오 API 호출 실패",
+                content = [Content()],
+            ),
+        ],
+    )
+    @SecurityRequirements
+    fun kakaoLogin(
+        @RequestBody request: KakaoLoginRequest,
     ): JwtTokenResponse
 }
