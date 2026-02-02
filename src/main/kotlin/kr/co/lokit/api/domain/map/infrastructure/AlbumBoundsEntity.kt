@@ -8,7 +8,7 @@ import kr.co.lokit.api.common.entity.BaseEntity
 
 @Entity(name = "album_bounds")
 @Table(
-    indexes = [Index(columnList = "album_id"), Index(columnList = "standard_id")],
+    indexes = [Index(columnList = "standard_id")],
 )
 class AlbumBoundsEntity(
     @Column(name = "standard_id")

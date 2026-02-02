@@ -8,14 +8,14 @@ import jakarta.validation.constraints.Size
 data class AlbumRequest(
     @field:NotBlank(message = "앨범 제목은 필수입니다.")
     @field:Size(max = 10, message = "앨범 제목은 10자 이내여야 합니다.")
-    @Schema(description = "앨범 제목", example = "여행 앨범")
+    @Schema(description = "앨범 제목", example = "여행 앨범", requiredMode = Schema.RequiredMode.REQUIRED)
     val title: String,
 )
 
 @Schema(description = "앨범 제목 수정 요청")
 data class UpdateAlbumTitleRequest(
     @field:Size(max = 10, message = "앨범 제목은 10자 이내여야 합니다.")
-    @Schema(description = "앨범 제목", example = "새 앨범 이름")
+    @Schema(description = "앨범 제목", example = "새 앨범 이름", requiredMode = Schema.RequiredMode.REQUIRED)
     val title: String,
 )
 
