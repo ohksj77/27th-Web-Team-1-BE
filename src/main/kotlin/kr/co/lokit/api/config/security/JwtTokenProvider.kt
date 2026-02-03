@@ -20,8 +20,6 @@ class JwtTokenProvider(
         Keys.hmacShaKeyFor(secret.toByteArray())
     }
 
-    fun generateAccessToken(userDetails: UserDetails): String = generateAccessToken(userDetails.username)
-
     fun generateAccessToken(user: User): String = generateAccessToken(user.email)
 
     private fun generateAccessToken(subject: String): String {
