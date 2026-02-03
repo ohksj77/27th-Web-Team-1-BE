@@ -16,35 +16,15 @@
                         ("?(access_?token|refresh_?token|authorization|token)"?\s*[:=]\s*"?)(Bearer\s*)?[^"\s,]+
                         ]]>
                     </maskPattern>
-                    <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [%X{requestId}] [%X{clientIp}] [%X{requestMethod} %X{requestUri}] %-5level %logger{36} - %msg%n</pattern>
-                </layout>
-            </encoder>
-        </appender>
-
-        <appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-            <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-                <level>ERROR</level>
-            </filter>
-            <file>logs/error.log</file>
-            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-                <fileNamePattern>logs/error.%d{yyyy-MM-dd}.log</fileNamePattern>
-                <maxHistory>30</maxHistory>
-            </rollingPolicy>
-            <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
-                <layout class="kr.co.lokit.api.config.logging.MaskingJsonLayout">
-                    <prettyPrint>true</prettyPrint>
-                    <maskPattern>
-                        <![CDATA[
-                        ("?(access_?token|refresh_?token|authorization|token)"?\s*[:=]\s*"?)(Bearer\s*)?[^"\s,]+
-                        ]]>
-                    </maskPattern>
+                    <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [%X{requestId}] [%X{clientIp}] [%X{requestMethod}
+                        %X{requestUri}] %-5level %logger{36} - %msg%n
+                    </pattern>
                 </layout>
             </encoder>
         </appender>
 
         <root level="INFO">
             <appender-ref ref="CONSOLE"/>
-            <appender-ref ref="ERROR_FILE"/>
         </root>
         <logger name="kr.co.lokit.api" level="DEBUG"/>
     </springProfile>
@@ -72,7 +52,6 @@
             <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
                 <level>ERROR</level>
             </filter>
-            <file>logs/error.log</file>
             <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
                 <fileNamePattern>logs/error.%d{yyyy-MM-dd}.log</fileNamePattern>
                 <maxHistory>30</maxHistory>
@@ -95,7 +74,6 @@
 
         <root level="INFO">
             <appender-ref ref="JSON_CONSOLE"/>
-            <appender-ref ref="ERROR_FILE"/>
         </root>
     </springProfile>
 
