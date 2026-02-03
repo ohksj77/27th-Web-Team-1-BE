@@ -66,3 +66,4 @@ kakao:
 
 cookie:
     secure: false
+    domains: ""

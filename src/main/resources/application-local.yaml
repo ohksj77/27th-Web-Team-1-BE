@@ -79,6 +79,7 @@ kakao:
 
 cookie:
     secure: false
+    domains: ""
 
 discord:
     webhook:

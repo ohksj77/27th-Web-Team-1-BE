@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-    <property
-        name="MASK_PATTERN"
-        value='("?(access_?token|refresh_?token|authorization|token)"?\s*[:=]\s*"?)(Bearer\s*)?[^",\s\x7D]+'/>
 
 
     <springProfile name="local">
@@ -10,7 +7,10 @@
             <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
                 <layout class="kr.co.lokit.api.config.logging.MaskingPatternLayout">
                     <maskPattern>
-                        <![CDATA[("?(access_?token|refresh_?token|authorization|token)"?\s*[:=]\s*"?)(Bearer\s*)?[^",\s}]+]]></maskPattern>
+                        <![CDATA[
+                        ("?(access_?token|refresh_?token|authorization|token)"?\s*[:=]\s*"?)(Bearer\s*)?[^"\s,]+
+                        ]]>
+                    </maskPattern>
                     <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] [%X{requestId}] [%X{clientIp}] [%X{requestMethod}
                         %X{requestUri}] %-5level %logger{36} - %msg%n
                     </pattern>
@@ -28,7 +28,11 @@
         <appender name="JSON" class="ch.qos.logback.core.ConsoleAppender">
             <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
                 <layout class="kr.co.lokit.api.config.logging.MaskingJsonLayout">
-                    <maskPattern>${MASK_PATTERN}</maskPattern>
+                    <maskPattern>
+                        <![CDATA[
+                        ("?(access_?token|refresh_?token|authorization|token)"?\s*[:=]\s*"?)(Bearer\s*)?[^"\s,]+
+                        ]]>
+                    </maskPattern>
                 </layout>
             </encoder>
         </appender>
@@ -46,7 +50,11 @@
         <appender name="JSON" class="ch.qos.logback.core.ConsoleAppender">
             <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
                 <layout class="kr.co.lokit.api.config.logging.MaskingJsonLayout">
-                    <maskPattern>${MASK_PATTERN}</maskPattern>
+                    <maskPattern>
+                        <![CDATA[
+                        ("?(access_?token|refresh_?token|authorization|token)"?\s*[:=]\s*"?)(Bearer\s*)?[^"\s,]+
+                        ]]>
+                    </maskPattern>
                 </layout>
             </encoder>
         </appender>

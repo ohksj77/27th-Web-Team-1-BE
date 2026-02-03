@@ -1,5 +1,6 @@
 package kr.co.lokit.api.domain.user.presentation
 
+import kr.co.lokit.api.config.web.CookieProperties
 import kr.co.lokit.api.domain.user.application.AuthService
 import kr.co.lokit.api.domain.user.application.KakaoLoginService
 import kr.co.lokit.api.domain.user.dto.JwtTokenResponse
@@ -7,6 +8,7 @@ import kr.co.lokit.api.domain.user.dto.RefreshTokenRequest
 import kr.co.lokit.api.domain.user.infrastructure.oauth.KakaoOAuthProperties
 import kr.co.lokit.api.domain.user.mapping.toJwtTokenResponse
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseCookie
@@ -21,11 +23,12 @@ import java.net.URI
 
 @RestController
 @RequestMapping("auth")
+@EnableConfigurationProperties(CookieProperties::class)
 class AuthController(
     private val authService: AuthService,
     private val kakaoLoginService: KakaoLoginService,
     private val kakaoOAuthProperties: KakaoOAuthProperties,
-    @Value("\${cookie.secure:false}") private val cookieSecure: Boolean,
+    private val cookieProperties: CookieProperties,
     @Value("\${jwt.expiration}") private val accessTokenExpiration: Long,
     @Value("\${jwt.refresh-expiration}") private val refreshTokenExpiration: Long,
 ) : AuthApi {
@@ -77,13 +80,19 @@ class AuthController(
             .build()
     }
 
-    private fun createCookie(name: String, value: String, maxAge: Long): ResponseCookie =
-        ResponseCookie
+    private fun createCookie(name: String, value: String, maxAge: Long): ResponseCookie {
+        val builder = ResponseCookie
             .from(name, value)
             .httpOnly(true)
-            .secure(cookieSecure)
+            .secure(cookieProperties.secure)
             .path("/")
             .maxAge(maxAge)
-            .sameSite("Lax")
-            .build()
+            .sameSite(if (cookieProperties.secure) "None" else "Lax")
+
+        if (cookieProperties.domains.isNotBlank()) {
+            builder.domain(cookieProperties.domains)
+        }
+
+        return builder.build()
+    }
 }
