@@ -24,7 +24,52 @@
         <logger name="kr.co.lokit.api" level="DEBUG"/>
     </springProfile>
 
-    <springProfile name="dev, prod">
+    <springProfile name="dev">
+        <property name="LOG_PATH" value="${LOG_PATH:-/var/log/lokit}"/>
+
+        <appender name="JSON" class="ch.qos.logback.core.ConsoleAppender">
+            <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+                <level>INFO</level>
+            </filter>
+            <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+                <layout class="kr.co.lokit.api.config.logging.MaskingJsonLayout">
+                    <maskPattern>${MASK_PATTERN}</maskPattern>
+                </layout>
+            </encoder>
+        </appender>
+
+        <appender name="DEBUG_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>${LOG_PATH}/debug.log</file>
+            <filter class="ch.qos.logback.classic.filter.LevelFilter">
+                <level>DEBUG</level>
+                <onMatch>ACCEPT</onMatch>
+                <onMismatch>DENY</onMismatch>
+            </filter>
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <fileNamePattern>${LOG_PATH}/debug.%d{yyyy-MM-dd}.log</fileNamePattern>
+                <maxHistory>7</maxHistory>
+            </rollingPolicy>
+            <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+                <layout class="kr.co.lokit.api.config.logging.MaskingJsonLayout">
+                    <maskPattern>${MASK_PATTERN}</maskPattern>
+                </layout>
+            </encoder>
+        </appender>
+
+        <logger name="org.springframework.web.filter.OncePerRequestFilter" level="INFO"/>
+        <logger name="kr.co.lokit.api.config.logging.MdcLoggingFilter" level="INFO"/>
+        <logger name="kr.co.lokit.api.config.security.AuthenticationFilter" level="INFO"/>
+
+        <root level="INFO">
+            <appender-ref ref="JSON"/>
+        </root>
+
+        <logger name="kr.co.lokit.api" level="DEBUG" additivity="true">
+            <appender-ref ref="DEBUG_FILE"/>
+        </logger>
+    </springProfile>
+
+    <springProfile name="prod">
         <appender name="JSON" class="ch.qos.logback.core.ConsoleAppender">
             <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
                 <layout class="kr.co.lokit.api.config.logging.MaskingJsonLayout">
