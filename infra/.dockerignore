@@ -1,0 +1,13 @@
+.git
+.gitignore
+.gradle
+.idea
+*.iml
+build
+src
+gradle
+*.md
+.dockerignore
+Dockerfile
+.env
+.DS_Store
