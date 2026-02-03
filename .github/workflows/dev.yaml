@@ -111,8 +111,11 @@ jobs:
 
                         aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
 
-                        docker pull $ECR_REGISTRY/$ECR_REPOSITORY:dev-latest &
-                        PULL_PID=$!
+                        docker rm -f $CONTAINER_NAME 2>/dev/null || true
+
+                        docker image prune -af --filter "until=1h"
+
+                        docker pull $ECR_REGISTRY/$ECR_REPOSITORY:dev-latest
 
                         ENV_ARGS=""
                         while IFS= read -r line; do
@@ -125,11 +128,6 @@ jobs:
                             --region $AWS_REGION \
                             --query "Parameters[]" \
                             --output json | jq -c '.[]')
-
-                        wait $PULL_PID
-
-                        docker stop $CONTAINER_NAME 2>/dev/null || true
-                        docker rm $CONTAINER_NAME 2>/dev/null || true
 
                         docker run -d \
                             --name $CONTAINER_NAME \
@@ -150,8 +148,6 @@ jobs:
                             $ECR_REGISTRY/$ECR_REPOSITORY:dev-latest
 
                         docker ps --filter "name=$CONTAINER_NAME" --format "{{.Status}}"
-
-                        nohup docker image prune -af --filter "until=24h" > /dev/null 2>&1 &
 
             -   name: Remove Runner IP from Security Group
                 if: always()
