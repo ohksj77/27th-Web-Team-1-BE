@@ -36,7 +36,7 @@ interface AuthApi {
     @SecurityRequirements
     fun refresh(
         @RequestBody request: RefreshTokenRequest,
-    ): JwtTokenResponse
+    ): ResponseEntity<JwtTokenResponse>
 
     @Operation(
         summary = "카카오 로그인 페이지로 리다이렉트",

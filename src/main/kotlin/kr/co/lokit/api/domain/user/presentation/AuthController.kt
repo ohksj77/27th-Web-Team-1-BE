@@ -33,10 +33,18 @@ class AuthController(
     @PostMapping("refresh")
     override fun refresh(
         @RequestBody request: RefreshTokenRequest,
-    ): JwtTokenResponse =
-        authService
-            .refresh(request.refreshToken)
-            .toJwtTokenResponse()
+    ): ResponseEntity<JwtTokenResponse> {
+        val tokens = authService.refresh(request.refreshToken)
+
+        val accessTokenCookie = createCookie("accessToken", tokens.accessToken, accessTokenExpiration)
+        val refreshTokenCookie = createCookie("refreshToken", tokens.refreshToken, refreshTokenExpiration)
+
+        return ResponseEntity
+            .ok()
+            .header(HttpHeaders.SET_COOKIE, accessTokenCookie.toString())
+            .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
+            .body(tokens.toJwtTokenResponse())
+    }
 
     @GetMapping("kakao")
     override fun kakaoAuthorize(): ResponseEntity<Unit> {
@@ -58,25 +66,8 @@ class AuthController(
     ): ResponseEntity<Unit> {
         val tokens = kakaoLoginService.login(code)
 
-        val accessTokenCookie =
-            ResponseCookie
-                .from("accessToken", tokens.accessToken)
-                .httpOnly(true)
-                .secure(cookieSecure)
-                .path("/")
-                .maxAge(accessTokenExpiration)
-                .sameSite("Lax")
-                .build()
-
-        val refreshTokenCookie =
-            ResponseCookie
-                .from("refreshToken", tokens.refreshToken)
-                .httpOnly(true)
-                .secure(cookieSecure)
-                .path("/")
-                .maxAge(refreshTokenExpiration)
-                .sameSite("Lax")
-                .build()
+        val accessTokenCookie = createCookie("accessToken", tokens.accessToken, accessTokenExpiration)
+        val refreshTokenCookie = createCookie("refreshToken", tokens.refreshToken, refreshTokenExpiration)
 
         return ResponseEntity
             .status(HttpStatus.FOUND)
@@ -85,4 +76,14 @@ class AuthController(
             .location(URI.create(kakaoOAuthProperties.frontRedirectUri))
             .build()
     }
+
+    private fun createCookie(name: String, value: String, maxAge: Long): ResponseCookie =
+        ResponseCookie
+            .from(name, value)
+            .httpOnly(true)
+            .secure(cookieSecure)
+            .path("/")
+            .maxAge(maxAge)
+            .sameSite("Lax")
+            .build()
 }

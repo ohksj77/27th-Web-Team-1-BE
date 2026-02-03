@@ -12,11 +12,7 @@ import org.springframework.web.filter.OncePerRequestFilter
 class AuthenticationFilter(
     private val compositeAuthenticationResolver: CompositeAuthenticationResolver,
 ) : OncePerRequestFilter() {
-    override fun shouldNotFilter(request: HttpServletRequest): Boolean {
-        val uri = request.requestURI
-        logger.debug("Should Not Filter That Request URI: $uri")
-        return false
-    }
+    override fun shouldNotFilter(request: HttpServletRequest): Boolean = false
 
     override fun doFilterInternal(
         request: HttpServletRequest,
@@ -24,7 +20,7 @@ class AuthenticationFilter(
         filterChain: FilterChain,
     ) {
         try {
-            val credential = request.getHeader("Authorization")
+            val credential = getCredentialFromCookie(request) ?: request.getHeader("Authorization")
 
             if (credential != null && SecurityContextHolder.getContext().authentication == null) {
                 compositeAuthenticationResolver.authenticate(credential)?.let { authentication ->
@@ -41,4 +37,10 @@ class AuthenticationFilter(
 
         filterChain.doFilter(request, response)
     }
+
+    private fun getCredentialFromCookie(request: HttpServletRequest): String? =
+        request.cookies
+            ?.find { it.name == "accessToken" }
+            ?.value
+            ?.let { "Bearer $it" }
 }
