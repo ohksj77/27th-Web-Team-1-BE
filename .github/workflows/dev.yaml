@@ -111,7 +111,16 @@ jobs:
 
                         aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
 
+                        docker stop $CONTAINER_NAME 2>/dev/null || true
                         docker rm -f $CONTAINER_NAME 2>/dev/null || true
+
+                        for i in {1..10}; do
+                            if ! netstat -tuln 2>/dev/null | grep -q ':8080 ' && ! ss -tuln 2>/dev/null | grep -q ':8080 '; then
+                                break
+                            fi
+                            echo "Waiting for port 8080 to be released... ($i/10)"
+                            sleep 2
+                        done
 
                         docker image prune -af --filter "until=1h"
 
