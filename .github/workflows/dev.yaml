@@ -1,4 +1,4 @@
-name: Lokit Dev CI/CD
+name: Dev CI/CD
 
 on:
     push:
