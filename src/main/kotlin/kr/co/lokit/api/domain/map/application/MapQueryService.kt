@@ -35,16 +35,25 @@ class MapQueryService(
     override fun home(userId: Long, longitude: Double, latitude: Double): HomeResponse {
         val bBox = BBox.fromCenter(GridValues.HOME_ZOOM_LEVEL, longitude, latitude)
 
-        return StructuredConcurrency.run { scope ->
-            val locationFuture = scope.fork { mapClientPort.reverseGeocode(longitude, latitude) }
-            val albumsFuture = scope.fork {
-                transactionTemplate.execute {
-                    albumRepository.findAllByUserId(userId).sortedByDescending { it.isDefault }
-                }!!
+        val (locationFuture, albumsFuture) =
+            StructuredConcurrency.run { scope ->
+                Pair(
+                    scope.fork { mapClientPort.reverseGeocode(longitude, latitude) },
+                    scope.fork {
+                        transactionTemplate.execute {
+                            albumRepository
+                                .findAllByUserId(userId)
+                                .sortedByDescending { it.isDefault }
+                        }!!
+                    },
+                )
             }
 
-            HomeResponse.of(locationFuture.get(), albumsFuture.get(), bBox)
-        }
+        return HomeResponse.of(
+            locationFuture.get(),
+            albumsFuture.get(),
+            bBox,
+        )
     }
 
     @Transactional(readOnly = true)

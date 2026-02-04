@@ -37,25 +37,26 @@ class AuthService(
     }
 
     private fun generateTokensAndSave(user: User): JwtTokenResponse {
-        val (accessToken, refreshToken, userEntity) =
-            StructuredConcurrency.run { scope ->
-                val accessTokenFuture = scope.fork { jwtTokenProvider.generateAccessToken(user) }
-                val refreshTokenFuture = scope.fork { jwtTokenProvider.generateRefreshToken() }
-                val userEntityFuture = scope.fork {
-                    transactionTemplate.execute {
-                        userJpaRepository.findByIdOrNull(user.id)
-                            ?: throw BusinessException.UserNotFoundException(
-                                errors = mapOf("userId" to user.id.toString()),
-                            )
-                    }!!
-                }
 
+        val (accessTokenFuture, refreshTokenFuture, userEntityFuture) =
+            StructuredConcurrency.run { scope ->
                 Triple(
-                    accessTokenFuture.get(),
-                    refreshTokenFuture.get(),
-                    userEntityFuture.get(),
+                    scope.fork { jwtTokenProvider.generateAccessToken(user) },
+                    scope.fork { jwtTokenProvider.generateRefreshToken() },
+                    scope.fork {
+                        transactionTemplate.execute {
+                            userJpaRepository.findByIdOrNull(user.id)
+                                ?: throw BusinessException.UserNotFoundException(
+                                    errors = mapOf("userId" to user.id.toString()),
+                                )
+                        }!!
+                    },
                 )
             }
+
+        val accessToken = accessTokenFuture.get()
+        val refreshToken = refreshTokenFuture.get()
+        val userEntity = userEntityFuture.get()
 
         refreshTokenJpaRepository.deleteByUser(userEntity)
 
