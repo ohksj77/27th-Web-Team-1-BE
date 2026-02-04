@@ -20,7 +20,7 @@ class JpaAlbumBoundsRepository(
     }
 
     @Transactional(readOnly = true)
-    override fun findByAlbumIdOrNull(albumId: Long): AlbumBounds? =
+    override fun findByAlbumId(albumId: Long): AlbumBounds? =
         jpaRepository.findByStandardIdForRead(albumId)?.toDomain()
 
     @Transactional

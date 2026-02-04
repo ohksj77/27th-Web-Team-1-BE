@@ -20,16 +20,16 @@ class JpaAlbumRepository(
     private val coupleJpaRepository: CoupleJpaRepository,
     private val userJpaRepository: UserJpaRepository,
 ) : AlbumRepositoryPort {
-    
+
     private fun enrichDefaultAlbumWithAllPhotos(album: Album, coupleId: Long): Album {
         if (!album.isDefault) {
             return album
         }
 
         val allAlbums = findAllByCoupleIdInternal(coupleId)
-            .filter { !it.isDefault && it.id != album.id }
+            .filter { it.id != album.id }
 
-        val allPhotos = allAlbums.flatMap { it.photos }
+        val allPhotos = (album.photos + allAlbums.flatMap { it.photos })
             .distinctBy { it.id }
 
         val actualPhotoCount = allPhotos.size
@@ -108,7 +108,6 @@ class JpaAlbumRepository(
     override fun findAllWithPhotos(): List<Album> {
         val ids = albumJpaRepository.findAllAlbumIds()
         if (ids.isEmpty()) return emptyList()
-        // findAllByIds에서 이미 default 앨범 처리가 됨
         return findAllByIds(ids)
     }
 
@@ -151,12 +150,15 @@ class JpaAlbumRepository(
 
     @Transactional(readOnly = true)
     override fun findDefaultByUserId(userId: Long): Album? {
-        val couple = coupleJpaRepository.findByUserId(userId) ?: return null
-        return albumJpaRepository.findByCoupleIdAndIsDefaultTrue(couple.nonNullId())?.toDomain()
+        return albumJpaRepository.findByUserIdAndIsDefaultTrue(userId)?.toDomain()
     }
 
     @Transactional(readOnly = true)
     override fun existsByCoupleIdAndTitle(coupleId: Long, title: String): Boolean {
         return albumJpaRepository.existsByCoupleIdAndTitle(coupleId, title)
     }
+
+    @Transactional(readOnly = true)
+    override fun photoCountSumByUserId(userId: Long): Int =
+        albumJpaRepository.sumPhotoCountByUserId(userId) ?: 0
 }

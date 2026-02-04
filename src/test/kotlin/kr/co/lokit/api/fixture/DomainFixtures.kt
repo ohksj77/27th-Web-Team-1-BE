@@ -31,7 +31,14 @@ fun createAlbum(
     createdById: Long = 1L,
     photoCount: Int = 0,
     isDefault: Boolean = false,
-) = Album(id = id, title = title, coupleId = coupleId, createdById = createdById, photoCount = photoCount, isDefault = isDefault)
+) = Album(
+    id = id,
+    title = title,
+    coupleId = coupleId,
+    createdById = createdById,
+    photoCount = photoCount,
+    isDefault = isDefault
+)
 
 fun createPhoto(
     id: Long = 0L,
@@ -83,7 +90,7 @@ fun createAlbumBounds(
     maxLatitude: Double = 37.5,
 ) = AlbumBounds(
     id = id,
-    albumId = albumId,
+    standardId = albumId,
     minLongitude = minLongitude,
     maxLongitude = maxLongitude,
     minLatitude = minLatitude,

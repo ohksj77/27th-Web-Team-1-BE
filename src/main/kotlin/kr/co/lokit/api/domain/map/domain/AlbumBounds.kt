@@ -2,7 +2,7 @@ package kr.co.lokit.api.domain.map.domain
 
 data class AlbumBounds(
     val id: Long = 0,
-    val albumId: Long,
+    val standardId: Long,
     val minLongitude: Double,
     val maxLongitude: Double,
     val minLatitude: Double,
@@ -37,7 +37,7 @@ data class AlbumBounds(
     companion object {
         fun createInitial(albumId: Long, longitude: Double, latitude: Double): AlbumBounds =
             AlbumBounds(
-                albumId = albumId,
+                standardId = albumId,
                 minLongitude = longitude,
                 maxLongitude = longitude,
                 minLatitude = latitude,

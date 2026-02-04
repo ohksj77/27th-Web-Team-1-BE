@@ -18,6 +18,7 @@ class AlbumBoundsEventHandler(
     fun handlePhotoCreated(event: PhotoCreatedEvent) {
         albumBoundsService.updateBoundsOnPhotoAdd(
             albumId = event.albumId,
+            userId = event.userId,
             longitude = event.longitude,
             latitude = event.latitude,
         )
@@ -29,6 +30,7 @@ class AlbumBoundsEventHandler(
     fun handlePhotoLocationUpdated(event: PhotoLocationUpdatedEvent) {
         albumBoundsService.updateBoundsOnPhotoAdd(
             albumId = event.albumId,
+            userId = event.userId,
             longitude = event.longitude,
             latitude = event.latitude,
         )
