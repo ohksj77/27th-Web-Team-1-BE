@@ -44,7 +44,7 @@ class MapController(
         @PathVariable clusterId: String,
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "20") size: Int,
-    ): ClusterPhotosPageResponse = getMapUseCase.getClusterPhotos(clusterId, page, size)
+    ): ClusterPhotosPageResponse = getMapUseCase.getClusterPhotos(clusterId, userId, page, size)
 
     @GetMapping("albums/{albumId}")
     @PreAuthorize("@permissionService.canAccessAlbum(#userId, #albumId)")

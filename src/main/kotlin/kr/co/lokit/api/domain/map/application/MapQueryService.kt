@@ -66,7 +66,7 @@ class MapQueryService(
         return if (zoom < GridValues.CLUSTER_ZOOM_THRESHOLD) {
             getClusteredPhotos(zoom, bbox, userId, albumId)
         } else {
-            getIndividualPhotos(bbox, albumId)
+            getIndividualPhotos(bbox, userId, albumId)
         }
     }
 
@@ -94,12 +94,13 @@ class MapQueryService(
         )
     }
 
-    private fun getIndividualPhotos(bbox: BBox, albumId: Long? = null): MapPhotosResponse {
+    private fun getIndividualPhotos(bbox: BBox, userId: Long? = null, albumId: Long? = null): MapPhotosResponse {
         val photos = mapQueryPort.findPhotosWithinBBox(
             west = bbox.west,
             south = bbox.south,
             east = bbox.east,
             north = bbox.north,
+            userId = userId,
             albumId = albumId,
         )
 
@@ -111,6 +112,7 @@ class MapQueryService(
     @Transactional(readOnly = true)
     override fun getClusterPhotos(
         clusterId: String,
+        userId: Long?,
         page: Int,
         size: Int,
     ): ClusterPhotosPageResponse {
@@ -123,6 +125,7 @@ class MapQueryService(
                 south = bbox.south,
                 east = bbox.east,
                 north = bbox.north,
+                userId = userId,
                 page = page,
                 size = size,
             ).toClusterPhotosPageResponse()

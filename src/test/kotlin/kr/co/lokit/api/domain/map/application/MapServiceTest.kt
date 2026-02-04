@@ -82,7 +82,7 @@ class MapServiceTest {
         `when`(
             mapQueryPort.findPhotosWithinBBox(
                 west = anyDouble(), south = anyDouble(), east = anyDouble(), north = anyDouble(),
-                albumId = isNull(),
+                userId = isNull(), albumId = isNull(),
             ),
         ).thenReturn(photos)
 
