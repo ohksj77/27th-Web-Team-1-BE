@@ -27,7 +27,7 @@ interface CoupleJpaRepository : JpaRepository<CoupleEntity, Long> {
     @Query(
         """
         select c from Couple c
-        join c.coupleUsers cu
+        join fetch c.coupleUsers cu
         where cu.user.id = :userId
         """
     )

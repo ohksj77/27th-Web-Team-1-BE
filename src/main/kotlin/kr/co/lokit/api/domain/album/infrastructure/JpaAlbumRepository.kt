@@ -150,8 +150,7 @@ class JpaAlbumRepository(
 
     @Transactional(readOnly = true)
     override fun findDefaultByUserId(userId: Long): Album? {
-        val couple = coupleJpaRepository.findByUserId(userId) ?: return null
-        return albumJpaRepository.findByCoupleIdAndIsDefaultTrue(couple.nonNullId())?.toDomain()
+        return albumJpaRepository.findByUserIdAndIsDefaultTrue(userId)?.toDomain()
     }
 
     @Transactional(readOnly = true)
