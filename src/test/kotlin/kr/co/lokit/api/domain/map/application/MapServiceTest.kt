@@ -119,7 +119,7 @@ class MapServiceTest {
             minLongitude = 126.0, maxLongitude = 128.0,
             minLatitude = 37.0, maxLatitude = 38.0,
         )
-        `when`(albumBoundsRepository.findByAlbumIdOrNull(1L)).thenReturn(bounds)
+        `when`(albumBoundsRepository.findByAlbumId(1L)).thenReturn(bounds)
 
         val result = mapService.getAlbumMapInfo(1L)
 
@@ -131,7 +131,7 @@ class MapServiceTest {
 
     @Test
     fun `사진이 없는 앨범의 지도 정보는 null을 반환한다`() {
-        `when`(albumBoundsRepository.findByAlbumIdOrNull(1L)).thenReturn(null)
+        `when`(albumBoundsRepository.findByAlbumId(1L)).thenReturn(null)
 
         val result = mapService.getAlbumMapInfo(1L)
 

@@ -104,7 +104,7 @@ class MapQueryService(
 
     @Transactional(readOnly = true)
     override fun getAlbumMapInfo(albumId: Long): AlbumMapInfoResponse {
-        val bounds = albumBoundsRepository.findByAlbumIdOrNull(albumId)
+        val bounds = albumBoundsRepository.findByAlbumId(albumId)
         return bounds.toAlbumMapInfoResponse(albumId)
     }
 

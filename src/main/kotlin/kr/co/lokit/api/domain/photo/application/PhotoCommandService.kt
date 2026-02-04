@@ -61,12 +61,12 @@ class PhotoCommandService(
             eventPublisher.publishEvent(
                 PhotoCreatedEvent(
                     albumId = effectivePhoto.albumId!!,
+                    userId = saved.uploadedById,
                     longitude = effectivePhoto.location.longitude,
                     latitude = effectivePhoto.location.latitude,
                 ),
             )
         }
-
         return saved
     }
 
@@ -98,6 +98,7 @@ class PhotoCommandService(
             eventPublisher.publishEvent(
                 PhotoLocationUpdatedEvent(
                     albumId = updated.albumId!!,
+                    userId = result.uploadedById,
                     longitude = updated.location.longitude,
                     latitude = updated.location.latitude,
                 ),
