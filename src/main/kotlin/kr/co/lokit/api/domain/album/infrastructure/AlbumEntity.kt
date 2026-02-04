@@ -10,8 +10,8 @@ import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import kr.co.lokit.api.common.entity.BaseEntity
-import kr.co.lokit.api.domain.photo.infrastructure.PhotoEntity
 import kr.co.lokit.api.domain.couple.infrastructure.CoupleEntity
+import kr.co.lokit.api.domain.photo.infrastructure.PhotoEntity
 import kr.co.lokit.api.domain.user.infrastructure.UserEntity
 import java.time.LocalDateTime
 
@@ -50,12 +50,6 @@ class AlbumEntity(
     )
     var photos: MutableList<PhotoEntity> = mutableListOf()
         protected set
-
-    val thumbnail: PhotoEntity?
-        get() = photos.maxByOrNull { it.createdAt }
-
-    val thumbnails: List<PhotoEntity>
-        get() = photos.sortedByDescending { it.createdAt }.take(4)
 
     var photoAddedAt: LocalDateTime? = null
         protected set

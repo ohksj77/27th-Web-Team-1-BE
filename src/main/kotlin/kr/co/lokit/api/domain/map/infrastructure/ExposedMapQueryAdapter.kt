@@ -13,8 +13,8 @@ import kr.co.lokit.api.infrastructure.exposed.schema.PhotoTable
 import kr.co.lokit.api.infrastructure.exposed.toClusterProjections
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SortOrder
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
 
@@ -76,18 +76,22 @@ class ExposedMapQueryAdapter(
     }
 
     private fun buildDistinctOnQuery(albumId: Long?): String = buildString {
-        append("SELECT DISTINCT ON (url) ")
-        append("id, url, ")
+        append("SELECT id, url, ")
         append("ST_X(location) as longitude, ")
         append("ST_Y(location) as latitude, ")
         append("FLOOR(ST_X(location) / ?) as cell_x, ")
         append("FLOOR(ST_Y(location) / ?) as cell_y, ")
         append("created_at ")
-        append("FROM ${PhotoTable.tableName} ")
-        append("WHERE location && ST_MakeEnvelope(?, ?, ?, ?, 4326) ")
-        append("AND ${PhotoTable.isDeleted.name} = false ")
-        if (albumId != null) append("AND ${PhotoTable.albumId.name} = ? ")
-        append("ORDER BY url, created_at DESC")
+        append("FROM ( ")
+        append("  SELECT id, url, location, created_at, ")
+        append("         ROW_NUMBER() OVER (PARTITION BY url ORDER BY created_at DESC) as rn ")
+        append("  FROM ${PhotoTable.tableName} ")
+        append("  WHERE location && ST_MakeEnvelope(?, ?, ?, ?, 4326) ")
+        append("    AND ${PhotoTable.isDeleted.name} = false ")
+        if (albumId != null) append("    AND ${PhotoTable.albumId.name} = ? ")
+        append(") ranked ")
+        append("WHERE rn = 1 ")
+        append("ORDER BY created_at DESC")
     }
 
     override fun findPhotosWithinBBox(
@@ -129,18 +133,18 @@ class ExposedMapQueryAdapter(
     ): PageResult<ClusterPhotoProjection> = transaction(database) {
         val envelope = makeEnvelope(west, south, east, north)
         val offset = PageResult.calculateOffset(page, size)
-
-        val totalElements = PhotoTable
-            .selectAll()
-            .where { PhotoTable.location.intersects(envelope) and (PhotoTable.isDeleted eq false) }
-            .count()
-
         val longitudeExpr = PostGisExtensions.extractX(PhotoTable.location)
         val latitudeExpr = PostGisExtensions.extractY(PhotoTable.location)
 
+        val baseCondition = PhotoTable.location.intersects(envelope) and (PhotoTable.isDeleted eq false)
+
+        val totalElements = PhotoTable
+            .select { baseCondition }
+            .count()
+
         val content = PhotoTable
             .select(PhotoTable.id, PhotoTable.url, PhotoTable.takenAt, longitudeExpr, latitudeExpr)
-            .where { PhotoTable.location.intersects(envelope) and (PhotoTable.isDeleted eq false) }
+            .where { baseCondition }
             .orderBy(PhotoTable.takenAt, SortOrder.DESC)
             .limit(size).offset(offset)
             .map { row ->

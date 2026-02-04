@@ -58,14 +58,21 @@ fun Photo.toResponse(): PhotoResponse =
         takenAt = this.takenAt,
     )
 
-fun Album.toAlbumWithPhotosResponse(): AlbumWithPhotosResponse =
-    AlbumWithPhotosResponse(
+fun Album.toAlbumWithPhotosResponse(): AlbumWithPhotosResponse {
+    val actualPhotoCount = if (this.isDefault) {
+        this.photos.size
+    } else {
+        this.photoCount
+    }
+
+    return AlbumWithPhotosResponse(
         id = this.id,
         title = this.title,
-        photoCount = this.photoCount,
+        photoCount = actualPhotoCount,
         thumbnailUrl = this.thumbnail?.url,
         photos = this.photos.map { it.toResponse() },
     )
+}
 
 fun List<Album>.toPhotoListResponse(): PhotoListResponse =
     PhotoListResponse(

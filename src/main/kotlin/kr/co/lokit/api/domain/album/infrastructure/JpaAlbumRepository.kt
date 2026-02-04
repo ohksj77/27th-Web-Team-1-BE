@@ -32,17 +32,17 @@ class JpaAlbumRepository(
             .filter { !it.isDefault && it.id != album.id }
 
         val allPhotos = allAlbums.flatMap { it.photos }
+            .distinctBy { it.id }
+
+        val actualPhotoCount = allPhotos.size
 
         return album.copy(
-            photoCount = allPhotos.size
+            photoCount = actualPhotoCount
         ).apply {
             this.photos = allPhotos
         }
     }
 
-    /**
-     * userId를 통해 couple 내의 모든 앨범 조회 (내부용, default 앨범 처리 없음)
-     */
     private fun findAllByUserIdInternal(userId: Long): List<Album> {
         val ids = albumJpaRepository.findAlbumIdsByUserId(userId)
         if (ids.isEmpty()) {
@@ -112,10 +112,8 @@ class JpaAlbumRepository(
 
         val albums = ids.mapNotNull { entityMap[it]?.toDomain() }
 
-        // default 앨범이 있으면 처리 (coupleId를 통해 userId 찾기)
         return albums.map { album ->
             if (album.isDefault) {
-                // coupleId를 통해 userId 찾기 (couple의 첫 번째 사용자 사용)
                 val couple = coupleJpaRepository.findByIdFetchUsers(album.coupleId)
                     ?: return@map album
                 val userId = couple.coupleUsers.firstOrNull()?.user?.nonNullId()
@@ -136,11 +134,9 @@ class JpaAlbumRepository(
     override fun findByIdWithPhotos(id: Long, userId: Long?): List<Album> {
         val albums = albumJpaRepository.findByIdWithPhotos(id).map { it.toDomain() }
 
-        // default 앨범이 있으면 처리
         return albums.map { album ->
             if (album.isDefault) {
                 val effectiveUserId = userId ?: run {
-                    // userId가 없으면 coupleId를 통해 userId 찾기
                     val couple = coupleJpaRepository.findByIdFetchUsers(album.coupleId)
                         ?: return@map album
                     couple.coupleUsers.firstOrNull()?.user?.nonNullId()

@@ -160,10 +160,16 @@ data class HomeResponse(
 
         fun List<Album>.toAlbumThumbnails(): List<AlbumThumbnails> =
             this.map {
+                val actualPhotoCount = if (it.isDefault) {
+                    it.photos.size
+                } else {
+                    it.photoCount
+                }
+
                 AlbumThumbnails(
                     id = it.id,
                     title = it.title,
-                    photoCount = it.photoCount,
+                    photoCount = actualPhotoCount,
                     thumbnailUrls = it.thumbnails.map { thumbnail -> thumbnail.url }
                 )
             }
