@@ -60,10 +60,11 @@ class MapQueryService(
     override fun getPhotos(
         zoom: Int,
         bbox: BBox,
+        userId: Long?,
         albumId: Long?
     ): MapPhotosResponse {
         return if (zoom < GridValues.CLUSTER_ZOOM_THRESHOLD) {
-            getClusteredPhotos(zoom, bbox, albumId)
+            getClusteredPhotos(zoom, bbox, userId, albumId)
         } else {
             getIndividualPhotos(bbox, albumId)
         }
@@ -72,6 +73,7 @@ class MapQueryService(
     private fun getClusteredPhotos(
         zoom: Int,
         bbox: BBox,
+        userId: Long? = null,
         albumId: Long? = null,
     ): MapPhotosResponse {
         val gridSize = GridValues.getGridSize(zoom)
@@ -83,6 +85,7 @@ class MapQueryService(
                 east = bbox.east,
                 north = bbox.north,
                 gridSize = gridSize,
+                userId = userId,
                 albumId = albumId,
             )
 
@@ -92,14 +95,13 @@ class MapQueryService(
     }
 
     private fun getIndividualPhotos(bbox: BBox, albumId: Long? = null): MapPhotosResponse {
-        val photos =
-            mapQueryPort.findPhotosWithinBBox(
-                west = bbox.west,
-                south = bbox.south,
-                east = bbox.east,
-                north = bbox.north,
-                albumId = albumId,
-            )
+        val photos = mapQueryPort.findPhotosWithinBBox(
+            west = bbox.west,
+            south = bbox.south,
+            east = bbox.east,
+            north = bbox.north,
+            albumId = albumId,
+        )
 
         return MapPhotosResponse(
             photos = photos.map { it.toMapPhotoResponse() },
@@ -135,7 +137,8 @@ class MapQueryService(
     override fun getLocationInfo(longitude: Double, latitude: Double): LocationInfoResponse {
         val raw = mapClientPort.reverseGeocode(longitude, latitude)
         val header = AddressFormatter.toRoadHeader(raw.address, raw.roadName)
-        return raw.copy(address = header)
+        val formattedAddress = AddressFormatter.removeProvinceAndCity(header)
+        return raw.copy(address = formattedAddress)
     }
 
     override fun searchPlaces(query: String): PlaceSearchResponse =

@@ -1,5 +1,6 @@
 package kr.co.lokit.api.domain.map.presentation
 
+import kr.co.lokit.api.common.annotation.CurrentUser
 import kr.co.lokit.api.common.annotation.CurrentUserId
 import kr.co.lokit.api.domain.map.application.port.`in`.GetMapUseCase
 import kr.co.lokit.api.domain.map.application.port.`in`.SearchLocationUseCase
@@ -34,7 +35,7 @@ class MapController(
         @RequestParam bbox: String,
         @RequestParam(required = false) albumId: Long?,
     ): MapPhotosResponse {
-        return getMapUseCase.getPhotos(zoom, BBox.fromString(bbox), albumId)
+        return getMapUseCase.getPhotos(zoom, BBox.fromString(bbox), userId, albumId)
     }
 
     @GetMapping("clusters/{clusterId}/photos")

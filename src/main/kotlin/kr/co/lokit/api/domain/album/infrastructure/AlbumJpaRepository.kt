@@ -17,6 +17,15 @@ interface AlbumJpaRepository : JpaRepository<AlbumEntity, Long> {
 
     @Query(
         """
+        select a.id from Album a
+        where a.couple.id = :coupleId
+        order by a.updatedAt desc, a.createdAt desc
+        """
+    )
+    fun findAlbumIdsByCoupleId(coupleId: Long): List<Long>
+
+    @Query(
+        """
         select distinct a from Album a
         left join fetch a.photos p
         left join fetch p.uploadedBy

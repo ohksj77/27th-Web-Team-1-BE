@@ -9,6 +9,7 @@ interface MapQueryPort {
         east: Double,
         north: Double,
         gridSize: Double,
+        userId: Long? = null,
         albumId: Long? = null,
     ): List<ClusterProjection>
 

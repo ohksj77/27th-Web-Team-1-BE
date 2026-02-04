@@ -112,7 +112,7 @@ data class PlaceResponse(
     @Schema(description = "장소명", example = "스타벅스 강남역점")
     val placeName: String,
     @Schema(description = "지번 주소", example = "서울 강남구 역삼동 858")
-    val address: String,
+    val address: String?,
     @Schema(description = "도로명 주소", example = "서울 강남구 강남대로 396")
     val roadAddress: String?,
     @Schema(description = "경도", example = "127.0276")

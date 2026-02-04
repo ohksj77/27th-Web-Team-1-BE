@@ -19,16 +19,13 @@ class JpaAlbumRepository(
     private val coupleJpaRepository: CoupleJpaRepository,
     private val userJpaRepository: UserJpaRepository,
 ) : AlbumRepositoryPort {
-
-    /**
-     * default 앨범인 경우 couple 내의 다른 모든 앨범의 사진들을 합쳐서 반환
-     */
-    private fun enrichDefaultAlbumWithAllPhotos(album: Album, userId: Long): Album {
+    
+    private fun enrichDefaultAlbumWithAllPhotos(album: Album, coupleId: Long): Album {
         if (!album.isDefault) {
             return album
         }
 
-        val allAlbums = findAllByUserIdInternal(userId)
+        val allAlbums = findAllByCoupleIdInternal(coupleId)
             .filter { !it.isDefault && it.id != album.id }
 
         val allPhotos = allAlbums.flatMap { it.photos }
@@ -45,6 +42,17 @@ class JpaAlbumRepository(
 
     private fun findAllByUserIdInternal(userId: Long): List<Album> {
         val ids = albumJpaRepository.findAlbumIdsByUserId(userId)
+        if (ids.isEmpty()) {
+            return emptyList()
+        }
+        val entityMap =
+            albumJpaRepository.findAllWithPhotosByIds(ids).associateBy { it.nonNullId() }
+
+        return ids.mapNotNull { entityMap[it]?.toDomain() }
+    }
+
+    private fun findAllByCoupleIdInternal(coupleId: Long): List<Album> {
+        val ids = albumJpaRepository.findAlbumIdsByCoupleId(coupleId)
         if (ids.isEmpty()) {
             return emptyList()
         }
@@ -75,7 +83,7 @@ class JpaAlbumRepository(
 
         return albums.map { album ->
             if (album.isDefault) {
-                enrichDefaultAlbumWithAllPhotos(album, userId)
+                enrichDefaultAlbumWithAllPhotos(album, album.coupleId)
             } else {
                 album
             }
@@ -114,11 +122,7 @@ class JpaAlbumRepository(
 
         return albums.map { album ->
             if (album.isDefault) {
-                val couple = coupleJpaRepository.findByIdFetchUsers(album.coupleId)
-                    ?: return@map album
-                val userId = couple.coupleUsers.firstOrNull()?.user?.nonNullId()
-                    ?: return@map album
-                enrichDefaultAlbumWithAllPhotos(album, userId)
+                enrichDefaultAlbumWithAllPhotos(album, album.coupleId)
             } else {
                 album
             }
@@ -136,13 +140,7 @@ class JpaAlbumRepository(
 
         return albums.map { album ->
             if (album.isDefault) {
-                val effectiveUserId = userId ?: run {
-                    val couple = coupleJpaRepository.findByIdFetchUsers(album.coupleId)
-                        ?: return@map album
-                    couple.coupleUsers.firstOrNull()?.user?.nonNullId()
-                        ?: return@map album
-                }
-                enrichDefaultAlbumWithAllPhotos(album, effectiveUserId)
+                enrichDefaultAlbumWithAllPhotos(album, album.coupleId)
             } else {
                 album
             }

@@ -29,9 +29,10 @@ class ExposedMapQueryAdapter(
         east: Double,
         north: Double,
         gridSize: Double,
+        userId: Long?,
         albumId: Long?,
     ): List<ClusterProjection> = transaction(database) {
-        val uniquePhotos = queryUniquePhotosWithDistinctOn(west, south, east, north, gridSize, albumId)
+        val uniquePhotos = queryUniquePhotosWithDistinctOn(west, south, east, north, gridSize, userId, albumId)
         uniquePhotos.toClusterProjections()
     }
 
@@ -41,9 +42,10 @@ class ExposedMapQueryAdapter(
         east: Double,
         north: Double,
         gridSize: Double,
+        userId: Long?,
         albumId: Long?,
     ): List<UniquePhotoRecord> {
-        val sql = buildDistinctOnQuery(albumId)
+        val sql = buildDistinctOnQuery(userId, albumId)
 
         val conn = TransactionManager.current().connection
         val stmt = conn.prepareStatement(sql, false)
@@ -53,6 +55,7 @@ class ExposedMapQueryAdapter(
         stmt.set(paramIndex++, south)
         stmt.set(paramIndex++, east)
         stmt.set(paramIndex++, north)
+        if (userId != null) stmt.set(paramIndex++, userId)
         if (albumId != null) stmt.set(paramIndex++, albumId)
         stmt.set(paramIndex++, gridSize)
         stmt.set(paramIndex, gridSize)
@@ -76,20 +79,20 @@ class ExposedMapQueryAdapter(
         return results
     }
 
-    private fun buildDistinctOnQuery(albumId: Long?): String = buildString {
-        append("SELECT id, url, ")
-        append("ST_X(location) as longitude, ")
-        append("ST_Y(location) as latitude, ")
-        append("FLOOR(ST_X(location) / ?) as cell_x, ")
-        append("FLOOR(ST_Y(location) / ?) as cell_y, ")
-        append("created_at ")
-        append("FROM ( ")
-        append("  SELECT id, url, location, created_at, ")
-        append("         ROW_NUMBER() OVER (PARTITION BY url ORDER BY created_at DESC) as rn ")
-        append("  FROM ${PhotoTable.tableName} ")
-        append("  WHERE location && ST_MakeEnvelope(?, ?, ?, ?, 4326) ")
-        append("    AND ${PhotoTable.isDeleted.name} = false ")
-        if (albumId != null) append("    AND ${PhotoTable.albumId.name} = ? ")
+    private fun buildDistinctOnQuery(userId: Long?, albumId: Long?): String = buildString {
+        append("SELECT id, url, longitude, latitude, cell_x, cell_y, created_at FROM ( ")
+        append("  SELECT p.id, p.url, p.location, p.created_at, ")
+        append("         ST_X(p.location) as longitude, ST_Y(p.location) as latitude, ")
+        append("         FLOOR(ST_X(p.location) / ?) as cell_x, ")
+        append("         FLOOR(ST_Y(p.location) / ?) as cell_y, ")
+        append("         ROW_NUMBER() OVER (PARTITION BY p.url ORDER BY p.created_at DESC) as rn ")
+        append("  FROM ${PhotoTable.tableName} p ")
+        append("  JOIN album a ON p.album_id = a.id ")
+        append("  JOIN couple_user cu ON a.couple_id = cu.couple_id ")
+        append("  WHERE p.location && ST_MakeEnvelope(?, ?, ?, ?, 4326) ")
+        append("    AND p.is_deleted = false ")
+        if (userId != null) append("    AND cu.user_id = ? ")
+        if (albumId != null) append("    AND p.album_id = ? ")
         append(") ranked ")
         append("WHERE rn = 1 ")
         append("ORDER BY created_at DESC")

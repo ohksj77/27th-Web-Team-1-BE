@@ -1,5 +1,6 @@
 package kr.co.lokit.api.domain.map.infrastructure.geocoding
 
+import kr.co.lokit.api.domain.map.application.AddressFormatter
 import kr.co.lokit.api.domain.map.dto.LocationInfoResponse
 import kr.co.lokit.api.domain.map.dto.PlaceResponse
 import org.springframework.beans.factory.annotation.Value
@@ -42,11 +43,30 @@ class KakaoMapClient(
         val roadAddress = document?.roadAddress
         val address = document?.address
 
+        val formattedAddress = if (roadAddress != null) {
+            AddressFormatter.buildAddressFromRegions(
+                region3depthName = roadAddress.region3depthName,
+                roadName = roadAddress.roadName,
+                buildingNo = roadAddress.mainBuildingNo,
+                subBuildingNo = roadAddress.subBuildingNo,
+            )
+        } else {
+            address?.let {
+                AddressFormatter.buildAddressFromRegions(
+                    region3depthName = it.region3depthName,
+                    addressNo = it.mainAddressNo,
+                    subAddressNo = it.subAddressNo,
+                )
+            }
+        }
+
+        val regionName = address?.region2depthName ?: roadAddress?.region2depthName
+
         return LocationInfoResponse(
-            address = roadAddress?.addressName ?: address?.addressName,
+            address = formattedAddress,
             roadName = roadAddress?.roadName,
             placeName = roadAddress?.buildingName?.takeIf { it.isNotBlank() },
-            regionName = address?.region2depthName ?: roadAddress?.region2depthName,
+            regionName = AddressFormatter.removeProvinceAndCity(regionName),
         )
     }
 
@@ -66,8 +86,8 @@ class KakaoMapClient(
         return response?.documents?.map { doc ->
             PlaceResponse(
                 placeName = doc.placeName,
-                address = doc.addressName,
-                roadAddress = doc.roadAddressName.takeIf { it.isNotBlank() },
+                address = AddressFormatter.removeProvinceAndCity(doc.addressName),
+                roadAddress = AddressFormatter.removeProvinceAndCity(doc.roadAddressName.takeIf { it.isNotBlank() }),
                 longitude = doc.x.toDoubleOrNull() ?: 0.0,
                 latitude = doc.y.toDoubleOrNull() ?: 0.0,
                 category = extractCategory(doc.categoryName),
