@@ -8,6 +8,7 @@ import kr.co.lokit.api.domain.map.dto.AlbumMapInfoResponse
 import kr.co.lokit.api.domain.map.dto.ClusterPhotosPageResponse
 import kr.co.lokit.api.domain.map.dto.HomeResponse
 import kr.co.lokit.api.domain.map.dto.LocationInfoResponse
+import kr.co.lokit.api.domain.map.dto.MapMeResponse
 import kr.co.lokit.api.domain.map.dto.MapPhotosResponse
 import kr.co.lokit.api.domain.map.dto.PlaceSearchResponse
 import org.springframework.security.access.prepost.PreAuthorize
@@ -27,6 +28,18 @@ class MapController(
     override fun home(@CurrentUserId userId: Long, longitude: Double, latitude: Double): HomeResponse =
         getMapUseCase.home(userId, longitude, latitude)
 
+    @GetMapping("me")
+    override fun getMe(
+        @CurrentUserId userId: Long,
+        @RequestParam longitude: Double,
+        @RequestParam latitude: Double,
+        @RequestParam zoom: Int,
+        @RequestParam bbox: String,
+        @RequestParam(required = false) albumId: Long?,
+    ): MapMeResponse {
+        return getMapUseCase.getMe(userId, longitude, latitude, zoom, BBox.fromString(bbox), albumId)
+    }
+
     @GetMapping("photos")
     override fun getPhotos(
         @CurrentUserId userId: Long,
@@ -34,7 +47,7 @@ class MapController(
         @RequestParam bbox: String,
         @RequestParam(required = false) albumId: Long?,
     ): MapPhotosResponse {
-        return getMapUseCase.getPhotos(zoom, BBox.fromString(bbox), albumId)
+        return getMapUseCase.getPhotos(zoom, BBox.fromString(bbox), userId, albumId)
     }
 
     @GetMapping("clusters/{clusterId}/photos")
@@ -43,7 +56,7 @@ class MapController(
         @PathVariable clusterId: String,
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "20") size: Int,
-    ): ClusterPhotosPageResponse = getMapUseCase.getClusterPhotos(clusterId, page, size)
+    ): ClusterPhotosPageResponse = getMapUseCase.getClusterPhotos(clusterId, userId, page, size)
 
     @GetMapping("albums/{albumId}")
     @PreAuthorize("@permissionService.canAccessAlbum(#userId, #albumId)")

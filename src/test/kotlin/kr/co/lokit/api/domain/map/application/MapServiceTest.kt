@@ -59,11 +59,11 @@ class MapServiceTest {
         `when`(
             mapQueryPort.findClustersWithinBBox(
                 west = anyDouble(), south = anyDouble(), east = anyDouble(), north = anyDouble(),
-                gridSize = anyDouble(), albumId = isNull(),
+                gridSize = anyDouble(), userId = isNull(), albumId = isNull(),
             ),
         ).thenReturn(clusters)
 
-        val result = mapService.getPhotos(12, BBox(126.9, 37.4, 127.1, 37.6))
+        val result = mapService.getPhotos(12, BBox(126.9, 37.4, 127.1, 37.6), null)
 
         assertNotNull(result.clusters)
         assertEquals(1, result.clusters.size)
@@ -82,11 +82,11 @@ class MapServiceTest {
         `when`(
             mapQueryPort.findPhotosWithinBBox(
                 west = anyDouble(), south = anyDouble(), east = anyDouble(), north = anyDouble(),
-                albumId = isNull(),
+                userId = isNull(), albumId = isNull(),
             ),
         ).thenReturn(photos)
 
-        val result = mapService.getPhotos(18, BBox(126.9, 37.4, 127.1, 37.6))
+        val result = mapService.getPhotos(18, BBox(126.9, 37.4, 127.1, 37.6), null)
 
         assertNotNull(result.photos)
         assertEquals(1, result.photos.size)

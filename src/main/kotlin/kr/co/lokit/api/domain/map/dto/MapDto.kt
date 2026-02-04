@@ -112,7 +112,7 @@ data class PlaceResponse(
     @Schema(description = "장소명", example = "스타벅스 강남역점")
     val placeName: String,
     @Schema(description = "지번 주소", example = "서울 강남구 역삼동 858")
-    val address: String,
+    val address: String?,
     @Schema(description = "도로명 주소", example = "서울 강남구 강남대로 396")
     val roadAddress: String?,
     @Schema(description = "경도", example = "127.0276")
@@ -137,8 +137,7 @@ data class HomeResponse(
     val boundingBox: BoundingBoxResponse,
     @Schema(description = "앨범 하이라이트 사진들 (최대 4장)")
     val albums: List<AlbumThumbnails>,
-
-    ) {
+) {
     companion object {
         @Schema(description = "앨범 썸네일 정보")
         data class AlbumThumbnails(
@@ -160,12 +159,32 @@ data class HomeResponse(
 
         fun List<Album>.toAlbumThumbnails(): List<AlbumThumbnails> =
             this.map {
+                val actualPhotoCount = if (it.isDefault) {
+                    it.photos.size
+                } else {
+                    it.photoCount
+                }
+
                 AlbumThumbnails(
                     id = it.id,
                     title = it.title,
-                    photoCount = it.photoCount,
+                    photoCount = actualPhotoCount,
                     thumbnailUrls = it.thumbnails.map { thumbnail -> thumbnail.url }
                 )
             }
     }
 }
+
+@Schema(description = "지도 ME 응답 (홈 + 사진 조회 통합)")
+data class MapMeResponse(
+    @Schema(description = "위치 정보")
+    val location: LocationInfoResponse,
+    @Schema(description = "바운딩 박스")
+    val boundingBox: BoundingBoxResponse,
+    @Schema(description = "앨범 하이라이트 사진들 (최대 4장)")
+    val albums: List<HomeResponse.Companion.AlbumThumbnails>,
+    @Schema(description = "클러스터 목록 (줌 < 15일 때)")
+    val clusters: List<ClusterResponse>? = null,
+    @Schema(description = "개별 사진 목록 (줌 >= 15일 때)")
+    val photos: List<MapPhotoResponse>? = null,
+)

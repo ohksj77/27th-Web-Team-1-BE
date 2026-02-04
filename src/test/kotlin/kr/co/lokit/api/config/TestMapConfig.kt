@@ -21,6 +21,7 @@ class TestMapConfig {
             east: Double,
             north: Double,
             gridSize: Double,
+            userId: Long?,
             albumId: Long?,
         ): List<ClusterProjection> = emptyList()
 

@@ -5,7 +5,7 @@ import kr.co.lokit.api.domain.photo.domain.Photo
 data class Album(
     val id: Long = 0L,
     val title: String,
-    val coupleId: Long,
+    val coupleId: Long = 0L,
     val createdById: Long = 0L,
     val photoCount: Int = 0,
     val isDefault: Boolean = false,

@@ -3,6 +3,7 @@ package kr.co.lokit.api.domain.photo.application
 import kr.co.lokit.api.common.util.DateTimeUtils.toDateString
 import kr.co.lokit.api.domain.album.application.port.AlbumRepositoryPort
 import kr.co.lokit.api.domain.album.domain.Album
+import kr.co.lokit.api.domain.map.application.AddressFormatter
 import kr.co.lokit.api.domain.map.application.port.MapClientPort
 import kr.co.lokit.api.domain.photo.application.port.PhotoRepositoryPort
 import kr.co.lokit.api.domain.photo.application.port.`in`.GetPhotoDetailUseCase
@@ -37,7 +38,7 @@ class PhotoQueryService(
             takenAt = photoDetail.takenAt?.toDateString()!!,
             albumName = photoDetail.albumName,
             uploaderName = photoDetail.uploaderName,
-            address = locationInfo.address,
+            address = AddressFormatter.removeProvinceAndCity(locationInfo.address),
             description = photoDetail.description,
         )
     }

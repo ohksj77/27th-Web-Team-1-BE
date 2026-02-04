@@ -9,6 +9,7 @@ interface MapQueryPort {
         east: Double,
         north: Double,
         gridSize: Double,
+        userId: Long? = null,
         albumId: Long? = null,
     ): List<ClusterProjection>
 
@@ -17,6 +18,7 @@ interface MapQueryPort {
         south: Double,
         east: Double,
         north: Double,
+        userId: Long? = null,
         albumId: Long? = null,
     ): List<PhotoProjection>
 
@@ -25,6 +27,7 @@ interface MapQueryPort {
         south: Double,
         east: Double,
         north: Double,
+        userId: Long? = null,
         page: Int,
         size: Int,
     ): PageResult<ClusterPhotoProjection>
