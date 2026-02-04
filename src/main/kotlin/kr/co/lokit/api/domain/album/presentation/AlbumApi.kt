@@ -38,18 +38,27 @@ interface AlbumApi {
         description = "앨범의 제목을 수정합니다.",
         responses = [
             ApiResponse(responseCode = "200", description = "앨범 제목 수정 성공"),
+            ApiResponse(responseCode = "403", description = "앨범 수정 권한 없음"),
             ApiResponse(responseCode = "404", description = "앨범을 찾을 수 없음"),
         ],
     )
-    fun updateTitle(@Parameter(description = "앨범 ID", example = "1", required = true) id: Long, request: UpdateAlbumTitleRequest): IdResponse
+    fun updateTitle(
+        @Parameter(hidden = true) userId: Long,
+        @Parameter(description = "앨범 ID", example = "1", required = true) id: Long,
+        request: UpdateAlbumTitleRequest,
+    ): IdResponse
 
     @Operation(
         summary = "앨범 삭제",
         description = "앨범을 삭제합니다.",
         responses = [
             ApiResponse(responseCode = "204", description = "앨범 삭제 성공"),
+            ApiResponse(responseCode = "403", description = "앨범 삭제 권한 없음"),
             ApiResponse(responseCode = "404", description = "앨범을 찾을 수 없음"),
         ],
     )
-    fun delete(@Parameter(description = "앨범 ID", example = "1", required = true) id: Long)
+    fun delete(
+        @Parameter(hidden = true) userId: Long,
+        @Parameter(description = "앨범 ID", example = "1", required = true) id: Long,
+    )
 }

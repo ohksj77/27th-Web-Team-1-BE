@@ -1,11 +1,11 @@
 package kr.co.lokit.api.fixture
 
 import kr.co.lokit.api.domain.album.dto.AlbumRequest
+import kr.co.lokit.api.domain.couple.dto.CreateCoupleRequest
+import kr.co.lokit.api.domain.couple.dto.JoinCoupleRequest
 import kr.co.lokit.api.domain.photo.dto.CreatePhotoRequest
 import kr.co.lokit.api.domain.photo.dto.PresignedUrlRequest
 import kr.co.lokit.api.domain.photo.dto.UpdatePhotoRequest
-import kr.co.lokit.api.domain.workspace.dto.CreateWorkspaceRequest
-import kr.co.lokit.api.domain.workspace.dto.JoinWorkspaceRequest
 import java.time.LocalDateTime
 
 fun createAlbumRequest(
@@ -45,10 +45,10 @@ fun createPresignedUrlRequest(
     contentType: String = "image/jpeg",
 ) = PresignedUrlRequest(fileName = fileName, contentType = contentType)
 
-fun createWorkspaceRequest(
+fun createCoupleRequest(
     name: String = "테스트",
-) = CreateWorkspaceRequest(name = name)
+) = CreateCoupleRequest(name = name)
 
-fun createJoinWorkspaceRequest(
+fun createJoinCoupleRequest(
     inviteCode: String = "12345678",
-) = JoinWorkspaceRequest(inviteCode = inviteCode)
+) = JoinCoupleRequest(inviteCode = inviteCode)

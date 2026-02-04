@@ -11,28 +11,32 @@ import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import kr.co.lokit.api.common.entity.BaseEntity
 import kr.co.lokit.api.domain.photo.infrastructure.PhotoEntity
-import kr.co.lokit.api.domain.workspace.infrastructure.WorkspaceEntity
+import kr.co.lokit.api.domain.couple.infrastructure.CoupleEntity
+import kr.co.lokit.api.domain.user.infrastructure.UserEntity
 import java.time.LocalDateTime
 
 @Entity(name = "Album")
 @Table(
     indexes = [
         Index(columnList = "photo_added_at, created_at"),
-        Index(columnList = "workspace_id"),
+        Index(columnList = "couple_id"),
     ],
 )
 class AlbumEntity(
     @Column(nullable = false, length = 10)
     var title: String,
     @ManyToOne
-    @JoinColumn(name = "workspace_id", nullable = false)
-    val workspace: WorkspaceEntity,
+    @JoinColumn(name = "couple_id", nullable = false)
+    val couple: CoupleEntity,
+    @ManyToOne
+    @JoinColumn(name = "created_by", nullable = false)
+    val createdBy: UserEntity,
     @Column(nullable = false, columnDefinition = "boolean not null default false")
     val isDefault: Boolean = false,
 ) : BaseEntity() {
 
     init {
-        workspace.addAlbum(this)
+        couple.addAlbum(this)
     }
 
     @Column(nullable = false)

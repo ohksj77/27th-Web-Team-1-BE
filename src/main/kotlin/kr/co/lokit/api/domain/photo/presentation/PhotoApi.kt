@@ -35,9 +35,17 @@ interface PhotoApi {
                 description = "인증 필요",
                 content = [Content()],
             ),
+            ApiResponse(
+                responseCode = "403",
+                description = "접근 권한 없음",
+                content = [Content()],
+            ),
         ],
     )
-    fun getPhotos(@Parameter(description = "앨범 ID (0이면 전체 조회)", example = "1") albumId: Long): PhotoListResponse
+    fun getPhotos(
+        @Parameter(hidden = true) userId: Long,
+        @Parameter(description = "앨범 ID (0이면 전체 조회)", example = "1") albumId: Long,
+    ): PhotoListResponse
 
     @Operation(
         summary = "Presigned URL 발급",
@@ -85,6 +93,11 @@ interface PhotoApi {
                 content = [Content()],
             ),
             ApiResponse(
+                responseCode = "403",
+                description = "접근 권한 없음",
+                content = [Content()],
+            ),
+            ApiResponse(
                 responseCode = "404",
                 description = "사진을 찾을 수 없음 (PHOTO_001)",
                 content = [Content()],
@@ -92,6 +105,7 @@ interface PhotoApi {
         ],
     )
     fun getPhotoDetail(
+        @Parameter(hidden = true) userId: Long,
         @Parameter(
             description = "사진 ID",
             example = "1",
@@ -107,10 +121,12 @@ interface PhotoApi {
     @ApiResponses(
         value = [
             ApiResponse(responseCode = "200", description = "수정 성공"),
+            ApiResponse(responseCode = "403", description = "수정 권한 없음", content = [Content()]),
             ApiResponse(responseCode = "404", description = "사진을 찾을 수 없음 (PHOTO_001)", content = [Content()]),
         ],
     )
     fun update(
+        @Parameter(hidden = true) userId: Long,
         @Parameter(description = "사진 ID", example = "1", required = true)
         id: Long,
         request: UpdatePhotoRequest,
@@ -123,10 +139,12 @@ interface PhotoApi {
     @ApiResponses(
         value = [
             ApiResponse(responseCode = "204", description = "삭제 성공"),
+            ApiResponse(responseCode = "403", description = "삭제 권한 없음", content = [Content()]),
             ApiResponse(responseCode = "404", description = "사진을 찾을 수 없음 (PHOTO_001)", content = [Content()]),
         ],
     )
     fun delete(
+        @Parameter(hidden = true) userId: Long,
         @Parameter(description = "사진 ID", example = "1", required = true)
         id: Long,
     )

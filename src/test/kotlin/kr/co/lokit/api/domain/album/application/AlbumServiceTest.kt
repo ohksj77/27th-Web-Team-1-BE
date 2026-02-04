@@ -1,7 +1,7 @@
 package kr.co.lokit.api.domain.album.application
 
 import kr.co.lokit.api.common.exception.BusinessException
-import kr.co.lokit.api.domain.album.infrastructure.AlbumRepository
+import kr.co.lokit.api.domain.album.application.port.AlbumRepositoryPort
 import kr.co.lokit.api.fixture.createAlbum
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -17,21 +17,37 @@ import kotlin.test.assertEquals
 class AlbumServiceTest {
 
     @Mock
-    lateinit var albumRepository: AlbumRepository
+    lateinit var albumRepository: AlbumRepositoryPort
 
     @InjectMocks
-    lateinit var albumService: AlbumService
+    lateinit var albumCommandService: AlbumCommandService
+
+    @InjectMocks
+    lateinit var albumQueryService: AlbumQueryService
 
     @Test
     fun `앨범을 생성할 수 있다`() {
         val album = createAlbum(title = "여행")
         val savedAlbum = createAlbum(id = 1L, title = "여행")
+        `when`(albumRepository.findDefaultByUserId(1L)).thenReturn(createAlbum(coupleId = 1L, isDefault = true))
+        `when`(albumRepository.existsByCoupleIdAndTitle(1L, "여행")).thenReturn(false)
         `when`(albumRepository.save(album, 1L)).thenReturn(savedAlbum)
 
-        val result = albumService.create(album, 1L)
+        val result = albumCommandService.create(album, 1L)
 
         assertEquals(1L, result.id)
         assertEquals("여행", result.title)
+    }
+
+    @Test
+    fun `동일한 이름의 앨범이 있으면 생성할 수 없다`() {
+        val album = createAlbum(title = "여행")
+        `when`(albumRepository.findDefaultByUserId(1L)).thenReturn(createAlbum(coupleId = 1L, isDefault = true))
+        `when`(albumRepository.existsByCoupleIdAndTitle(1L, "여행")).thenReturn(true)
+
+        assertThrows<BusinessException.AlbumAlreadyExistsException> {
+            albumCommandService.create(album, 1L)
+        }
     }
 
     @Test
@@ -42,7 +58,7 @@ class AlbumServiceTest {
         )
         `when`(albumRepository.findAllByUserId(1L)).thenReturn(albums)
 
-        val result = albumService.getSelectableAlbums(1L)
+        val result = albumQueryService.getSelectableAlbums(1L)
 
         assertEquals(2, result.size)
         assertEquals("앨범1", result[0].title)
@@ -51,43 +67,55 @@ class AlbumServiceTest {
 
     @Test
     fun `앨범 제목을 수정할 수 있다`() {
-        val album = createAlbum(id = 1L, title = "기존 제목")
-        val updatedAlbum = createAlbum(id = 1L, title = "새 제목")
+        val album = createAlbum(id = 1L, title = "기존 제목", coupleId = 1L, createdById = 1L)
+        val updatedAlbum = createAlbum(id = 1L, title = "새 제목", coupleId = 1L, createdById = 1L)
         `when`(albumRepository.findById(1L)).thenReturn(album)
+        `when`(albumRepository.existsByCoupleIdAndTitle(1L, "새 제목")).thenReturn(false)
         `when`(albumRepository.applyTitle(1L, "새 제목")).thenReturn(updatedAlbum)
 
-        val result = albumService.updateTitle(1L, "새 제목")
+        val result = albumCommandService.updateTitle(1L, "새 제목")
 
         assertEquals("새 제목", result.title)
     }
 
     @Test
+    fun `수정하려는 제목이 이미 존재하면 수정할 수 없다`() {
+        val album = createAlbum(id = 1L, title = "기존 제목", coupleId = 1L, createdById = 1L)
+        `when`(albumRepository.findById(1L)).thenReturn(album)
+        `when`(albumRepository.existsByCoupleIdAndTitle(1L, "중복 제목")).thenReturn(true)
+
+        assertThrows<BusinessException.AlbumAlreadyExistsException> {
+            albumCommandService.updateTitle(1L, "중복 제목")
+        }
+    }
+
+    @Test
     fun `기본 앨범의 제목은 수정할 수 없다`() {
-        val defaultAlbum = createAlbum(id = 1L, title = "default", isDefault = true)
+        val defaultAlbum = createAlbum(id = 1L, title = "default", isDefault = true, createdById = 1L)
         `when`(albumRepository.findById(1L)).thenReturn(defaultAlbum)
 
-        assertThrows<BusinessException.BusinessRuleViolationException> {
-            albumService.updateTitle(1L, "새 제목")
+        assertThrows<BusinessException.DefaultAlbumTitleChangeNotAllowedException> {
+            albumCommandService.updateTitle(1L, "새 제목")
         }
     }
 
     @Test
     fun `앨범을 삭제할 수 있다`() {
-        val album = createAlbum(id = 1L, title = "여행")
+        val album = createAlbum(id = 1L, title = "여행", createdById = 1L)
         `when`(albumRepository.findById(1L)).thenReturn(album)
 
-        albumService.delete(1L)
+        albumCommandService.delete(1L)
 
         verify(albumRepository).deleteById(1L)
     }
 
     @Test
     fun `기본 앨범은 삭제할 수 없다`() {
-        val defaultAlbum = createAlbum(id = 1L, title = "default", isDefault = true)
+        val defaultAlbum = createAlbum(id = 1L, title = "default", isDefault = true, createdById = 1L)
         `when`(albumRepository.findById(1L)).thenReturn(defaultAlbum)
 
-        assertThrows<BusinessException.BusinessRuleViolationException> {
-            albumService.delete(1L)
+        assertThrows<BusinessException.DefaultAlbumDeletionNotAllowedException> {
+            albumCommandService.delete(1L)
         }
     }
 }

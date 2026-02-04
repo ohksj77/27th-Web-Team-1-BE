@@ -7,9 +7,9 @@ interface AlbumJpaRepository : JpaRepository<AlbumEntity, Long> {
     @Query(
         """
         select a.id from Album a
-        join a.workspace w
-        join w.workspaceUsers wu
-        where wu.user.id = :userId
+        join a.couple c
+        join c.coupleUsers cu
+        where cu.user.id = :userId
         order by a.updatedAt desc, a.createdAt desc
         """
     )
@@ -43,5 +43,7 @@ interface AlbumJpaRepository : JpaRepository<AlbumEntity, Long> {
     )
     fun findByIdWithPhotos(id: Long): List<AlbumEntity>
 
-    fun findByWorkspaceIdAndIsDefaultTrue(workspaceId: Long): AlbumEntity?
+    fun findByCoupleIdAndIsDefaultTrue(coupleId: Long): AlbumEntity?
+
+    fun existsByCoupleIdAndTitle(coupleId: Long, title: String): Boolean
 }

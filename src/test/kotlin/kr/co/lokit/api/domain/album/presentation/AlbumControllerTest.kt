@@ -2,11 +2,14 @@ package kr.co.lokit.api.domain.album.presentation
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import kr.co.lokit.api.common.exception.BusinessException
+import kr.co.lokit.api.common.permission.PermissionService
 import kr.co.lokit.api.config.security.CompositeAuthenticationResolver
 import kr.co.lokit.api.config.security.JwtTokenProvider
 import kr.co.lokit.api.config.web.CookieGenerator
 import kr.co.lokit.api.config.web.CookieProperties
-import kr.co.lokit.api.domain.album.application.AlbumService
+import kr.co.lokit.api.domain.album.application.port.`in`.CreateAlbumUseCase
+import kr.co.lokit.api.domain.album.application.port.`in`.GetAlbumUseCase
+import kr.co.lokit.api.domain.album.application.port.`in`.UpdateAlbumUseCase
 import kr.co.lokit.api.domain.album.dto.AlbumRequest
 import kr.co.lokit.api.domain.album.dto.UpdateAlbumTitleRequest
 import kr.co.lokit.api.domain.user.application.AuthService
@@ -24,7 +27,6 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
 import org.springframework.http.MediaType
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
@@ -60,12 +62,21 @@ class AlbumControllerTest {
     lateinit var cookieGenerator: CookieGenerator
 
     @MockitoBean
-    lateinit var albumService: AlbumService
+    lateinit var createAlbumUseCase: CreateAlbumUseCase
+
+    @MockitoBean
+    lateinit var getAlbumUseCase: GetAlbumUseCase
+
+    @MockitoBean
+    lateinit var updateAlbumUseCase: UpdateAlbumUseCase
+
+    @MockitoBean
+    lateinit var permissionService: PermissionService
 
     @Test
     fun `앨범 생성 성공`() {
         val savedAlbum = createAlbum(id = 1L, title = "여행")
-        doReturn(savedAlbum).`when`(albumService).create(anyObject(), anyLong())
+        doReturn(savedAlbum).`when`(createAlbumUseCase).create(anyObject(), anyLong())
 
         mockMvc.perform(
             post("/albums")
@@ -92,11 +103,11 @@ class AlbumControllerTest {
     @Test
     fun `앨범 제목 수정 성공`() {
         val updatedAlbum = createAlbum(id = 1L, title = "새 제목")
-        doReturn(updatedAlbum).`when`(albumService).updateTitle(anyLong(), anyString())
+        doReturn(updatedAlbum).`when`(updateAlbumUseCase).updateTitle(anyLong(), anyString())
 
         mockMvc.perform(
             patch("/albums/1")
-                .with(user("test").roles("USER"))
+                .with(authentication(userAuth()))
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(UpdateAlbumTitleRequest(title = "새 제목"))),
@@ -108,7 +119,7 @@ class AlbumControllerTest {
     fun `앨범 제목 수정 실패 - 제목이 10자 초과`() {
         mockMvc.perform(
             patch("/albums/1")
-                .with(user("test").roles("USER"))
+                .with(authentication(userAuth()))
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(UpdateAlbumTitleRequest(title = "12345678901"))),
@@ -118,11 +129,11 @@ class AlbumControllerTest {
 
     @Test
     fun `앨범 삭제 성공`() {
-        doNothing().`when`(albumService).delete(1L)
+        doNothing().`when`(updateAlbumUseCase).delete(anyLong())
 
         mockMvc.perform(
             delete("/albums/1")
-                .with(user("test").roles("USER"))
+                .with(authentication(userAuth()))
                 .with(csrf()),
         )
             .andExpect(status().isNoContent)
@@ -131,11 +142,11 @@ class AlbumControllerTest {
     @Test
     fun `앨범 삭제 실패 - 존재하지 않는 앨범`() {
         doThrow(BusinessException.ResourceNotFoundException("Album(id=999)을(를) 찾을 수 없습니다"))
-            .`when`(albumService).delete(999L)
+            .`when`(updateAlbumUseCase).delete(anyLong())
 
         mockMvc.perform(
             delete("/albums/999")
-                .with(user("test").roles("USER"))
+                .with(authentication(userAuth()))
                 .with(csrf()),
         )
             .andExpect(status().isNotFound)

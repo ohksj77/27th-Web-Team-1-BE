@@ -148,3 +148,4 @@ application-env.yaml
 .claude
 .idea
 env.properties
+*.json

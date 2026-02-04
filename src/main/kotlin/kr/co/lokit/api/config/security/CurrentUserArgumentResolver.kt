@@ -3,8 +3,6 @@ package kr.co.lokit.api.config.security
 import kr.co.lokit.api.common.annotation.CurrentUser
 import kr.co.lokit.api.common.exception.BusinessException
 import kr.co.lokit.api.domain.user.domain.User
-import kr.co.lokit.api.domain.user.infrastructure.UserEntity
-import kr.co.lokit.api.domain.user.mapping.toDomain
 import org.springframework.core.MethodParameter
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
@@ -29,10 +27,15 @@ class CurrentUserArgumentResolver : HandlerMethodArgumentResolver {
             SecurityContextHolder.getContext().authentication
                 ?: throw BusinessException.UnauthorizedException()
 
-        val userEntity =
-            authentication.principal as? UserEntity
+        val principal =
+            authentication.principal as? UserPrincipal
                 ?: throw BusinessException.UnauthorizedException("Invalid authentication principal")
 
-        return userEntity.toDomain()
+        return User(
+            id = principal.id,
+            email = principal.username,
+            name = principal.name,
+            role = principal.role,
+        )
     }
 }
