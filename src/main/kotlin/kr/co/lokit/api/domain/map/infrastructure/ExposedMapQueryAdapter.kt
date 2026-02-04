@@ -6,16 +6,9 @@ import kr.co.lokit.api.domain.map.application.port.ClusterProjection
 import kr.co.lokit.api.domain.map.application.port.MapQueryPort
 import kr.co.lokit.api.domain.map.application.port.PhotoProjection
 import kr.co.lokit.api.domain.map.application.port.UniquePhotoRecord
-import kr.co.lokit.api.infrastructure.exposed.PostGisExtensions
-import kr.co.lokit.api.infrastructure.exposed.PostGisExtensions.makeEnvelope
-import kr.co.lokit.api.infrastructure.exposed.intersects
 import kr.co.lokit.api.infrastructure.exposed.schema.PhotoTable
 import kr.co.lokit.api.infrastructure.exposed.toClusterProjections
 import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.SortOrder
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
 
@@ -51,14 +44,14 @@ class ExposedMapQueryAdapter(
         val stmt = conn.prepareStatement(sql, false)
 
         var paramIndex = 1
+        stmt.set(paramIndex++, gridSize)
+        stmt.set(paramIndex++, gridSize)
         stmt.set(paramIndex++, west)
         stmt.set(paramIndex++, south)
         stmt.set(paramIndex++, east)
         stmt.set(paramIndex++, north)
         if (userId != null) stmt.set(paramIndex++, userId)
         if (albumId != null) stmt.set(paramIndex++, albumId)
-        stmt.set(paramIndex++, gridSize)
-        stmt.set(paramIndex, gridSize)
 
         val results = mutableListOf<UniquePhotoRecord>()
         stmt.executeQuery().use { rs ->
