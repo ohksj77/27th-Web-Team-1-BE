@@ -15,6 +15,7 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SortOrder
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
 
@@ -139,7 +140,8 @@ class ExposedMapQueryAdapter(
         val baseCondition = PhotoTable.location.intersects(envelope) and (PhotoTable.isDeleted eq false)
 
         val totalElements = PhotoTable
-            .select { baseCondition }
+            .selectAll()
+            .where { baseCondition }
             .count()
 
         val content = PhotoTable
