@@ -6,6 +6,7 @@ import kr.co.lokit.api.domain.user.domain.User
 import kr.co.lokit.api.domain.user.dto.JwtTokenResponse
 import kr.co.lokit.api.domain.user.infrastructure.RefreshTokenEntity
 import kr.co.lokit.api.domain.user.infrastructure.RefreshTokenJpaRepository
+import kr.co.lokit.api.domain.user.infrastructure.UserEntity
 import kr.co.lokit.api.domain.user.infrastructure.UserJpaRepository
 import kr.co.lokit.api.domain.user.mapping.toDomain
 import org.springframework.data.repository.findByIdOrNull
@@ -39,7 +40,7 @@ class AuthService(
     private fun generateTokensAndSave(user: User): JwtTokenResponse {
         val accessToken: String
         val refreshToken: String
-        val userEntity: kr.co.lokit.api.domain.user.infrastructure.UserEntity
+        val userEntity: UserEntity
 
         StructuredTaskScope.ShutdownOnFailure().use { scope ->
             val accessTokenFuture = scope.fork { jwtTokenProvider.generateAccessToken(user) }

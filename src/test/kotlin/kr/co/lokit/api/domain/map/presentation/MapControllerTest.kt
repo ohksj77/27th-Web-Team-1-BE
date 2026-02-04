@@ -11,13 +11,16 @@ import kr.co.lokit.api.domain.map.dto.LocationInfoResponse
 import kr.co.lokit.api.domain.map.dto.MapPhotosResponse
 import kr.co.lokit.api.domain.map.dto.PlaceSearchResponse
 import kr.co.lokit.api.domain.user.application.AuthService
+import kr.co.lokit.api.fixture.userAuth
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.anyDouble
 import org.mockito.ArgumentMatchers.anyInt
+import org.mockito.ArgumentMatchers.anyLong
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.doReturn
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
@@ -58,7 +61,7 @@ class MapControllerTest {
 
         mockMvc.perform(
             get("/map/photos")
-                .with(user("test").roles("USER"))
+                .with(authentication(userAuth()))
                 .param("zoom", "12")
                 .param("bbox", "126.9,37.4,127.1,37.6"),
         )
@@ -73,11 +76,11 @@ class MapControllerTest {
             centerLatitude = 37.5,
             boundingBox = BoundingBoxResponse(west = 126.0, south = 37.0, east = 128.0, north = 38.0),
         )
-        doReturn(response).`when`(mapService).getAlbumMapInfo(1L)
+        doReturn(response).`when`(mapService).getAlbumMapInfo(anyLong())
 
         mockMvc.perform(
             get("/map/albums/1")
-                .with(user("test").roles("USER")),
+                .with(authentication(userAuth())),
         )
             .andExpect(status().isOk)
     }

@@ -2,12 +2,12 @@ package kr.co.lokit.api.fixture
 
 import kr.co.lokit.api.common.constant.UserRole
 import kr.co.lokit.api.domain.album.domain.Album
+import kr.co.lokit.api.domain.couple.domain.Couple
 import kr.co.lokit.api.domain.map.domain.AlbumBounds
 import kr.co.lokit.api.domain.photo.domain.Location
 import kr.co.lokit.api.domain.photo.domain.Photo
 import kr.co.lokit.api.domain.photo.domain.PhotoDetail
 import kr.co.lokit.api.domain.user.domain.User
-import kr.co.lokit.api.domain.workspace.domain.Workspace
 import java.time.LocalDateTime
 
 fun createUser(
@@ -17,20 +17,21 @@ fun createUser(
     role: UserRole = UserRole.USER,
 ) = User(id = id, email = email, name = name, role = role)
 
-fun createWorkspace(
+fun createCouple(
     id: Long = 0L,
     name: String = "테스트",
     inviteCode: String? = null,
     userIds: List<Long> = emptyList(),
-) = Workspace(id = id, name = name, inviteCode = inviteCode, userIds = userIds)
+) = Couple(id = id, name = name, inviteCode = inviteCode, userIds = userIds)
 
 fun createAlbum(
     id: Long = 0L,
     title: String = "여행",
-    workspaceId: Long = 1L,
+    coupleId: Long = 1L,
+    createdById: Long = 1L,
     photoCount: Int = 0,
     isDefault: Boolean = false,
-) = Album(id = id, title = title, workspaceId = workspaceId, photoCount = photoCount, isDefault = isDefault)
+) = Album(id = id, title = title, coupleId = coupleId, createdById = createdById, photoCount = photoCount, isDefault = isDefault)
 
 fun createPhoto(
     id: Long = 0L,

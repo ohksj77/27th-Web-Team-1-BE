@@ -25,7 +25,6 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
 import org.springframework.http.MediaType
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
@@ -94,11 +93,11 @@ class PhotoControllerTest {
             address = "서울 강남구",
             description = "테스트",
         )
-        doReturn(response).`when`(photoService).getPhotoDetail(1L)
+        doReturn(response).`when`(photoService).getPhotoDetail(anyLong())
 
         mockMvc.perform(
             get("/photos/1")
-                .with(user("test").roles("USER")),
+                .with(authentication(userAuth())),
         )
             .andExpect(status().isOk)
     }
@@ -106,11 +105,11 @@ class PhotoControllerTest {
     @Test
     fun `존재하지 않는 사진 상세 조회 실패`() {
         doThrow(BusinessException.ResourceNotFoundException("Photo(id=999)을(를) 찾을 수 없습니다"))
-            .`when`(photoService).getPhotoDetail(999L)
+            .`when`(photoService).getPhotoDetail(anyLong())
 
         mockMvc.perform(
             get("/photos/999")
-                .with(user("test").roles("USER")),
+                .with(authentication(userAuth())),
         )
             .andExpect(status().isNotFound)
     }
@@ -133,11 +132,11 @@ class PhotoControllerTest {
 
     @Test
     fun `사진 삭제 성공`() {
-        doNothing().`when`(photoService).delete(1L)
+        doNothing().`when`(photoService).delete(anyLong())
 
         mockMvc.perform(
             delete("/photos/1")
-                .with(user("test").roles("USER"))
+                .with(authentication(userAuth()))
                 .with(csrf()),
         )
             .andExpect(status().isNoContent)

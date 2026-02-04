@@ -51,8 +51,8 @@ class AlbumServiceTest {
 
     @Test
     fun `앨범 제목을 수정할 수 있다`() {
-        val album = createAlbum(id = 1L, title = "기존 제목")
-        val updatedAlbum = createAlbum(id = 1L, title = "새 제목")
+        val album = createAlbum(id = 1L, title = "기존 제목", createdById = 1L)
+        val updatedAlbum = createAlbum(id = 1L, title = "새 제목", createdById = 1L)
         `when`(albumRepository.findById(1L)).thenReturn(album)
         `when`(albumRepository.applyTitle(1L, "새 제목")).thenReturn(updatedAlbum)
 
@@ -63,7 +63,7 @@ class AlbumServiceTest {
 
     @Test
     fun `기본 앨범의 제목은 수정할 수 없다`() {
-        val defaultAlbum = createAlbum(id = 1L, title = "default", isDefault = true)
+        val defaultAlbum = createAlbum(id = 1L, title = "default", isDefault = true, createdById = 1L)
         `when`(albumRepository.findById(1L)).thenReturn(defaultAlbum)
 
         assertThrows<BusinessException.BusinessRuleViolationException> {
@@ -73,7 +73,7 @@ class AlbumServiceTest {
 
     @Test
     fun `앨범을 삭제할 수 있다`() {
-        val album = createAlbum(id = 1L, title = "여행")
+        val album = createAlbum(id = 1L, title = "여행", createdById = 1L)
         `when`(albumRepository.findById(1L)).thenReturn(album)
 
         albumService.delete(1L)
@@ -83,7 +83,7 @@ class AlbumServiceTest {
 
     @Test
     fun `기본 앨범은 삭제할 수 없다`() {
-        val defaultAlbum = createAlbum(id = 1L, title = "default", isDefault = true)
+        val defaultAlbum = createAlbum(id = 1L, title = "default", isDefault = true, createdById = 1L)
         `when`(albumRepository.findById(1L)).thenReturn(defaultAlbum)
 
         assertThrows<BusinessException.BusinessRuleViolationException> {

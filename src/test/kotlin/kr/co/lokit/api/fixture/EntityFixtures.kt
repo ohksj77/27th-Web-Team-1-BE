@@ -3,12 +3,13 @@ package kr.co.lokit.api.fixture
 import kr.co.lokit.api.common.constant.UserRole
 import kr.co.lokit.api.common.entity.BaseEntity
 import kr.co.lokit.api.domain.album.infrastructure.AlbumEntity
+import kr.co.lokit.api.domain.couple.infrastructure.CoupleEntity
 import kr.co.lokit.api.domain.map.infrastructure.AlbumBoundsEntity
 import kr.co.lokit.api.domain.photo.infrastructure.PhotoEntity
 import kr.co.lokit.api.domain.user.infrastructure.UserEntity
-import kr.co.lokit.api.domain.workspace.infrastructure.WorkspaceEntity
 import org.locationtech.jts.geom.Point
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.authority.SimpleGrantedAuthority
 import java.time.LocalDateTime
 
 private fun setEntityId(entity: BaseEntity, id: Long) {
@@ -32,11 +33,11 @@ fun createUserEntity(
     return entity
 }
 
-fun createWorkspaceEntity(
+fun createCoupleEntity(
     id: Long? = null,
     name: String = "테스트",
-): WorkspaceEntity {
-    val entity = WorkspaceEntity(name = name)
+): CoupleEntity {
+    val entity = CoupleEntity(name = name)
     id?.let { setEntityId(entity, it) }
     return entity
 }
@@ -44,9 +45,10 @@ fun createWorkspaceEntity(
 fun createAlbumEntity(
     id: Long? = null,
     title: String = "여행",
-    workspace: WorkspaceEntity = createWorkspaceEntity(),
+    couple: CoupleEntity = createCoupleEntity(),
+    createdBy: UserEntity = createUserEntity(),
 ): AlbumEntity {
-    val entity = AlbumEntity(title = title, workspace = workspace)
+    val entity = AlbumEntity(title = title, couple = couple, createdBy = createdBy)
     id?.let { setEntityId(entity, it) }
     return entity
 }
@@ -96,5 +98,5 @@ fun userAuth(
     role: UserRole = UserRole.USER,
 ): UsernamePasswordAuthenticationToken {
     val userEntity = createUserEntity(id = id, email = email, name = name, role = role)
-    return UsernamePasswordAuthenticationToken(userEntity, null, userEntity.authorities)
+    return UsernamePasswordAuthenticationToken(userEntity, null, listOf(SimpleGrantedAuthority(userEntity.role.name)))
 }

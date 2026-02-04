@@ -95,7 +95,7 @@ class PhotoService(
         albumId: Long,
         description: String?,
         longitude: Double,
-        latitude: Double
+        latitude: Double,
     ): Photo {
         val photo = photoRepository.findById(id)
         val updated = photo.copy(
@@ -119,8 +119,9 @@ class PhotoService(
     }
 
     @Transactional
-    fun delete(photoId: Long) =
+    fun delete(photoId: Long) {
         photoRepository.deleteById(photoId)
+    }
 
     companion object {
         const val KEY_TEMPLATE = "photos/%s/%s"

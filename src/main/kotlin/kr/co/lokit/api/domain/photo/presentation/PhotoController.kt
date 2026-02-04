@@ -15,6 +15,7 @@ import kr.co.lokit.api.domain.photo.dto.UpdatePhotoRequest
 import kr.co.lokit.api.domain.photo.mapping.toDomain
 import kr.co.lokit.api.domain.photo.mapping.toPhotoListResponse
 import org.springframework.http.HttpStatus
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -31,7 +32,11 @@ class PhotoController(
     private val photoService: PhotoService,
 ) : PhotoApi {
     @GetMapping("album/{albumId}")
-    override fun getPhotos(@PathVariable albumId: Long): PhotoListResponse =
+    @PreAuthorize("@permissionService.canAccessAlbum(#userId, #albumId)")
+    override fun getPhotos(
+        @CurrentUserId userId: Long,
+        @PathVariable albumId: Long,
+    ): PhotoListResponse =
         photoService.getPhotosByAlbum(albumId).toPhotoListResponse()
 
     @PostMapping("presigned-url")
@@ -48,12 +53,16 @@ class PhotoController(
     ): IdResponse = photoService.create(request.toDomain(userId)).toIdResponse(Photo::id)
 
     @GetMapping("{id}")
+    @PreAuthorize("@permissionService.canReadPhoto(#userId, #id)")
     override fun getPhotoDetail(
+        @CurrentUserId userId: Long,
         @PathVariable id: Long,
     ): PhotoDetailResponse = photoService.getPhotoDetail(id)
 
     @PutMapping("{id}")
+    @PreAuthorize("@permissionService.canModifyPhoto(#userId, #id)")
     override fun update(
+        @CurrentUserId userId: Long,
         @PathVariable id: Long,
         @RequestBody @Valid request: UpdatePhotoRequest,
     ): IdResponse =
@@ -62,7 +71,9 @@ class PhotoController(
 
     @DeleteMapping("{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("@permissionService.canDeletePhoto(#userId, #id)")
     override fun delete(
+        @CurrentUserId userId: Long,
         @PathVariable id: Long,
     ) = photoService.delete(id)
 }

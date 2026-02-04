@@ -54,9 +54,15 @@ interface MapApi {
                 description = "인증 필요",
                 content = [Content()],
             ),
+            ApiResponse(
+                responseCode = "403",
+                description = "접근 권한 없음",
+                content = [Content()],
+            ),
         ],
     )
     fun getPhotos(
+        @Parameter(hidden = true) userId: Long,
         @Parameter(
             description = "줌 레벨 (0-20). 16 미만이면 클러스터링, 16 이상이면 개별 사진 반환",
             example = "12",
@@ -105,9 +111,15 @@ interface MapApi {
                 description = "인증 필요",
                 content = [Content()],
             ),
+            ApiResponse(
+                responseCode = "403",
+                description = "접근 권한 없음",
+                content = [Content()],
+            ),
         ],
     )
     fun getClusterPhotos(
+        @Parameter(hidden = true) userId: Long,
         @Parameter(
             description = "클러스터 ID (z{zoom}_{cellX}_{cellY} 형식)",
             example = "z14_130234_38456",
@@ -147,9 +159,15 @@ interface MapApi {
                 description = "인증 필요",
                 content = [Content()],
             ),
+            ApiResponse(
+                responseCode = "403",
+                description = "접근 권한 없음",
+                content = [Content()],
+            ),
         ],
     )
     fun getAlbumMapInfo(
+        @Parameter(hidden = true) userId: Long,
         @Parameter(
             description = "앨범 ID",
             example = "1",

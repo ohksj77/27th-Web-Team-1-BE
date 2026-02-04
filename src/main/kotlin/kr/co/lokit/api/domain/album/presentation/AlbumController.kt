@@ -12,6 +12,7 @@ import kr.co.lokit.api.domain.album.dto.UpdateAlbumTitleRequest
 import kr.co.lokit.api.domain.album.mapping.toDomain
 import kr.co.lokit.api.domain.album.mapping.toSelectableResponse
 import org.springframework.http.HttpStatus
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
@@ -40,7 +41,9 @@ class AlbumController(
 
     @PatchMapping("{id}")
     @ResponseStatus(HttpStatus.OK)
+    @PreAuthorize("@permissionService.canModifyAlbum(#userId, #id)")
     override fun updateTitle(
+        @CurrentUserId userId: Long,
         @PathVariable id: Long,
         @RequestBody @Valid request: UpdateAlbumTitleRequest,
     ): IdResponse =
@@ -48,6 +51,9 @@ class AlbumController(
 
     @DeleteMapping("{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    override fun delete(@PathVariable id: Long) =
-        albumService.delete(id)
+    @PreAuthorize("@permissionService.canDeleteAlbum(#userId, #id)")
+    override fun delete(
+        @CurrentUserId userId: Long,
+        @PathVariable id: Long,
+    ) = albumService.delete(id)
 }

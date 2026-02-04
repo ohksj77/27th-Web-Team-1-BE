@@ -1,4 +1,4 @@
-package kr.co.lokit.api.domain.workspace.infrastructure
+package kr.co.lokit.api.domain.couple.infrastructure
 
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
@@ -9,8 +9,8 @@ import kr.co.lokit.api.common.entity.BaseEntity
 import kr.co.lokit.api.common.util.InviteCodeGenerator
 import kr.co.lokit.api.domain.album.infrastructure.AlbumEntity
 
-@Entity(name = "Workspace")
-class WorkspaceEntity(
+@Entity(name = "Couple")
+class CoupleEntity(
     @Column(nullable = false, length = 20)
     val name: String,
 ) : BaseEntity() {
@@ -20,7 +20,7 @@ class WorkspaceEntity(
     @OneToMany(
         fetch = FetchType.LAZY,
         cascade = [CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE],
-        mappedBy = "workspace",
+        mappedBy = "couple",
     )
     var albums: MutableList<AlbumEntity> = mutableListOf()
         protected set
@@ -28,13 +28,13 @@ class WorkspaceEntity(
     @OneToMany(
         fetch = FetchType.LAZY,
         cascade = [CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE],
-        mappedBy = "workspace",
+        mappedBy = "couple",
     )
-    var workspaceUsers: MutableList<WorkspaceUserEntity> = mutableListOf()
+    var coupleUsers: MutableList<CoupleUserEntity> = mutableListOf()
         protected set
 
-    fun addUser(workspaceUser: WorkspaceUserEntity) {
-        workspaceUsers.add(workspaceUser)
+    fun addUser(coupleUser: CoupleUserEntity) {
+        coupleUsers.add(coupleUser)
     }
 
     fun addAlbum(album: AlbumEntity) {

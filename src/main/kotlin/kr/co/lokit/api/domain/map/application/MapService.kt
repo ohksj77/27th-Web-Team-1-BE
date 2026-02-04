@@ -17,10 +17,10 @@ import kr.co.lokit.api.domain.map.mapping.toAlbumMapInfoResponse
 import kr.co.lokit.api.domain.map.mapping.toClusterPhotosPageResponse
 import kr.co.lokit.api.domain.map.mapping.toMapPhotoResponse
 import kr.co.lokit.api.domain.map.mapping.toResponse
-import java.util.concurrent.StructuredTaskScope
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.support.TransactionTemplate
+import java.util.concurrent.StructuredTaskScope
 
 @Service
 class MapService(
@@ -48,12 +48,13 @@ class MapService(
         zoom: Int,
         bbox: BBox,
         albumId: Long? = null,
-    ): MapPhotosResponse =
-        if (zoom < GridValues.CLUSTER_ZOOM_THRESHOLD) {
+    ): MapPhotosResponse {
+        return if (zoom < GridValues.CLUSTER_ZOOM_THRESHOLD) {
             getClusteredPhotos(zoom, bbox, albumId)
         } else {
             getIndividualPhotos(bbox, albumId)
         }
+    }
 
     private fun getClusteredPhotos(
         zoom: Int,

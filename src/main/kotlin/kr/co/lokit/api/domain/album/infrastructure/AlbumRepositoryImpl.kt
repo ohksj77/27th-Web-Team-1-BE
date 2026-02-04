@@ -4,8 +4,10 @@ import kr.co.lokit.api.common.exception.entityNotFound
 import kr.co.lokit.api.domain.album.domain.Album
 import kr.co.lokit.api.domain.album.mapping.toDomain
 import kr.co.lokit.api.domain.album.mapping.toEntity
-import kr.co.lokit.api.domain.workspace.domain.Workspace
-import kr.co.lokit.api.domain.workspace.infrastructure.WorkspaceJpaRepository
+import kr.co.lokit.api.domain.couple.domain.Couple
+import kr.co.lokit.api.domain.couple.infrastructure.CoupleJpaRepository
+import kr.co.lokit.api.domain.user.domain.User
+import kr.co.lokit.api.domain.user.infrastructure.UserJpaRepository
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
@@ -13,14 +15,17 @@ import org.springframework.transaction.annotation.Transactional
 @Repository
 class AlbumRepositoryImpl(
     private val albumJpaRepository: AlbumJpaRepository,
-    private val workspaceJpaRepository: WorkspaceJpaRepository,
+    private val coupleJpaRepository: CoupleJpaRepository,
+    private val userJpaRepository: UserJpaRepository,
 ) : AlbumRepository {
 
     @Transactional
     override fun save(album: Album, userId: Long): Album {
-        val workspace = workspaceJpaRepository.findByUserId(userId)
-            ?: throw entityNotFound<Workspace>(userId)
-        val albumEntity = album.toEntity(workspace)
+        val couple = coupleJpaRepository.findByUserId(userId)
+            ?: throw entityNotFound<Couple>(userId)
+        val userEntity = userJpaRepository.findByIdOrNull(userId)
+            ?: throw entityNotFound<User>(userId)
+        val albumEntity = album.toEntity(couple, userEntity)
         val savedEntity = albumJpaRepository.save(albumEntity)
         return savedEntity.toDomain()
     }
@@ -66,7 +71,7 @@ class AlbumRepositoryImpl(
 
     @Transactional(readOnly = true)
     override fun findDefaultByUserId(userId: Long): Album? {
-        val workspace = workspaceJpaRepository.findByUserId(userId) ?: return null
-        return albumJpaRepository.findByWorkspaceIdAndIsDefaultTrue(workspace.nonNullId())?.toDomain()
+        val couple = coupleJpaRepository.findByUserId(userId) ?: return null
+        return albumJpaRepository.findByCoupleIdAndIsDefaultTrue(couple.nonNullId())?.toDomain()
     }
 }

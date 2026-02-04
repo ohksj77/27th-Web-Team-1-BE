@@ -11,8 +11,8 @@ import kr.co.lokit.api.domain.user.infrastructure.UserRepository
 import kr.co.lokit.api.domain.user.infrastructure.oauth.OAuthClientRegistry
 import kr.co.lokit.api.domain.user.infrastructure.oauth.OAuthProvider
 import kr.co.lokit.api.domain.user.infrastructure.oauth.OAuthUserInfo
-import kr.co.lokit.api.domain.workspace.application.WorkspaceService
-import kr.co.lokit.api.domain.workspace.domain.Workspace
+import kr.co.lokit.api.domain.couple.application.CoupleService
+import kr.co.lokit.api.domain.couple.domain.Couple
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -25,7 +25,7 @@ class OAuthService(
     private val userJpaRepository: UserJpaRepository,
     private val refreshTokenJpaRepository: RefreshTokenJpaRepository,
     private val jwtTokenProvider: JwtTokenProvider,
-    private val workspaceService: WorkspaceService,
+    private val coupleService: CoupleService,
 ) {
     @Transactional
     fun login(provider: OAuthProvider, code: String): JwtTokenResponse {
@@ -50,7 +50,7 @@ class OAuthService(
     private fun registerUser(email: String, name: String): User =
         try {
             val user = userRepository.save(User(email = email, name = name))
-            workspaceService.createIfNone(Workspace(name = "default"), user.id)
+            coupleService.createIfNone(Couple(name = "default"), user.id)
             user
         } catch (e: DataIntegrityViolationException) {
             userRepository.findByEmail(email) ?: throw e

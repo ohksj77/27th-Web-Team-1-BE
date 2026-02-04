@@ -66,8 +66,8 @@ class MapServiceTest {
         val result = mapService.getPhotos(12, BBox(126.9, 37.4, 127.1, 37.6))
 
         assertNotNull(result.clusters)
-        assertEquals(1, result.clusters!!.size)
-        assertEquals(5, result.clusters!![0].count)
+        assertEquals(1, result.clusters.size)
+        assertEquals(5, result.clusters[0].count)
     }
 
     @Test
@@ -89,7 +89,7 @@ class MapServiceTest {
         val result = mapService.getPhotos(18, BBox(126.9, 37.4, 127.1, 37.6))
 
         assertNotNull(result.photos)
-        assertEquals(1, result.photos!!.size)
+        assertEquals(1, result.photos.size)
     }
 
     @Test

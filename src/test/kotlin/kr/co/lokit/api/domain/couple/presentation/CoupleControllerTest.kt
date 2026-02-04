@@ -1,4 +1,4 @@
-package kr.co.lokit.api.domain.workspace.presentation
+package kr.co.lokit.api.domain.couple.presentation
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import kr.co.lokit.api.common.exception.BusinessException
@@ -7,10 +7,10 @@ import kr.co.lokit.api.config.security.JwtTokenProvider
 import kr.co.lokit.api.config.web.CookieGenerator
 import kr.co.lokit.api.config.web.CookieProperties
 import kr.co.lokit.api.domain.user.application.AuthService
-import kr.co.lokit.api.domain.workspace.application.WorkspaceService
-import kr.co.lokit.api.fixture.createJoinWorkspaceRequest
-import kr.co.lokit.api.fixture.createWorkspace
-import kr.co.lokit.api.fixture.createWorkspaceRequest
+import kr.co.lokit.api.domain.couple.application.CoupleService
+import kr.co.lokit.api.fixture.createJoinCoupleRequest
+import kr.co.lokit.api.fixture.createCouple
+import kr.co.lokit.api.fixture.createCoupleRequest
 import kr.co.lokit.api.fixture.userAuth
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.anyLong
@@ -27,8 +27,8 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
-@WebMvcTest(WorkspaceController::class)
-class WorkspaceControllerTest {
+@WebMvcTest(CoupleController::class)
+class CoupleControllerTest {
 
     @Suppress("UNCHECKED_CAST")
     private fun <T> anyObject(): T = org.mockito.ArgumentMatchers.any<T>() as T
@@ -54,73 +54,73 @@ class WorkspaceControllerTest {
     lateinit var cookieGenerator: CookieGenerator
 
     @MockitoBean
-    lateinit var workspaceService: WorkspaceService
+    lateinit var coupleService: CoupleService
 
     @Test
-    fun `워크스페이스 생성 성공`() {
-        val savedWorkspace = createWorkspace(id = 1L, name = "우리 가족", inviteCode = "12345678")
-        doReturn(savedWorkspace).`when`(workspaceService).createIfNone(anyObject(), anyLong())
+    fun `커플 생성 성공`() {
+        val savedCouple = createCouple(id = 1L, name = "우리 커플", inviteCode = "12345678")
+        doReturn(savedCouple).`when`(coupleService).createIfNone(anyObject(), anyLong())
 
         mockMvc.perform(
-            post("/workspaces")
+            post("/couples")
                 .with(authentication(userAuth()))
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(createWorkspaceRequest(name = "우리 가족"))),
+                .content(objectMapper.writeValueAsString(createCoupleRequest(name = "우리 커플"))),
         )
             .andExpect(status().isCreated)
     }
 
     @Test
-    fun `워크스페이스 생성 실패 - 이름이 비어있음`() {
+    fun `커플 생성 실패 - 이름이 비어있음`() {
         mockMvc.perform(
-            post("/workspaces")
+            post("/couples")
                 .with(authentication(userAuth()))
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(createWorkspaceRequest(name = ""))),
+                .content(objectMapper.writeValueAsString(createCoupleRequest(name = ""))),
         )
             .andExpect(status().isBadRequest)
     }
 
     @Test
-    fun `초대 코드로 워크스페이스 합류 성공`() {
-        val workspace = createWorkspace(id = 1L, name = "팀", inviteCode = "12345678", userIds = listOf(1L, 2L))
-        doReturn(workspace).`when`(workspaceService).joinByInviteCode(anyString(), anyLong())
+    fun `초대 코드로 커플 합류 성공`() {
+        val couple = createCouple(id = 1L, name = "우리 커플", inviteCode = "12345678", userIds = listOf(1L, 2L))
+        doReturn(couple).`when`(coupleService).joinByInviteCode(anyString(), anyLong())
 
         mockMvc.perform(
-            post("/workspaces/join")
+            post("/couples/join")
                 .with(authentication(userAuth()))
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(createJoinWorkspaceRequest())),
+                .content(objectMapper.writeValueAsString(createJoinCoupleRequest())),
         )
             .andExpect(status().isOk)
     }
 
     @Test
-    fun `초대 코드로 워크스페이스 합류 실패 - 잘못된 초대 코드`() {
+    fun `초대 코드로 커플 합류 실패 - 잘못된 초대 코드`() {
         doThrow(BusinessException.ResourceNotFoundException("유효하지 않은 초대 코드입니다"))
-            .`when`(workspaceService).joinByInviteCode(anyString(), anyLong())
+            .`when`(coupleService).joinByInviteCode(anyString(), anyLong())
 
         mockMvc.perform(
-            post("/workspaces/join")
+            post("/couples/join")
                 .with(authentication(userAuth()))
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(createJoinWorkspaceRequest(inviteCode = "invalid1"))),
+                .content(objectMapper.writeValueAsString(createJoinCoupleRequest(inviteCode = "invalid1"))),
         )
             .andExpect(status().isNotFound)
     }
 
     @Test
-    fun `초대 코드로 워크스페이스 합류 실패 - 초대 코드가 8자가 아님`() {
+    fun `초대 코드로 커플 합류 실패 - 초대 코드가 8자가 아님`() {
         mockMvc.perform(
-            post("/workspaces/join")
+            post("/couples/join")
                 .with(authentication(userAuth()))
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(createJoinWorkspaceRequest(inviteCode = "1234"))),
+                .content(objectMapper.writeValueAsString(createJoinCoupleRequest(inviteCode = "1234"))),
         )
             .andExpect(status().isBadRequest)
     }
@@ -128,10 +128,10 @@ class WorkspaceControllerTest {
     @Test
     fun `인증되지 않은 사용자는 접근할 수 없다`() {
         mockMvc.perform(
-            post("/workspaces")
+            post("/couples")
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(createWorkspaceRequest())),
+                .content(objectMapper.writeValueAsString(createCoupleRequest())),
         )
             .andExpect(status().isUnauthorized)
     }

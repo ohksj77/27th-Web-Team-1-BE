@@ -1,6 +1,6 @@
-package kr.co.lokit.api.domain.workspace.domain
+package kr.co.lokit.api.domain.couple.domain
 
-data class Workspace(
+data class Couple(
     val id: Long = 0,
     val name: String,
     val inviteCode: String? = null,

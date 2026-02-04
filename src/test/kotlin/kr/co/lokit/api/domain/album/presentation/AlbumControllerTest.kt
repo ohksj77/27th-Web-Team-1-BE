@@ -24,7 +24,6 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
 import org.springframework.http.MediaType
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
@@ -96,7 +95,7 @@ class AlbumControllerTest {
 
         mockMvc.perform(
             patch("/albums/1")
-                .with(user("test").roles("USER"))
+                .with(authentication(userAuth()))
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(UpdateAlbumTitleRequest(title = "새 제목"))),
@@ -108,7 +107,7 @@ class AlbumControllerTest {
     fun `앨범 제목 수정 실패 - 제목이 10자 초과`() {
         mockMvc.perform(
             patch("/albums/1")
-                .with(user("test").roles("USER"))
+                .with(authentication(userAuth()))
                 .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(UpdateAlbumTitleRequest(title = "12345678901"))),
@@ -118,11 +117,11 @@ class AlbumControllerTest {
 
     @Test
     fun `앨범 삭제 성공`() {
-        doNothing().`when`(albumService).delete(1L)
+        doNothing().`when`(albumService).delete(anyLong())
 
         mockMvc.perform(
             delete("/albums/1")
-                .with(user("test").roles("USER"))
+                .with(authentication(userAuth()))
                 .with(csrf()),
         )
             .andExpect(status().isNoContent)
@@ -131,11 +130,11 @@ class AlbumControllerTest {
     @Test
     fun `앨범 삭제 실패 - 존재하지 않는 앨범`() {
         doThrow(BusinessException.ResourceNotFoundException("Album(id=999)을(를) 찾을 수 없습니다"))
-            .`when`(albumService).delete(999L)
+            .`when`(albumService).delete(anyLong())
 
         mockMvc.perform(
             delete("/albums/999")
-                .with(user("test").roles("USER"))
+                .with(authentication(userAuth()))
                 .with(csrf()),
         )
             .andExpect(status().isNotFound)

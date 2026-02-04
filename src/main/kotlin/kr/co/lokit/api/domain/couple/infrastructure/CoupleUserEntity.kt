@@ -1,4 +1,4 @@
-package kr.co.lokit.api.domain.workspace.infrastructure
+package kr.co.lokit.api.domain.couple.infrastructure
 
 import jakarta.persistence.Entity
 import jakarta.persistence.Index
@@ -11,15 +11,15 @@ import kr.co.lokit.api.domain.user.infrastructure.UserEntity
 import org.hibernate.annotations.Immutable
 
 @Immutable
-@Entity(name = "WorkspaceUser")
+@Entity(name = "CoupleUser")
 @Table(
-    uniqueConstraints = [UniqueConstraint(columnNames = ["workspace_id", "user_id"])],
-    indexes = [Index(columnList = "workspace_id"), Index(columnList = "user_id")],
+    uniqueConstraints = [UniqueConstraint(columnNames = ["couple_id", "user_id"])],
+    indexes = [Index(columnList = "couple_id"), Index(columnList = "user_id")],
 )
-class WorkspaceUserEntity(
+class CoupleUserEntity(
     @ManyToOne
-    @JoinColumn(name = "workspace_id", nullable = false)
-    val workspace: WorkspaceEntity,
+    @JoinColumn(name = "couple_id", nullable = false)
+    val couple: CoupleEntity,
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     val user: UserEntity,

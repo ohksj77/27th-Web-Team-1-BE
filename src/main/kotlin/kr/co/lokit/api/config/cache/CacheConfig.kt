@@ -39,6 +39,34 @@ class CacheConfig {
                         .maximumSize(1_000)
                         .build(),
                 ),
+                CaffeineCache(
+                    "photo",
+                    Caffeine.newBuilder()
+                        .expireAfterWrite(5, TimeUnit.MINUTES)
+                        .maximumSize(1_000)
+                        .build(),
+                ),
+                CaffeineCache(
+                    "album",
+                    Caffeine.newBuilder()
+                        .expireAfterWrite(5, TimeUnit.MINUTES)
+                        .maximumSize(1_000)
+                        .build(),
+                ),
+                CaffeineCache(
+                    "albumCouple",
+                    Caffeine.newBuilder()
+                        .expireAfterWrite(24, TimeUnit.HOURS)
+                        .maximumSize(10_000)
+                        .build(),
+                ),
+                CaffeineCache(
+                    "coupleMembership",
+                    Caffeine.newBuilder()
+                        .expireAfterWrite(1, TimeUnit.HOURS)
+                        .maximumSize(50_000)
+                        .build(),
+                ),
             ),
         )
         return cacheManager
