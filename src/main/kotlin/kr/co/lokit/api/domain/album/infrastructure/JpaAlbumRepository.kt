@@ -20,16 +20,16 @@ class JpaAlbumRepository(
     private val coupleJpaRepository: CoupleJpaRepository,
     private val userJpaRepository: UserJpaRepository,
 ) : AlbumRepositoryPort {
-    
+
     private fun enrichDefaultAlbumWithAllPhotos(album: Album, coupleId: Long): Album {
         if (!album.isDefault) {
             return album
         }
 
         val allAlbums = findAllByCoupleIdInternal(coupleId)
-            .filter { !it.isDefault && it.id != album.id }
+            .filter { it.id != album.id }
 
-        val allPhotos = allAlbums.flatMap { it.photos }
+        val allPhotos = (album.photos + allAlbums.flatMap { it.photos })
             .distinctBy { it.id }
 
         val actualPhotoCount = allPhotos.size

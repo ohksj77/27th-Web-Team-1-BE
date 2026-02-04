@@ -1,6 +1,7 @@
 package kr.co.lokit.api.domain.map.application
 
 import kr.co.lokit.api.common.concurrency.StructuredConcurrency
+import kr.co.lokit.api.common.dto.isValidId
 import kr.co.lokit.api.domain.album.application.port.AlbumRepositoryPort
 import kr.co.lokit.api.domain.map.application.port.AlbumBoundsRepositoryPort
 import kr.co.lokit.api.domain.map.application.port.MapClientPort
@@ -20,7 +21,6 @@ import kr.co.lokit.api.domain.map.dto.MapPhotosResponse
 import kr.co.lokit.api.domain.map.dto.PlaceSearchResponse
 import kr.co.lokit.api.domain.map.mapping.toAlbumMapInfoResponse
 import kr.co.lokit.api.domain.map.mapping.toClusterPhotosPageResponse
-import kr.co.lokit.api.domain.map.mapping.toMapPhotoResponse
 import kr.co.lokit.api.domain.map.mapping.toResponse
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -66,11 +66,18 @@ class MapQueryService(
         userId: Long?,
         albumId: Long?
     ): MapPhotosResponse {
-        val cacheKey = mapPhotosCacheService.buildCacheKey(zoom, bbox, userId, albumId)
-        return if (zoom < GridValues.CLUSTER_ZOOM_THRESHOLD) {
-            mapPhotosCacheService.getClusteredPhotos(zoom, bbox, userId, albumId, cacheKey)
+        val effectiveAlbumId = if (isValidId(albumId) && isValidId(userId)) {
+            val album = albumRepository.findById(albumId!!)
+            if (album?.isDefault == true) null else albumId
         } else {
-            mapPhotosCacheService.getIndividualPhotos(bbox, userId, albumId, cacheKey)
+            albumId
+        }
+
+        val cacheKey = mapPhotosCacheService.buildCacheKey(zoom, bbox, userId, effectiveAlbumId)
+        return if (zoom < GridValues.CLUSTER_ZOOM_THRESHOLD) {
+            mapPhotosCacheService.getClusteredPhotos(zoom, bbox, userId, effectiveAlbumId, cacheKey)
+        } else {
+            mapPhotosCacheService.getIndividualPhotos(bbox, userId, effectiveAlbumId, cacheKey)
         }
     }
 

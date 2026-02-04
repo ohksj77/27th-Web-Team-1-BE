@@ -12,3 +12,5 @@ data class IdResponse(
 
 fun <T> T.toIdResponse(idProp: KProperty1<T, Long>): IdResponse =
     IdResponse(idProp.get(this))
+
+fun isValidId(id: Long?): Boolean = id != null && id > 0

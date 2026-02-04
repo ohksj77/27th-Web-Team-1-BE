@@ -1,5 +1,6 @@
 package kr.co.lokit.api.domain.photo.application
 
+import kr.co.lokit.api.common.dto.isValidId
 import kr.co.lokit.api.common.exception.BusinessException
 import kr.co.lokit.api.domain.album.application.port.AlbumRepositoryPort
 import kr.co.lokit.api.domain.photo.application.port.PhotoRepositoryPort
@@ -44,7 +45,7 @@ class PhotoCommandService(
     override fun create(photo: Photo): Photo {
         photoStoragePort?.verifyFileExists(photo.url)
         val effectivePhoto =
-            if (photo.albumId == null || photo.albumId == 0L) {
+            if (isValidId(photo.albumId)) {
                 val defaultAlbum =
                     albumRepository.findDefaultByUserId(photo.uploadedById)
                         ?: throw BusinessException.DefaultAlbumNotFoundForUserException(
