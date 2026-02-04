@@ -17,11 +17,7 @@ import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
-import org.springframework.stereotype.Repository
 
-@Repository
-@ConditionalOnBean(Database::class)
 class ExposedMapQueryAdapter(
     private val database: Database,
 ) : MapQueryPort {
