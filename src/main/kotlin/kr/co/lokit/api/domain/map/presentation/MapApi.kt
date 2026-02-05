@@ -128,7 +128,7 @@ interface MapApi {
     fun getPhotos(
         @Parameter(hidden = true) userId: Long,
         @Parameter(
-            description = "줌 레벨 (0-20). 16 미만이면 클러스터링, 16 이상이면 개별 사진 반환",
+            description = "줌 레벨 (0-20). 15 미만이면 클러스터링, 16 이상이면 개별 사진 반환",
             example = "12",
             required = true,
         )
