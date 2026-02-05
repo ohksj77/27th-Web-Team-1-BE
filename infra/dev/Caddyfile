@@ -6,20 +6,22 @@ ${domain} {
         format json
     }
 
-    # /actuator/health만 허용, 나머지 차단
-    @actuator_blocked {
-        path /api/actuator*
-        not path /api/actuator/health*
-    }
-    respond @actuator_blocked 404
+    route ${api-path} {
+        # /actuator/health만 허용, 나머지 차단
+        @actuator_blocked {
+            path /api/actuator*
+            not path /api/actuator/health*
+        }
+        respond @actuator_blocked 404
 
-    reverse_proxy ${api-path} ${ip} {
-        health_uri ${health-path}
-        health_interval 10s
-        health_timeout 5s
+        reverse_proxy ${ip} {
+            health_uri ${health-path}
+            health_interval 10s
+            health_timeout 5s
 
-        header_up Host {host}
-        header_up X-Real-IP {remote}
+            header_up Host {host}
+            header_up X-Real-IP {remote}
+        }
     }
 
     handle_path ${etc-path}* {
