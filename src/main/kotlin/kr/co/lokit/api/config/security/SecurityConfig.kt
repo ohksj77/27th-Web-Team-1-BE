@@ -38,7 +38,7 @@ class SecurityConfig(
                         "/auth/kakao",
                         "/auth/kakao/callback",
                     ).permitAll()
-                    .requestMatchers("/actuator/health")
+                    .requestMatchers("/actuator/health", "/actuator/prometheus")
                     .permitAll()
                     .requestMatchers(
                         "/swagger/**",
