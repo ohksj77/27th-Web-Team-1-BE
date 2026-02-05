@@ -11,6 +11,12 @@ spring:
         default-property-inclusion: non_null
 
 server:
+    http2:
+        enabled: true
     servlet:
         context-path: /api
     shutdown: graceful
+    compression:
+        enabled: true
+        mime-types: application/json,application/xml,text/html,text/xml,text/plain,text/css,text/javascript,web/json,web/xml
+        min-response-size: 500B

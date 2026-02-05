@@ -2,6 +2,7 @@ package kr.co.lokit.api.domain.photo.presentation
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -55,6 +56,14 @@ interface PhotoApi {
         ],
     )
     fun getPresignedUrl(
+        @Parameter(
+            name = "X-Idempotency-Key",
+            `in` = ParameterIn.HEADER,
+            description = "멱등성 보장을 위한 키",
+            required = false,
+            example = "550e8400-e29b-41d4-a716-446655440000",
+        )
+        idempotencyKey: String?,
         request: PresignedUrlRequest,
     ): PresignedUrl
 

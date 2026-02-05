@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
@@ -46,8 +47,9 @@ class PhotoController(
     @PostMapping("presigned-url")
     @ResponseStatus(HttpStatus.OK)
     override fun getPresignedUrl(
+        @RequestHeader(value = "X-Idempotency-Key", required = false) idempotencyKey: String?,
         @RequestBody @Valid request: PresignedUrlRequest,
-    ): PresignedUrl = createPhotoUseCase.generatePresignedUrl(request.fileName, request.contentType)
+    ): PresignedUrl = createPhotoUseCase.generatePresignedUrl(idempotencyKey, request.contentType)
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)

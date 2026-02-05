@@ -5,6 +5,7 @@ import kr.co.lokit.api.domain.map.application.MapPhotosCacheService
 import kr.co.lokit.api.domain.photo.application.port.PhotoRepositoryPort
 import kr.co.lokit.api.domain.photo.application.port.PhotoStoragePort
 import kr.co.lokit.api.domain.photo.domain.PhotoCreatedEvent
+import kr.co.lokit.api.domain.photo.domain.PhotoDeletedEvent
 import kr.co.lokit.api.domain.photo.domain.PhotoLocationUpdatedEvent
 import kr.co.lokit.api.fixture.createLocation
 import kr.co.lokit.api.fixture.createPhoto
@@ -62,8 +63,13 @@ class PhotoCommandServiceTest {
 
     @Test
     fun `사진을 삭제할 수 있다`() {
+        val photo = createPhoto(id = 1L, url = "https://example.com/photo.jpg", uploadedById = 1L)
+        `when`(photoRepository.findById(1L)).thenReturn(photo)
+
         photoCommandService.delete(1L, 1L)
+
         verify(photoRepository).deleteById(1L)
+        verify(eventPublisher).publishEvent(PhotoDeletedEvent(photoUrl = photo.url))
     }
 
     @Suppress("UNCHECKED_CAST")

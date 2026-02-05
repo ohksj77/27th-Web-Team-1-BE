@@ -6,4 +6,6 @@ import org.springframework.data.jpa.repository.Query
 interface AlbumBoundsJpaRepository : JpaRepository<AlbumBoundsEntity, Long> {
     @Query("select ab from album_bounds ab where ab.standardId = :standardId")
     fun findByStandardIdForRead(standardId: Long): AlbumBoundsEntity?
+
+    fun deleteAllByStandardIdIn(standardIds: List<Long>)
 }

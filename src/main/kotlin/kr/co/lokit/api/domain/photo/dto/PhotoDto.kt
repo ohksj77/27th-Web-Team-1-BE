@@ -81,9 +81,11 @@ data class PresignedUrl(
 
 @Schema(description = "Presigned URL 요청")
 data class PresignedUrlRequest(
-    @field:NotBlank(message = "파일명은 필수입니다.")
-    @Schema(description = "파일명", example = "image.jpg", requiredMode = Schema.RequiredMode.REQUIRED)
-    val fileName: String,
+    @Schema(
+        description = "파일명(deprecated, nullable)",
+        example = "image.jpg",
+    )
+    val fileName: String?,
     @field:NotBlank(message = "파일 MIME 타입은 필수입니다.")
     @Schema(description = "파일 MIME 타입", example = "image/jpeg", requiredMode = Schema.RequiredMode.REQUIRED)
     val contentType: String,

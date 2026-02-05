@@ -40,6 +40,7 @@ class SecurityConfig(
                     ).permitAll()
                     .requestMatchers("/actuator/health", "/actuator/prometheus")
                     .permitAll()
+                    .requestMatchers("/ut/**").permitAll()
                     .requestMatchers(
                         "/swagger/**",
                         "/swagger-ui/**",

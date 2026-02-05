@@ -1,5 +1,6 @@
 package kr.co.lokit.api.domain.couple.application
 
+import kr.co.lokit.api.common.annotation.OptimisticRetry
 import kr.co.lokit.api.common.exception.entityNotFound
 import kr.co.lokit.api.domain.couple.application.port.CoupleRepositoryPort
 import kr.co.lokit.api.domain.couple.application.port.`in`.CreateCoupleUseCase
@@ -14,11 +15,13 @@ class CoupleCommandService(
     private val coupleRepository: CoupleRepositoryPort,
 ) : CreateCoupleUseCase, JoinCoupleUseCase {
 
+    @OptimisticRetry
     @Transactional
     @CacheEvict(cacheNames = ["coupleMembership"], key = "#userId + ':' + #result.id", condition = "#result != null")
     override fun createIfNone(couple: Couple, userId: Long): Couple =
         coupleRepository.findByUserId(userId) ?: coupleRepository.saveWithUser(couple, userId)
 
+    @OptimisticRetry
     @Transactional
     @CacheEvict(cacheNames = ["coupleMembership"], key = "#userId + ':' + #result.id", condition = "#result != null")
     override fun joinByInviteCode(inviteCode: String, userId: Long): Couple {

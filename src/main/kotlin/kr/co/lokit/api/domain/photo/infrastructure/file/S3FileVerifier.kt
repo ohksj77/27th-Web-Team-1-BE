@@ -43,7 +43,7 @@ class S3FileVerifier(
         }
     }
 
-    private fun extractKey(objectUrl: String): String {
+    internal fun extractKey(objectUrl: String): String {
         val prefix = OBJECT_URL_TEMPLATE.format(bucket, region)
         require(objectUrl.startsWith(prefix)) { "올바르지 않은 S3 URL입니다: $objectUrl" }
         return objectUrl.removePrefix(prefix)

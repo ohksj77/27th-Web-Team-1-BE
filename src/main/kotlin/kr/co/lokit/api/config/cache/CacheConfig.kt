@@ -81,6 +81,13 @@ class CacheConfig {
                         .maximumSize(50_000)
                         .build(),
                 ),
+                CaffeineCache(
+                    "presignedUrlCache",
+                    Caffeine.newBuilder()
+                        .expireAfterWrite(5, TimeUnit.MINUTES)
+                        .maximumSize(1_000)
+                        .build(),
+                ),
             ),
         )
         return cacheManager

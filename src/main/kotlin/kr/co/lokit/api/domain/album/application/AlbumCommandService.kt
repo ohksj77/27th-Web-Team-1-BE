@@ -1,5 +1,6 @@
 package kr.co.lokit.api.domain.album.application
 
+import kr.co.lokit.api.common.annotation.OptimisticRetry
 import kr.co.lokit.api.common.exception.BusinessException
 import kr.co.lokit.api.common.exception.entityNotFound
 import kr.co.lokit.api.domain.album.application.port.AlbumRepositoryPort
@@ -18,6 +19,7 @@ class AlbumCommandService(
     private val mapPhotosCacheService: MapPhotosCacheService,
 ) : CreateAlbumUseCase, UpdateAlbumUseCase {
 
+    @OptimisticRetry
     @Transactional
     @CacheEvict(cacheNames = ["userAlbums"], key = "#userId")
     override fun create(album: Album, userId: Long): Album {
@@ -34,6 +36,7 @@ class AlbumCommandService(
         return albumRepository.save(album, userId)
     }
 
+    @OptimisticRetry
     @Transactional
     @CacheEvict(cacheNames = ["userAlbums"], key = "#userId")
     override fun updateTitle(id: Long, title: String, userId: Long): Album {
@@ -52,6 +55,7 @@ class AlbumCommandService(
         return albumRepository.applyTitle(id, title)
     }
 
+    @OptimisticRetry
     @Transactional
     @Caching(
         evict = [

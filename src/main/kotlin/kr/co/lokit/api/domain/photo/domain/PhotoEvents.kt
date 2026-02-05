@@ -13,3 +13,5 @@ data class PhotoLocationUpdatedEvent(
     val longitude: Double,
     val latitude: Double,
 )
+
+data class PhotoDeletedEvent(val photoUrl: String)

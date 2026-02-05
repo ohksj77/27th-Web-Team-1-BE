@@ -24,6 +24,7 @@ class MapController(
     private val getMapUseCase: GetMapUseCase,
     private val searchLocationUseCase: SearchLocationUseCase,
 ) : MapApi {
+    // 삭제 예정
     @GetMapping("home")
     override fun home(@CurrentUserId userId: Long, longitude: Double, latitude: Double): HomeResponse =
         getMapUseCase.home(userId, longitude, latitude)
@@ -40,6 +41,7 @@ class MapController(
         return getMapUseCase.getMe(userId, longitude, latitude, zoom, BBox.fromString(bbox), albumId)
     }
 
+    // 삭제 예정
     @GetMapping("photos")
     override fun getPhotos(
         @CurrentUserId userId: Long,
