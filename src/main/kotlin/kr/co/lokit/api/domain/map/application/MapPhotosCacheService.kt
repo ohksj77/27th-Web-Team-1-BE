@@ -25,11 +25,13 @@ class MapPhotosCacheService(
             (key as String).contains(":u$userId")
         }
     }
+
     @Transactional(readOnly = true)
     @Cacheable(
         cacheNames = ["mapPhotos"],
         key = "#cacheKey",
-        unless = "#result.clusters?.isEmpty() == true && #result.photos?.isEmpty() == true"
+        unless = "#result.clusters?.isEmpty() == true && #result.photos?.isEmpty() == true",
+        sync = true
     )
     fun getClusteredPhotos(
         zoom: Int,
@@ -60,7 +62,8 @@ class MapPhotosCacheService(
     @Cacheable(
         cacheNames = ["mapPhotos"],
         key = "#cacheKey",
-        unless = "#result.clusters?.isEmpty() == true && #result.photos?.isEmpty() == true"
+        unless = "#result.clusters?.isEmpty() == true && #result.photos?.isEmpty() == true",
+        sync = true
     )
     fun getIndividualPhotos(
         bbox: BBox,

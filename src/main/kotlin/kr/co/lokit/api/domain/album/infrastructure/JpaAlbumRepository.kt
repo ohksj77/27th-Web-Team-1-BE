@@ -78,7 +78,7 @@ class JpaAlbumRepository(
     override fun findById(id: Long): Album? =
         albumJpaRepository.findByIdOrNull(id)?.toDomain()
 
-    @Cacheable(cacheNames = ["userAlbums"], key = "#userId")
+    @Cacheable(cacheNames = ["userAlbums"], key = "#userId", sync = true)
     @Transactional(readOnly = true)
     override fun findAllByUserId(userId: Long): List<Album> {
         val albums = findAllByUserIdInternal(userId)

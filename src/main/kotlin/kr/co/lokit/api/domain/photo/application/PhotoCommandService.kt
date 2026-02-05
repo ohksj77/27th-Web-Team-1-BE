@@ -33,7 +33,12 @@ class PhotoCommandService(
     private val mapPhotosCacheService: MapPhotosCacheService,
 ) : CreatePhotoUseCase, UpdatePhotoUseCase {
 
-    @Cacheable(cacheNames = ["presignedUrlCache"], key = "#idempotencyKey", unless = "#idempotencyKey == null")
+    @Cacheable(
+        cacheNames = ["presignedUrlCache"],
+        key = "#idempotencyKey",
+        condition = "#idempotencyKey != null",
+        sync = true
+    )
     override fun generatePresignedUrl(
         idempotencyKey: String?,
         contentType: String,

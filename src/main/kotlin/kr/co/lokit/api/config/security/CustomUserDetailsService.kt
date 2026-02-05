@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service
 class CustomUserDetailsService(
     private val userJpaRepository: UserJpaRepository,
 ) : UserDetailsService {
-    @Cacheable(cacheNames = ["userDetails"], key = "#username")
+    @Cacheable(cacheNames = ["userDetails"], key = "#username", sync = true)
     override fun loadUserByUsername(username: String): UserDetails =
         userJpaRepository
             .findByEmail(username)
