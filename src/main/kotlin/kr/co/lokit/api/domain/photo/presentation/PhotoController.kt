@@ -70,7 +70,7 @@ class PhotoController(
         @PathVariable id: Long,
         @RequestBody @Valid request: UpdatePhotoRequest,
     ): IdResponse =
-        updatePhotoUseCase.update(id, request.albumId, request.description, request.longitude, request.latitude)
+        updatePhotoUseCase.update(id, request.albumId, request.description, request.longitude, request.latitude, userId)
             .toIdResponse(Photo::id)
 
     @DeleteMapping("{id}")
@@ -79,5 +79,5 @@ class PhotoController(
     override fun delete(
         @CurrentUserId userId: Long,
         @PathVariable id: Long,
-    ) = updatePhotoUseCase.delete(id)
+    ) = updatePhotoUseCase.delete(id, userId)
 }

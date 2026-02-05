@@ -3,6 +3,7 @@ package kr.co.lokit.api.domain.photo.application
 import kr.co.lokit.api.common.dto.isValidId
 import kr.co.lokit.api.common.exception.BusinessException
 import kr.co.lokit.api.domain.album.application.port.AlbumRepositoryPort
+import kr.co.lokit.api.domain.map.application.MapPhotosCacheService
 import kr.co.lokit.api.domain.photo.application.port.PhotoRepositoryPort
 import kr.co.lokit.api.domain.photo.application.port.PhotoStoragePort
 import kr.co.lokit.api.domain.photo.application.port.`in`.CreatePhotoUseCase
@@ -11,6 +12,8 @@ import kr.co.lokit.api.domain.photo.domain.Photo
 import kr.co.lokit.api.domain.photo.domain.PhotoCreatedEvent
 import kr.co.lokit.api.domain.photo.domain.PhotoLocationUpdatedEvent
 import kr.co.lokit.api.domain.photo.dto.PresignedUrl
+import org.springframework.cache.annotation.CacheEvict
+import org.springframework.cache.annotation.Caching
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.orm.ObjectOptimisticLockingFailureException
 import org.springframework.retry.annotation.Backoff
@@ -25,6 +28,7 @@ class PhotoCommandService(
     private val albumRepository: AlbumRepositoryPort,
     private val photoStoragePort: PhotoStoragePort?,
     private val eventPublisher: ApplicationEventPublisher,
+    private val mapPhotosCacheService: MapPhotosCacheService,
 ) : CreatePhotoUseCase, UpdatePhotoUseCase {
 
     override fun generatePresignedUrl(
@@ -42,6 +46,7 @@ class PhotoCommandService(
         backoff = Backoff(delay = 50, multiplier = 2.0),
     )
     @Transactional
+    @CacheEvict(cacheNames = ["userAlbums"], key = "#photo.uploadedById")
     override fun create(photo: Photo): Photo {
         photoStoragePort?.verifyFileExists(photo.url)
         val effectivePhoto =
@@ -67,6 +72,7 @@ class PhotoCommandService(
                 ),
             )
         }
+        mapPhotosCacheService.evictForUser(photo.uploadedById)
         return saved
     }
 
@@ -76,12 +82,19 @@ class PhotoCommandService(
         backoff = Backoff(delay = 50, multiplier = 2.0),
     )
     @Transactional
+    @Caching(
+        evict = [
+            CacheEvict(cacheNames = ["photo"], key = "#userId + ':' + #id"),
+            CacheEvict(cacheNames = ["userAlbums"], key = "#userId"),
+        ],
+    )
     override fun update(
         id: Long,
         albumId: Long,
         description: String?,
         longitude: Double,
         latitude: Double,
+        userId: Long,
     ): Photo {
         val photo = photoRepository.findById(id)
         val updated = photo.copy(
@@ -105,12 +118,20 @@ class PhotoCommandService(
             )
         }
 
+        mapPhotosCacheService.evictForUser(userId)
         return result
     }
 
     @Transactional
-    override fun delete(photoId: Long) {
+    @Caching(
+        evict = [
+            CacheEvict(cacheNames = ["photo"], key = "#userId + ':' + #photoId"),
+            CacheEvict(cacheNames = ["userAlbums"], key = "#userId"),
+        ],
+    )
+    override fun delete(photoId: Long, userId: Long) {
         photoRepository.deleteById(photoId)
+        mapPhotosCacheService.evictForUser(userId)
     }
 
     companion object {

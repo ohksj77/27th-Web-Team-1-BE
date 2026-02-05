@@ -6,15 +6,20 @@ import kr.co.lokit.api.domain.album.application.port.AlbumRepositoryPort
 import kr.co.lokit.api.domain.album.application.port.`in`.CreateAlbumUseCase
 import kr.co.lokit.api.domain.album.application.port.`in`.UpdateAlbumUseCase
 import kr.co.lokit.api.domain.album.domain.Album
+import kr.co.lokit.api.domain.map.application.MapPhotosCacheService
+import org.springframework.cache.annotation.CacheEvict
+import org.springframework.cache.annotation.Caching
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
 class AlbumCommandService(
     private val albumRepository: AlbumRepositoryPort,
+    private val mapPhotosCacheService: MapPhotosCacheService,
 ) : CreateAlbumUseCase, UpdateAlbumUseCase {
 
     @Transactional
+    @CacheEvict(cacheNames = ["userAlbums"], key = "#userId")
     override fun create(album: Album, userId: Long): Album {
         val coupleId = albumRepository.findDefaultByUserId(userId)?.coupleId
             ?: throw BusinessException.DefaultAlbumNotFoundForUserException(
@@ -30,7 +35,8 @@ class AlbumCommandService(
     }
 
     @Transactional
-    override fun updateTitle(id: Long, title: String): Album {
+    @CacheEvict(cacheNames = ["userAlbums"], key = "#userId")
+    override fun updateTitle(id: Long, title: String, userId: Long): Album {
         val album = albumRepository.findById(id)
             ?: throw entityNotFound<Album>(id)
         if (album.isDefault) {
@@ -47,7 +53,14 @@ class AlbumCommandService(
     }
 
     @Transactional
-    override fun delete(id: Long) {
+    @Caching(
+        evict = [
+            CacheEvict(cacheNames = ["userAlbums"], key = "#userId"),
+            CacheEvict(cacheNames = ["albumCouple"], key = "#id"),
+            CacheEvict(cacheNames = ["album"], key = "#userId + ':' + #id"),
+        ],
+    )
+    override fun delete(id: Long, userId: Long) {
         val album = albumRepository.findById(id)
             ?: throw entityNotFound<Album>(id)
         if (album.isDefault) {
@@ -56,5 +69,6 @@ class AlbumCommandService(
             )
         }
         albumRepository.deleteById(id)
+        mapPhotosCacheService.evictForUser(userId)
     }
 }

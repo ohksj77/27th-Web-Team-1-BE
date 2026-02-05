@@ -6,14 +6,25 @@ import kr.co.lokit.api.domain.map.domain.GridValues
 import kr.co.lokit.api.domain.map.dto.MapPhotosResponse
 import kr.co.lokit.api.domain.map.mapping.toMapPhotoResponse
 import kr.co.lokit.api.domain.map.mapping.toResponse
+import org.springframework.cache.CacheManager
 import org.springframework.cache.annotation.Cacheable
+import org.springframework.cache.caffeine.CaffeineCache
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
 class MapPhotosCacheService(
     private val mapQueryPort: MapQueryPort,
+    private val cacheManager: CacheManager,
 ) {
+
+    fun evictForUser(userId: Long) {
+        val cache = cacheManager.getCache("mapPhotos") ?: return
+        val nativeCache = (cache as CaffeineCache).nativeCache
+        nativeCache.asMap().keys.removeIf { key ->
+            (key as String).contains(":u$userId")
+        }
+    }
     @Transactional(readOnly = true)
     @Cacheable(
         cacheNames = ["mapPhotos"],

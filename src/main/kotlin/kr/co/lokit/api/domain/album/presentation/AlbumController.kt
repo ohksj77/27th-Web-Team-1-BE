@@ -51,7 +51,7 @@ class AlbumController(
         @PathVariable id: Long,
         @RequestBody @Valid request: UpdateAlbumTitleRequest,
     ): IdResponse =
-        updateAlbumUseCase.updateTitle(id, request.title).toIdResponse(Album::id)
+        updateAlbumUseCase.updateTitle(id, request.title, userId).toIdResponse(Album::id)
 
     @DeleteMapping("{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -59,5 +59,5 @@ class AlbumController(
     override fun delete(
         @CurrentUserId userId: Long,
         @PathVariable id: Long,
-    ) = updateAlbumUseCase.delete(id)
+    ) = updateAlbumUseCase.delete(id, userId)
 }

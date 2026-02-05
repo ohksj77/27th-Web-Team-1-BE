@@ -130,7 +130,7 @@ class PhotoControllerTest {
     fun `사진 수정 성공`() {
         val updatedPhoto = createPhoto(id = 1L, description = "수정됨")
         doReturn(updatedPhoto).`when`(updatePhotoUseCase)
-            .update(anyLong(), anyLong(), anyObject(), anyDouble(), anyDouble())
+            .update(anyLong(), anyLong(), anyObject(), anyDouble(), anyDouble(), anyLong())
 
         mockMvc.perform(
             put("/photos/1")
@@ -144,7 +144,7 @@ class PhotoControllerTest {
 
     @Test
     fun `사진 삭제 성공`() {
-        doNothing().`when`(updatePhotoUseCase).delete(anyLong())
+        doNothing().`when`(updatePhotoUseCase).delete(anyLong(), anyLong())
 
         mockMvc.perform(
             delete("/photos/1")

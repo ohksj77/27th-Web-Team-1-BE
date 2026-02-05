@@ -1,6 +1,7 @@
 package kr.co.lokit.api.domain.photo.application
 
 import kr.co.lokit.api.domain.album.application.port.AlbumRepositoryPort
+import kr.co.lokit.api.domain.map.application.MapPhotosCacheService
 import kr.co.lokit.api.domain.photo.application.port.PhotoRepositoryPort
 import kr.co.lokit.api.domain.photo.application.port.PhotoStoragePort
 import kr.co.lokit.api.domain.photo.domain.PhotoCreatedEvent
@@ -35,6 +36,9 @@ class PhotoCommandServiceTest {
     @Mock
     lateinit var eventPublisher: ApplicationEventPublisher
 
+    @Mock
+    lateinit var mapPhotosCacheService: MapPhotosCacheService
+
     @InjectMocks
     lateinit var photoCommandService: PhotoCommandService
 
@@ -58,7 +62,7 @@ class PhotoCommandServiceTest {
 
     @Test
     fun `사진을 삭제할 수 있다`() {
-        photoCommandService.delete(1L)
+        photoCommandService.delete(1L, 1L)
         verify(photoRepository).deleteById(1L)
     }
 
@@ -81,7 +85,7 @@ class PhotoCommandServiceTest {
         `when`(photoRepository.findById(1L)).thenReturn(originalPhoto)
         `when`(photoRepository.apply(anyObject())).thenReturn(updatedPhoto)
 
-        val result = photoCommandService.update(1L, 1L, request.description, request.longitude, request.latitude)
+        val result = photoCommandService.update(1L, 1L, request.description, request.longitude, request.latitude, 1L)
 
         assertEquals("수정된 설명", result.description)
     }
@@ -101,7 +105,7 @@ class PhotoCommandServiceTest {
         `when`(photoRepository.findById(1L)).thenReturn(originalPhoto)
         `when`(photoRepository.apply(anyObject())).thenReturn(updatedPhoto)
 
-        photoCommandService.update(1L, 1L, request.description, request.longitude, request.latitude)
+        photoCommandService.update(1L, 1L, request.description, request.longitude, request.latitude, 1L)
 
         verify(eventPublisher).publishEvent(anyObject<PhotoLocationUpdatedEvent>())
     }

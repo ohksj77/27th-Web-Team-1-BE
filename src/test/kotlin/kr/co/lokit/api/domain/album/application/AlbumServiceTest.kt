@@ -2,6 +2,7 @@ package kr.co.lokit.api.domain.album.application
 
 import kr.co.lokit.api.common.exception.BusinessException
 import kr.co.lokit.api.domain.album.application.port.AlbumRepositoryPort
+import kr.co.lokit.api.domain.map.application.MapPhotosCacheService
 import kr.co.lokit.api.fixture.createAlbum
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -18,6 +19,9 @@ class AlbumServiceTest {
 
     @Mock
     lateinit var albumRepository: AlbumRepositoryPort
+
+    @Mock
+    lateinit var mapPhotosCacheService: MapPhotosCacheService
 
     @InjectMocks
     lateinit var albumCommandService: AlbumCommandService
@@ -73,7 +77,7 @@ class AlbumServiceTest {
         `when`(albumRepository.existsByCoupleIdAndTitle(1L, "새 제목")).thenReturn(false)
         `when`(albumRepository.applyTitle(1L, "새 제목")).thenReturn(updatedAlbum)
 
-        val result = albumCommandService.updateTitle(1L, "새 제목")
+        val result = albumCommandService.updateTitle(1L, "새 제목", 1L)
 
         assertEquals("새 제목", result.title)
     }
@@ -85,7 +89,7 @@ class AlbumServiceTest {
         `when`(albumRepository.existsByCoupleIdAndTitle(1L, "중복 제목")).thenReturn(true)
 
         assertThrows<BusinessException.AlbumAlreadyExistsException> {
-            albumCommandService.updateTitle(1L, "중복 제목")
+            albumCommandService.updateTitle(1L, "중복 제목", 1L)
         }
     }
 
@@ -95,7 +99,7 @@ class AlbumServiceTest {
         `when`(albumRepository.findById(1L)).thenReturn(defaultAlbum)
 
         assertThrows<BusinessException.DefaultAlbumTitleChangeNotAllowedException> {
-            albumCommandService.updateTitle(1L, "새 제목")
+            albumCommandService.updateTitle(1L, "새 제목", 1L)
         }
     }
 
@@ -104,7 +108,7 @@ class AlbumServiceTest {
         val album = createAlbum(id = 1L, title = "여행", createdById = 1L)
         `when`(albumRepository.findById(1L)).thenReturn(album)
 
-        albumCommandService.delete(1L)
+        albumCommandService.delete(1L, 1L)
 
         verify(albumRepository).deleteById(1L)
     }
@@ -115,7 +119,7 @@ class AlbumServiceTest {
         `when`(albumRepository.findById(1L)).thenReturn(defaultAlbum)
 
         assertThrows<BusinessException.DefaultAlbumDeletionNotAllowedException> {
-            albumCommandService.delete(1L)
+            albumCommandService.delete(1L, 1L)
         }
     }
 }

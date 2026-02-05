@@ -9,7 +9,8 @@ interface UpdatePhotoUseCase {
         description: String?,
         longitude: Double,
         latitude: Double,
+        userId: Long,
     ): Photo
 
-    fun delete(photoId: Long)
+    fun delete(photoId: Long, userId: Long)
 }

@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam
 interface AuthApi {
     @Operation(
         summary = "카카오 로그인 페이지로 리다이렉트",
-        description = "카카오 OAuth 인증 페이지로 리다이렉트합니다. 프론트엔드에서 이 URL로 이동하면 카카오 로그인 화면이 표시됩니다.",
+        description = "카카오 OAuth 인증 페이지로 리다이렉트합니다. redirect 파라미터로 로그인 후 돌아갈 프론트엔드 URL을 지정할 수 있습니다.",
     )
     @ApiResponses(
         value = [
@@ -25,11 +25,15 @@ interface AuthApi {
         ],
     )
     @SecurityRequirements
-    fun kakaoAuthorize(): ResponseEntity<Unit>
+    fun kakaoAuthorize(
+        @Parameter(description = "로그인 후 리다이렉트할 프론트엔드 URL", example = "https://develop.lokit.co.kr")
+        redirect: String?,
+    ): ResponseEntity<Unit>
 
     @Operation(hidden = true)
     fun kakaoCallback(
         @RequestParam code: String,
+        @RequestParam(required = false) state: String?,
         @Parameter(hidden = true) req: HttpServletRequest,
     ): ResponseEntity<Unit>
 }
