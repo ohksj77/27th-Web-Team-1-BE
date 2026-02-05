@@ -26,7 +26,6 @@ class KakaoMapClient(
         cacheNames = ["reverseGeocode"],
         key = "T(java.lang.Math).round(#longitude * 10000) + ',' + T(java.lang.Math).round(#latitude * 10000)",
         unless = "#result.address == null && #result.placeName == null",
-        sync = true
     )
     override fun reverseGeocode(longitude: Double, latitude: Double): LocationInfoResponse {
         val response = restClient.get()
@@ -71,7 +70,7 @@ class KakaoMapClient(
         )
     }
 
-    @Cacheable(cacheNames = ["searchPlaces"], key = "#query", unless = "#result.isEmpty()", sync = true)
+    @Cacheable(cacheNames = ["searchPlaces"], key = "#query", unless = "#result.isEmpty()")
     override fun searchPlaces(query: String): List<PlaceResponse> {
         val response = restClient.get()
             .uri { uriBuilder ->

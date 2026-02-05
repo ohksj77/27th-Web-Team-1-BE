@@ -31,7 +31,6 @@ class MapPhotosCacheService(
         cacheNames = ["mapPhotos"],
         key = "#cacheKey",
         unless = "#result.clusters?.isEmpty() == true && #result.photos?.isEmpty() == true",
-        sync = true
     )
     fun getClusteredPhotos(
         zoom: Int,
@@ -63,7 +62,6 @@ class MapPhotosCacheService(
         cacheNames = ["mapPhotos"],
         key = "#cacheKey",
         unless = "#result.clusters?.isEmpty() == true && #result.photos?.isEmpty() == true",
-        sync = true
     )
     fun getIndividualPhotos(
         bbox: BBox,
