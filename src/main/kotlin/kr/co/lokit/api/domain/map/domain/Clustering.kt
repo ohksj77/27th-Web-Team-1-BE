@@ -14,17 +14,19 @@ data class BBox(
 ) {
     companion object {
         fun fromCenter(zoom: Int, longitude: Double, latitude: Double): BBox {
-            val gridSize = GridValues.getGridSize(zoom - 1)
+            val viewportSize = 360.0 / 2.0.pow(zoom.toDouble())
+            val halfWidth = viewportSize / 2.0
+            val halfHeight = viewportSize / 2.0
+            val gridSize = GridValues.getGridSize(zoom)
             val inverseGridSize = 1.0 / gridSize
-            val halfGridSize = gridSize / 2.0
-
-             return BBox(
-                 west = floor((longitude - halfGridSize) * inverseGridSize) * gridSize,
-                 south = floor((latitude - halfGridSize) * inverseGridSize) * gridSize,
-                 east = ceil((longitude + halfGridSize) * inverseGridSize) * gridSize,
-                 north = ceil((latitude + halfGridSize) * inverseGridSize) * gridSize,
-             )
-        }
+            
+            return BBox(
+                west = floor((longitude - halfWidth) * inverseGridSize) * gridSize,
+                south = floor((latitude - halfHeight) * inverseGridSize) * gridSize,
+                east = ceil((longitude + halfWidth) * inverseGridSize) * gridSize,
+                north = ceil((latitude + halfHeight) * inverseGridSize) * gridSize,
+    )
+}
 
         fun fromString(bbox: String): BBox {
             val parts = bbox.split(",")
