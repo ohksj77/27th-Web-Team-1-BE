@@ -64,7 +64,7 @@ class PhotoCommandService(
                         )
                 photo.copy(albumId = defaultAlbum.id, address = locationInfo.address)
             } else {
-                photo
+                photo.copy(address = locationInfo.address)
             }
         val saved = photoRepository.save(effectivePhoto)
 
