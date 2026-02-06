@@ -20,7 +20,6 @@ import java.time.LocalDateTime
     indexes = [
         Index(columnList = "album_id"),
         Index(columnList = "uploaded_by"),
-        Index(name = "idx_photo_location", columnList = "location"),
     ],
 )
 class PhotoEntity(
@@ -33,6 +32,8 @@ class PhotoEntity(
     var album: AlbumEntity,
     @Column(nullable = false, columnDefinition = "geometry(Point,4326)")
     var location: Point,
+    @Column(nullable = false)
+    var address: String,
     @ManyToOne
     @JoinColumn(name = "uploaded_by", nullable = false)
     var uploadedBy: UserEntity,
@@ -44,8 +45,11 @@ class PhotoEntity(
         get() = location.y
 
     init {
-        album.addPhoto(this)
+        album.onPhotoAdded()
     }
+
+    @Column(name = "couple_id")
+    var coupleId: Long? = null
 
     @Column(length = 1000)
     var description: String? = null

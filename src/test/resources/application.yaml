@@ -27,6 +27,8 @@ spring:
             enabled: false
 
 logging:
+    request:
+        verbose: true
     level:
         org.hibernate.SQL: DEBUG
         org.hibernate.orm.jdbc.bind: TRACE
@@ -66,3 +68,5 @@ kakao:
 
 cookie:
     secure: false
+
+admin.key: ""

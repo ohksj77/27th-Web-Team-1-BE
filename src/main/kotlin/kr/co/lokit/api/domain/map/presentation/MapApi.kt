@@ -9,27 +9,35 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import kr.co.lokit.api.domain.map.dto.AlbumMapInfoResponse
+import kr.co.lokit.api.domain.map.dto.ClusterPhotoResponse
 import kr.co.lokit.api.domain.map.dto.ClusterPhotosPageResponse
 import kr.co.lokit.api.domain.map.dto.HomeResponse
 import kr.co.lokit.api.domain.map.dto.LocationInfoResponse
 import kr.co.lokit.api.domain.map.dto.MapMeResponse
 import kr.co.lokit.api.domain.map.dto.MapPhotosResponse
 import kr.co.lokit.api.domain.map.dto.PlaceSearchResponse
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RequestParam
 
 @SecurityRequirement(name = "Authorization")
 @Tag(name = "Map", description = "지도 API")
 interface MapApi {
     @Operation(
         summary = "홈 조회(홈 화면 초기 진입 시 1회 호출)",
-        description = ""
+        description = "",
+        hidden = true,
     )
-    fun home(@Parameter(hidden = true) userId: Long, longitude: Double, latitude: Double): HomeResponse
+    fun home(
+        @Parameter(hidden = true) userId: Long,
+        @RequestParam longitude: Double,
+        @RequestParam latitude: Double,
+    ): HomeResponse
 
     @Operation(
         summary = "지도 ME 조회 (홈 + 사진 조회 통합)",
         description = """
             홈 정보와 지도 사진을 한 번에 조회합니다.
-            
+
             - 위치 정보, 앨범 목록, 바운딩 박스 (map/home 응답)
             - 줌 레벨과 바운딩 박스 기반 사진/클러스터 (map/photos 응답)
             - 두 API를 하나로 통합하여 네트워크 요청을 줄입니다.
@@ -61,31 +69,31 @@ interface MapApi {
             example = "127.0276",
             required = true,
         )
-        longitude: Double,
+        @RequestParam longitude: Double,
         @Parameter(
             description = "위도",
             example = "37.4979",
             required = true,
         )
-        latitude: Double,
+        @RequestParam latitude: Double,
         @Parameter(
-            description = "줌 레벨 (0-20). 16 미만이면 클러스터링, 16 이상이면 개별 사진 반환",
+            description = "줌 레벨. 15 미만이면 클러스터링, 15 이상이면 개별 사진 반환",
             example = "12",
             required = true,
         )
-        zoom: Int,
+        @RequestParam zoom: Int,
         @Parameter(
             description = "바운딩 박스 (west,south,east,north 형식의 경도/위도)",
             example = "126.9,37.4,127.1,37.6",
             required = true,
         )
-        bbox: String,
+        @RequestParam albumId: Long?,
         @Parameter(
-            description = "앨범 ID (선택). 지정 시 해당 앨범의 사진만 조회",
-            example = "1",
+            description = "이전 응답의 dataVersion. 일치하면 사진 데이터를 생략하여 응답 최적화",
+            example = "3",
             required = false,
         )
-        albumId: Long?,
+        @RequestParam lastDataVersion: Long?,
     ): MapMeResponse
 
     @Operation(
@@ -93,13 +101,14 @@ interface MapApi {
         description = """
             줌 레벨과 바운딩 박스를 기반으로 지도에 표시할 사진 또는 클러스터를 조회합니다.
 
-            - **줌 레벨 < 16**: ST_SnapToGrid를 사용하여 사진을 클러스터링하여 반환
+            - **줌 레벨 < 15**: ST_SnapToGrid를 사용하여 사진을 클러스터링하여 반환
             - clusterId: 줌 레벨 + 그리드 셀 인덱스 (예: z14_130234_38456)
             - count: 클러스터 내 사진 개수
             - thumbnailUrl: 클러스터 내 가장 최근 생성된 사진의 URL
 
             - **줌 레벨 >= 15**: 개별 사진 썸네일을 반환
         """,
+        hidden = true,
     )
     @ApiResponses(
         value = [
@@ -128,7 +137,7 @@ interface MapApi {
     fun getPhotos(
         @Parameter(hidden = true) userId: Long,
         @Parameter(
-            description = "줌 레벨 (0-20). 16 미만이면 클러스터링, 16 이상이면 개별 사진 반환",
+            description = "줌 레벨 (0-20). 15 미만이면 클러스터링, 16 이상이면 개별 사진 반환",
             example = "12",
             required = true,
         )
@@ -144,7 +153,7 @@ interface MapApi {
             example = "1",
             required = false,
         )
-        albumId: Long?,
+        @RequestParam albumId: Long?,
     ): MapPhotosResponse
 
     @Operation(
@@ -163,7 +172,7 @@ interface MapApi {
             ApiResponse(
                 responseCode = "200",
                 description = "조회 성공",
-                content = [Content(schema = Schema(implementation = ClusterPhotosPageResponse::class))],
+                content = [Content(schema = Schema(implementation = ClusterPhotoResponse::class))],
             ),
             ApiResponse(
                 responseCode = "400",
@@ -189,17 +198,7 @@ interface MapApi {
             example = "z14_130234_38456",
             required = true,
         )
-        clusterId: String,
-        @Parameter(
-            description = "페이지 번호 (0부터 시작)",
-            example = "0",
-        )
-        page: Int,
-        @Parameter(
-            description = "페이지 크기",
-            example = "20",
-        )
-        size: Int,
+        @RequestParam clusterId: String,
     ): ClusterPhotosPageResponse
 
     @Operation(
@@ -237,7 +236,7 @@ interface MapApi {
             example = "1",
             required = true,
         )
-        albumId: Long,
+        @PathVariable albumId: Long,
     ): AlbumMapInfoResponse
 
     @Operation(
@@ -270,13 +269,13 @@ interface MapApi {
             example = "127.0276",
             required = true,
         )
-        longitude: Double,
+        @RequestParam longitude: Double,
         @Parameter(
             description = "위도",
             example = "37.4979",
             required = true,
         )
-        latitude: Double,
+        @RequestParam latitude: Double,
     ): LocationInfoResponse
 
     @Operation(
@@ -309,6 +308,6 @@ interface MapApi {
             example = "스타벅스 강남",
             required = true,
         )
-        query: String,
+        @RequestParam query: String,
     ): PlaceSearchResponse
 }

@@ -34,6 +34,7 @@ class CoupleEntity(
         protected set
 
     fun addUser(coupleUser: CoupleUserEntity) {
+        require(coupleUsers.size < 2)
         coupleUsers.add(coupleUser)
     }
 

@@ -6,4 +6,6 @@ interface PhotoStoragePort {
     fun generatePresignedUrl(key: String, contentType: String): PresignedUrl
     fun verifyFileExists(objectUrl: String)
     fun verifyFileNotExists(key: String)
+    fun deleteFileByKey(key: String)
+    fun deleteFileByUrl(url: String)
 }

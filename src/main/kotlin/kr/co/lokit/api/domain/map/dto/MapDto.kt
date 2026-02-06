@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotNull
 import kr.co.lokit.api.domain.album.domain.Album
 import kr.co.lokit.api.domain.map.domain.BBox
 import kr.co.lokit.api.domain.map.mapping.toResponse
+import java.time.LocalDateTime
 
 @Schema(description = "클러스터 응답")
 data class ClusterResponse(
@@ -69,7 +70,7 @@ data class MapPhotoResponse(
     )
     var latitude: Double,
     @Schema(description = "촬영일시 (ISO 8601 형식)", example = "2026-01-06T14:30:00")
-    val takenAt: java.time.LocalDateTime,
+    val takenAt: LocalDateTime,
 )
 
 @Schema(description = "지도 사진 조회 응답")
@@ -109,23 +110,9 @@ data class ClusterPhotoResponse(
     )
     var latitude: Double,
     @Schema(description = "촬영일시 (ISO 8601 형식)", example = "2026-01-06T14:30:00")
-    val takenAt: java.time.LocalDateTime,
-)
-
-@Schema(description = "클러스터 사진 목록 페이지네이션 응답")
-data class ClusterPhotosPageResponse(
-    @Schema(description = "사진 목록")
-    val photos: List<ClusterPhotoResponse>,
-    @Schema(description = "현재 페이지 번호 (0부터 시작)", example = "0")
-    val page: Int,
-    @Schema(description = "페이지 크기", example = "20")
-    val size: Int,
-    @Schema(description = "전체 사진 개수", example = "42")
-    val totalElements: Long,
-    @Schema(description = "전체 페이지 수", example = "3")
-    val totalPages: Int,
-    @Schema(description = "마지막 페이지 여부", example = "false")
-    val last: Boolean,
+    val takenAt: LocalDateTime,
+    @Schema(description = "주소", example = "역삼동 858")
+    var address: String
 )
 
 @Schema(description = "바운딩 박스 응답")
@@ -154,7 +141,7 @@ data class AlbumMapInfoResponse(
 
 @Schema(description = "위치 정보 응답")
 data class LocationInfoResponse(
-    @Schema(description = "주소", example = "서울특별시 강남구 역삼동 123-45")
+    @Schema(description = "주소", example = "테헤란로 123-45")
     val address: String?,
     @Schema(description = "도로명", example = "테헤란로")
     val roadName: String? = null,
@@ -168,7 +155,7 @@ data class LocationInfoResponse(
 data class PlaceResponse(
     @Schema(description = "장소명", example = "스타벅스 강남역점")
     val placeName: String,
-    @Schema(description = "지번 주소", example = "서울 강남구 역삼동 858")
+    @Schema(description = "주소", example = "역삼동 858")
     val address: String?,
     @Schema(description = "도로명 주소", example = "서울 강남구 강남대로 396")
     val roadAddress: String?,
@@ -250,6 +237,8 @@ data class HomeResponse(
     }
 }
 
+typealias ClusterPhotosPageResponse = List<ClusterPhotoResponse>
+
 @Schema(description = "지도 ME 응답 (홈 + 사진 조회 통합)")
 data class MapMeResponse(
     @Schema(description = "위치 정보")
@@ -260,8 +249,10 @@ data class MapMeResponse(
     val totalHistoryCount: Int,
     @Schema(description = "앨범 하이라이트 사진들 (최대 4장)")
     val albums: List<HomeResponse.Companion.AlbumThumbnails>,
-    @Schema(description = "클러스터 목록 (줌 < 15일 때)")
+    @Schema(description = "데이터 버전 (사진 변경 시 증가, 프론트 캐싱에 사용)")
+    val dataVersion: Long = 0,
+    @Schema(description = "클러스터 목록 (줌 < 15일 때, dataVersion 미변경 시 null)")
     val clusters: List<ClusterResponse>? = null,
-    @Schema(description = "개별 사진 목록 (줌 >= 15일 때)")
+    @Schema(description = "개별 사진 목록 (줌 >= 15일 때, dataVersion 미변경 시 null)")
     val photos: List<MapPhotoResponse>? = null,
 )

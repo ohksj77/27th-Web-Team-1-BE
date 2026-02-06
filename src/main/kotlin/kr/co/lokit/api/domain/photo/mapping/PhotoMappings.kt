@@ -20,7 +20,7 @@ fun CreatePhotoRequest.toDomain(userId: Long): Photo =
         description = description,
         uploadedById = userId,
         url = url,
-        takenAt = this@toDomain.takenAt
+        takenAt = this@toDomain.takenAt,
     )
 
 fun Photo.toEntity(album: AlbumEntity, uploadedBy: UserEntity): PhotoEntity =
@@ -29,20 +29,24 @@ fun Photo.toEntity(album: AlbumEntity, uploadedBy: UserEntity): PhotoEntity =
         album = album,
         location = PhotoEntity.createPoint(this.location.longitude, this.location.latitude),
         uploadedBy = uploadedBy,
+        address = this.address!!
     ).apply {
         this.description = this@toEntity.description
         this.takenAt = this@toEntity.takenAt
+        this.coupleId = album.couple.nonNullId()
     }
 
 fun PhotoEntity.toDomain(): Photo =
     Photo(
         id = this.nonNullId(),
         albumId = this.album.nonNullId(),
+        coupleId = this.coupleId,
         location = Location(longitude = this.longitude, latitude = this.latitude),
         description = this.description,
         url = this.url,
-        uploadedById = this@toDomain.uploadedBy.nonNullId(),
-        takenAt = this@toDomain.takenAt
+        uploadedById = this.uploadedBy.nonNullId(),
+        takenAt = this.takenAt,
+        address = this.address
     )
 
 fun Photo.toResponse(): PhotoResponse =
@@ -70,7 +74,7 @@ fun Album.toAlbumWithPhotosResponse(): AlbumWithPhotosResponse {
         title = this.title,
         photoCount = actualPhotoCount,
         thumbnailUrl = this.thumbnail?.url,
-        photos = this.photos.map { it.toResponse() },
+        photos = this.photos.sortedByDescending { it.takenAt }.map { it.toResponse() },
     )
 }
 

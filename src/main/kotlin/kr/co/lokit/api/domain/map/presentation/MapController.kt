@@ -5,7 +5,7 @@ import kr.co.lokit.api.domain.map.application.port.`in`.GetMapUseCase
 import kr.co.lokit.api.domain.map.application.port.`in`.SearchLocationUseCase
 import kr.co.lokit.api.domain.map.domain.BBox
 import kr.co.lokit.api.domain.map.dto.AlbumMapInfoResponse
-import kr.co.lokit.api.domain.map.dto.ClusterPhotosPageResponse
+import kr.co.lokit.api.domain.map.dto.ClusterPhotoResponse
 import kr.co.lokit.api.domain.map.dto.HomeResponse
 import kr.co.lokit.api.domain.map.dto.LocationInfoResponse
 import kr.co.lokit.api.domain.map.dto.MapMeResponse
@@ -24,39 +24,30 @@ class MapController(
     private val getMapUseCase: GetMapUseCase,
     private val searchLocationUseCase: SearchLocationUseCase,
 ) : MapApi {
-    @GetMapping("home")
-    override fun home(@CurrentUserId userId: Long, longitude: Double, latitude: Double): HomeResponse =
-        getMapUseCase.home(userId, longitude, latitude)
-
     @GetMapping("me")
     override fun getMe(
         @CurrentUserId userId: Long,
         @RequestParam longitude: Double,
         @RequestParam latitude: Double,
         @RequestParam zoom: Int,
-        @RequestParam bbox: String,
         @RequestParam(required = false) albumId: Long?,
-    ): MapMeResponse {
-        return getMapUseCase.getMe(userId, longitude, latitude, zoom, BBox.fromString(bbox), albumId)
-    }
-
-    @GetMapping("photos")
-    override fun getPhotos(
-        @CurrentUserId userId: Long,
-        @RequestParam zoom: Int,
-        @RequestParam bbox: String,
-        @RequestParam(required = false) albumId: Long?,
-    ): MapPhotosResponse {
-        return getMapUseCase.getPhotos(zoom, BBox.fromString(bbox), userId, albumId)
-    }
+        @RequestParam(required = false) lastDataVersion: Long?,
+    ): MapMeResponse =
+        getMapUseCase.getMe(
+            userId,
+            longitude,
+            latitude,
+            zoom,
+            BBox.fromCenter(zoom, longitude, latitude),
+            albumId,
+            lastDataVersion,
+        )
 
     @GetMapping("clusters/{clusterId}/photos")
     override fun getClusterPhotos(
         @CurrentUserId userId: Long,
         @PathVariable clusterId: String,
-        @RequestParam(defaultValue = "0") page: Int,
-        @RequestParam(defaultValue = "20") size: Int,
-    ): ClusterPhotosPageResponse = getMapUseCase.getClusterPhotos(clusterId, userId, page, size)
+    ): List<ClusterPhotoResponse> = getMapUseCase.getClusterPhotos(clusterId, userId)
 
     @GetMapping("albums/{albumId}")
     @PreAuthorize("@permissionService.canAccessAlbum(#userId, #albumId)")
@@ -75,4 +66,21 @@ class MapController(
     override fun searchPlaces(
         @RequestParam query: String,
     ): PlaceSearchResponse = searchLocationUseCase.searchPlaces(query)
+
+    // 삭제 예정
+    @GetMapping("home")
+    override fun home(
+        @CurrentUserId userId: Long,
+        @RequestParam longitude: Double,
+        @RequestParam latitude: Double,
+    ): HomeResponse = getMapUseCase.home(userId, longitude, latitude)
+
+    // 삭제 예정
+    @GetMapping("photos")
+    override fun getPhotos(
+        @CurrentUserId userId: Long,
+        @RequestParam zoom: Int,
+        @RequestParam bbox: String,
+        @RequestParam(required = false) albumId: Long?,
+    ): MapPhotosResponse = getMapUseCase.getPhotos(zoom, BBox.fromStringCenter(bbox, zoom), userId, albumId)
 }

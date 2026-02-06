@@ -57,9 +57,9 @@ data class CreatePhotoRequest(
     val url: String,
     @Schema(description = "앨범 ID", example = "1 or null(전체 앨범)")
     val albumId: Long?,
-    @Schema(description = "경도", example = "127.0276", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "사진 경도", example = "127.0276", requiredMode = Schema.RequiredMode.REQUIRED)
     val longitude: Double,
-    @Schema(description = "위도", example = "37.4979", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "사진 위도", example = "37.4979", requiredMode = Schema.RequiredMode.REQUIRED)
     val latitude: Double,
     @Schema(
         description = "촬영일시 (EXIF 데이터)",
@@ -81,9 +81,11 @@ data class PresignedUrl(
 
 @Schema(description = "Presigned URL 요청")
 data class PresignedUrlRequest(
-    @field:NotBlank(message = "파일명은 필수입니다.")
-    @Schema(description = "파일명", example = "image.jpg", requiredMode = Schema.RequiredMode.REQUIRED)
-    val fileName: String,
+    @Schema(
+        description = "파일명(deprecated, nullable)",
+        example = "image.jpg",
+    )
+    val fileName: String?,
     @field:NotBlank(message = "파일 MIME 타입은 필수입니다.")
     @Schema(description = "파일 MIME 타입", example = "image/jpeg", requiredMode = Schema.RequiredMode.REQUIRED)
     val contentType: String,

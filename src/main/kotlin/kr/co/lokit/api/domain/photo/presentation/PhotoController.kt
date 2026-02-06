@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
@@ -40,21 +41,23 @@ class PhotoController(
     override fun getPhotos(
         @CurrentUserId userId: Long,
         @PathVariable albumId: Long,
-    ): PhotoListResponse =
-        getPhotoDetailUseCase.getPhotosByAlbum(albumId, userId).toPhotoListResponse()
+    ): PhotoListResponse = getPhotoDetailUseCase.getPhotosByAlbum(albumId, userId).toPhotoListResponse()
 
     @PostMapping("presigned-url")
-    @ResponseStatus(HttpStatus.OK)
     override fun getPresignedUrl(
+        @RequestHeader(value = "X-Idempotency-Key", required = false) idempotencyKey: String?,
         @RequestBody @Valid request: PresignedUrlRequest,
-    ): PresignedUrl = createPhotoUseCase.generatePresignedUrl(request.fileName, request.contentType)
+    ): PresignedUrl = createPhotoUseCase.generatePresignedUrl(idempotencyKey, request.contentType)
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     override fun create(
         @RequestBody @Valid request: CreatePhotoRequest,
         @CurrentUserId userId: Long,
-    ): IdResponse = createPhotoUseCase.create(request.toDomain(userId)).toIdResponse(Photo::id)
+    ): IdResponse =
+        createPhotoUseCase
+            .create(request.toDomain(userId))
+            .toIdResponse(Photo::id)
 
     @GetMapping("{id}")
     @PreAuthorize("@permissionService.canReadPhoto(#userId, #id)")
@@ -70,7 +73,8 @@ class PhotoController(
         @PathVariable id: Long,
         @RequestBody @Valid request: UpdatePhotoRequest,
     ): IdResponse =
-        updatePhotoUseCase.update(id, request.albumId, request.description, request.longitude, request.latitude)
+        updatePhotoUseCase
+            .update(id, request.albumId, request.description, request.longitude, request.latitude, userId)
             .toIdResponse(Photo::id)
 
     @DeleteMapping("{id}")
@@ -79,5 +83,5 @@ class PhotoController(
     override fun delete(
         @CurrentUserId userId: Long,
         @PathVariable id: Long,
-    ) = updatePhotoUseCase.delete(id)
+    ) = updatePhotoUseCase.delete(id, userId)
 }

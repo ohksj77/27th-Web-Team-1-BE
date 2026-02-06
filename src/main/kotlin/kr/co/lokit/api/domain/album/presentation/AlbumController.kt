@@ -32,26 +32,25 @@ class AlbumController(
     private val getAlbumUseCase: GetAlbumUseCase,
     private val updateAlbumUseCase: UpdateAlbumUseCase,
 ) : AlbumApi {
-
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    override fun create(@CurrentUserId userId: Long, @RequestBody @Valid albumRequest: AlbumRequest): IdResponse =
-        createAlbumUseCase.create(albumRequest.toDomain(), userId).toIdResponse(Album::id)
+    override fun create(
+        @CurrentUserId userId: Long,
+        @RequestBody @Valid albumRequest: AlbumRequest,
+    ): IdResponse = createAlbumUseCase.create(albumRequest.toDomain(), userId).toIdResponse(Album::id)
 
     @GetMapping("selectable")
-    @ResponseStatus(HttpStatus.OK)
-    override fun getSelectableAlbums(@CurrentUserId userId: Long): SelectableAlbumResponse =
-        getAlbumUseCase.getSelectableAlbums(userId).toSelectableResponse()
+    override fun getSelectableAlbums(
+        @CurrentUserId userId: Long,
+    ): SelectableAlbumResponse = getAlbumUseCase.getSelectableAlbums(userId).toSelectableResponse()
 
     @PatchMapping("{id}")
-    @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("@permissionService.canModifyAlbum(#userId, #id)")
     override fun updateTitle(
         @CurrentUserId userId: Long,
         @PathVariable id: Long,
         @RequestBody @Valid request: UpdateAlbumTitleRequest,
-    ): IdResponse =
-        updateAlbumUseCase.updateTitle(id, request.title).toIdResponse(Album::id)
+    ): IdResponse = updateAlbumUseCase.updateTitle(id, request.title, userId).toIdResponse(Album::id)
 
     @DeleteMapping("{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -59,5 +58,5 @@ class AlbumController(
     override fun delete(
         @CurrentUserId userId: Long,
         @PathVariable id: Long,
-    ) = updateAlbumUseCase.delete(id)
+    ) = updateAlbumUseCase.delete(id, userId)
 }

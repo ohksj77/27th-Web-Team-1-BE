@@ -103,7 +103,7 @@ class AlbumControllerTest {
     @Test
     fun `앨범 제목 수정 성공`() {
         val updatedAlbum = createAlbum(id = 1L, title = "새 제목")
-        doReturn(updatedAlbum).`when`(updateAlbumUseCase).updateTitle(anyLong(), anyString())
+        doReturn(updatedAlbum).`when`(updateAlbumUseCase).updateTitle(anyLong(), anyString(), anyLong())
 
         mockMvc.perform(
             patch("/albums/1")
@@ -129,7 +129,7 @@ class AlbumControllerTest {
 
     @Test
     fun `앨범 삭제 성공`() {
-        doNothing().`when`(updateAlbumUseCase).delete(anyLong())
+        doNothing().`when`(updateAlbumUseCase).delete(anyLong(), anyLong())
 
         mockMvc.perform(
             delete("/albums/1")
@@ -142,7 +142,7 @@ class AlbumControllerTest {
     @Test
     fun `앨범 삭제 실패 - 존재하지 않는 앨범`() {
         doThrow(BusinessException.ResourceNotFoundException("Album(id=999)을(를) 찾을 수 없습니다"))
-            .`when`(updateAlbumUseCase).delete(anyLong())
+            .`when`(updateAlbumUseCase).delete(anyLong(), anyLong())
 
         mockMvc.perform(
             delete("/albums/999")

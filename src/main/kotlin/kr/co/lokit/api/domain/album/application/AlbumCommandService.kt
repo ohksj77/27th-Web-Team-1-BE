@@ -1,19 +1,27 @@
 package kr.co.lokit.api.domain.album.application
 
+import kr.co.lokit.api.common.annotation.OptimisticRetry
 import kr.co.lokit.api.common.exception.BusinessException
 import kr.co.lokit.api.common.exception.entityNotFound
 import kr.co.lokit.api.domain.album.application.port.AlbumRepositoryPort
 import kr.co.lokit.api.domain.album.application.port.`in`.CreateAlbumUseCase
 import kr.co.lokit.api.domain.album.application.port.`in`.UpdateAlbumUseCase
 import kr.co.lokit.api.domain.album.domain.Album
+import kr.co.lokit.api.domain.map.application.MapPhotosCacheService
+import org.springframework.cache.CacheManager
+import org.springframework.cache.annotation.CacheEvict
+import org.springframework.cache.annotation.Caching
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
 class AlbumCommandService(
     private val albumRepository: AlbumRepositoryPort,
+    private val mapPhotosCacheService: MapPhotosCacheService,
+    private val cacheManager: CacheManager,
 ) : CreateAlbumUseCase, UpdateAlbumUseCase {
 
+    @OptimisticRetry
     @Transactional
     override fun create(album: Album, userId: Long): Album {
         val coupleId = albumRepository.findDefaultByUserId(userId)?.coupleId
@@ -26,11 +34,14 @@ class AlbumCommandService(
                 errors = mapOf("title" to album.title)
             )
         }
-        return albumRepository.save(album, userId)
+        val saved = albumRepository.save(album, userId)
+        cacheManager.getCache("coupleAlbums")?.evict(coupleId)
+        return saved
     }
 
+    @OptimisticRetry
     @Transactional
-    override fun updateTitle(id: Long, title: String): Album {
+    override fun updateTitle(id: Long, title: String, userId: Long): Album {
         val album = albumRepository.findById(id)
             ?: throw entityNotFound<Album>(id)
         if (album.isDefault) {
@@ -43,11 +54,20 @@ class AlbumCommandService(
                 errors = mapOf("title" to title)
             )
         }
-        return albumRepository.applyTitle(id, title)
+        val updated = albumRepository.applyTitle(id, title)
+        cacheManager.getCache("coupleAlbums")?.evict(album.coupleId)
+        return updated
     }
 
+    @OptimisticRetry
     @Transactional
-    override fun delete(id: Long) {
+    @Caching(
+        evict = [
+            CacheEvict(cacheNames = ["albumCouple"], key = "#id"),
+            CacheEvict(cacheNames = ["album"], key = "#userId + ':' + #id"),
+        ],
+    )
+    override fun delete(id: Long, userId: Long) {
         val album = albumRepository.findById(id)
             ?: throw entityNotFound<Album>(id)
         if (album.isDefault) {
@@ -56,5 +76,7 @@ class AlbumCommandService(
             )
         }
         albumRepository.deleteById(id)
+        cacheManager.getCache("coupleAlbums")?.evict(album.coupleId)
+        mapPhotosCacheService.evictForCouple(album.coupleId)
     }
 }

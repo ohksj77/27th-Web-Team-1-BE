@@ -25,6 +25,7 @@ data class ClusterPhotoProjection(
     val longitude: Double,
     val latitude: Double,
     val takenAt: LocalDateTime,
+    val address: String
 )
 
 data class ClusterCandidate(
@@ -44,7 +45,8 @@ data class UniquePhotoRecord(
     val latitude: Double,
     val cellX: Long,
     val cellY: Long,
-    val createdAt: LocalDateTime,
+    val takenAt: LocalDateTime,
+    val count: Int = 1,
 )
 
 data class GridKey(val cellX: Long, val cellY: Long)

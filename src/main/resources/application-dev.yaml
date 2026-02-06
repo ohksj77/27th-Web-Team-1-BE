@@ -4,8 +4,6 @@ spring:
         username: ${POSTGRES_USER}
         password: ${POSTGRES_PASSWORD}
         driver-class-name: org.postgresql.Driver
-        hikari:
-            maximum-pool-size: 20
     jpa:
         hibernate:
             ddl-auto: update
@@ -25,6 +23,8 @@ spring:
         open-in-view: false
 
 logging:
+    request:
+        verbose: true
     level:
         root: INFO
         kr.co.lokit.api: DEBUG
@@ -33,7 +33,7 @@ management:
     endpoints:
         web:
             exposure:
-                include: "health"
+                include: "health,prometheus"
             base-path: /actuator
     endpoint:
         health:
@@ -80,3 +80,5 @@ cookie:
 discord:
     webhook:
         url: ${DISCORD_WEBHOOK_URL:}
+
+admin.key: ${ADMIN_KEY:}
