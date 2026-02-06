@@ -197,6 +197,6 @@ class MapPhotosCacheService(
         }
 
     companion object {
-        private const val MAX_CELLS_FOR_CELL_CACHE = 5000
+        private const val MAX_CELLS_FOR_CELL_CACHE = 500
     }
 }
