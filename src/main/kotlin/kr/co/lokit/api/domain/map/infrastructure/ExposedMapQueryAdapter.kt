@@ -152,7 +152,7 @@ private object MapSqlTemplates {
             SELECT p.id, p.url, p.taken_at, ST_X(p.location) AS longitude, ST_Y(p.location) AS latitude,
                     ST_Transform(p.location, 3857) as geom_3857
             FROM ${PhotoTable.tableName} p
-            WHERE p.location && ST_MakeEnvelope(?, ?, ?, ?, 4326) AND p.is_deleted = false
+            WHERE p.location && ST_Transform(ST_MakeEnvelope(?, ?, ?, ?, 3857), 4326) AND p.is_deleted = false
             ${if (coupleId != null) "AND p.couple_id = ?" else ""}
             ${if (albumId != null) "AND p.album_id = ?" else ""}
         ),
