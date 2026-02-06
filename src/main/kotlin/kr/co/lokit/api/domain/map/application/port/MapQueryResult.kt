@@ -46,6 +46,7 @@ data class UniquePhotoRecord(
     val cellX: Long,
     val cellY: Long,
     val takenAt: LocalDateTime,
+    val count: Int = 1,
 )
 
 data class GridKey(val cellX: Long, val cellY: Long)

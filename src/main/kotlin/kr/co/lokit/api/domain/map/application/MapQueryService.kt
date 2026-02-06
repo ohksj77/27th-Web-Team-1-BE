@@ -3,6 +3,7 @@ package kr.co.lokit.api.domain.map.application
 import kr.co.lokit.api.common.concurrency.StructuredConcurrency
 import kr.co.lokit.api.common.dto.isValidId
 import kr.co.lokit.api.domain.album.application.port.AlbumRepositoryPort
+import kr.co.lokit.api.domain.couple.application.port.CoupleRepositoryPort
 import kr.co.lokit.api.domain.map.application.port.AlbumBoundsRepositoryPort
 import kr.co.lokit.api.domain.map.application.port.MapClientPort
 import kr.co.lokit.api.domain.map.application.port.MapQueryPort
@@ -31,6 +32,7 @@ class MapQueryService(
     private val mapQueryPort: MapQueryPort,
     private val albumBoundsRepository: AlbumBoundsRepositoryPort,
     private val albumRepository: AlbumRepositoryPort,
+    private val coupleRepository: CoupleRepositoryPort,
     private val mapClientPort: MapClientPort,
     private val transactionTemplate: TransactionTemplate,
     private val mapPhotosCacheService: MapPhotosCacheService,
@@ -66,17 +68,19 @@ class MapQueryService(
         userId: Long?,
         albumId: Long?
     ): MapPhotosResponse {
+        val coupleId = userId?.let { coupleRepository.findByUserId(it)?.id }
+
         val effectiveAlbumId = if (isValidId(albumId) && isValidId(userId)) {
             val album = albumRepository.findById(albumId!!)
             if (album?.isDefault == true) null else albumId
         } else {
             albumId
         }
-        val cacheKey = mapPhotosCacheService.buildCacheKey(zoom, bbox, userId, effectiveAlbumId)
+        val cacheKey = mapPhotosCacheService.buildCacheKey(zoom, bbox, coupleId, effectiveAlbumId)
         return if (zoom < GridValues.CLUSTER_ZOOM_THRESHOLD) {
-            mapPhotosCacheService.getClusteredPhotos(zoom, bbox, userId, effectiveAlbumId, cacheKey)
+            mapPhotosCacheService.getClusteredPhotos(zoom, bbox, coupleId, effectiveAlbumId, cacheKey)
         } else {
-            mapPhotosCacheService.getIndividualPhotos(bbox, userId, effectiveAlbumId, cacheKey)
+            mapPhotosCacheService.getIndividualPhotos(bbox, coupleId, effectiveAlbumId, cacheKey)
         }
     }
 
@@ -85,6 +89,7 @@ class MapQueryService(
         clusterId: String,
         userId: Long?,
     ): List<ClusterPhotoResponse> {
+        val coupleId = userId?.let { coupleRepository.findByUserId(it)?.id }
         val gridCell = ClusterId.parse(clusterId)
         val bbox = gridCell.toBBox()
 
@@ -94,7 +99,7 @@ class MapQueryService(
                 south = bbox.south,
                 east = bbox.east,
                 north = bbox.north,
-                userId = userId,
+                coupleId = coupleId,
             ).toClusterPhotosPageResponse()
     }
 

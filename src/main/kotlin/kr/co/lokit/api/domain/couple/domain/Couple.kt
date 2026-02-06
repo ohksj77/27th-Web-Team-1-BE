@@ -5,4 +5,8 @@ data class Couple(
     val name: String,
     val inviteCode: String? = null,
     val userIds: List<Long> = emptyList(),
-)
+) {
+    init {
+        require(userIds.size <= 2)
+    }
+}

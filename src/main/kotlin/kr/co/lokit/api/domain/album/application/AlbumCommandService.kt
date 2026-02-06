@@ -73,6 +73,6 @@ class AlbumCommandService(
             )
         }
         albumRepository.deleteById(id)
-        mapPhotosCacheService.evictForUser(userId)
+        mapPhotosCacheService.evictForCouple(album.coupleId)
     }
 }

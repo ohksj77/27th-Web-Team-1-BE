@@ -17,7 +17,7 @@ object ClusteringPipeline {
             val sortedByTakenAt = photos.sortedByDescending { it.takenAt }
             ClusterData(
                 gridKey = key,
-                count = photos.size,
+                count = photos.sumOf { it.count },
                 centerLongitude = photos.map { it.longitude }.average(),
                 centerLatitude = photos.map { it.latitude }.average(),
                 photosByRank = sortedByTakenAt.mapIndexed { index, photo ->

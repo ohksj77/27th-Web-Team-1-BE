@@ -1,6 +1,7 @@
 package kr.co.lokit.api.domain.map.application
 
 import kr.co.lokit.api.domain.album.application.port.AlbumRepositoryPort
+import kr.co.lokit.api.domain.couple.application.port.CoupleRepositoryPort
 import kr.co.lokit.api.domain.map.application.port.AlbumBoundsRepositoryPort
 import kr.co.lokit.api.domain.map.application.port.MapClientPort
 import kr.co.lokit.api.domain.map.application.port.MapQueryPort
@@ -35,6 +36,9 @@ class MapServiceTest {
     lateinit var albumRepository: AlbumRepositoryPort
 
     @Mock
+    lateinit var coupleRepository: CoupleRepositoryPort
+
+    @Mock
     lateinit var mapClientPort: MapClientPort
 
     @Mock
@@ -67,7 +71,7 @@ class MapServiceTest {
             mapPhotosCacheService.getClusteredPhotos(
                 zoom = 12,
                 bbox = bbox,
-                userId = null,
+                coupleId = null,
                 albumId = null,
                 cacheKey = "12:126900:37400",
             ),
@@ -100,7 +104,7 @@ class MapServiceTest {
         `when`(
             mapPhotosCacheService.getIndividualPhotos(
                 bbox = bbox,
-                userId = null,
+                coupleId = null,
                 albumId = null,
                 cacheKey = "18:126900:37400",
             ),

@@ -78,7 +78,8 @@ class PhotoCommandService(
                 ),
             )
         }
-        mapPhotosCacheService.evictForUser(photo.uploadedById)
+        val coupleId = albumRepository.findById(effectivePhoto.albumId!!)?.coupleId
+        if (coupleId != null) mapPhotosCacheService.evictForCouple(coupleId)
         return saved
     }
 
@@ -119,8 +120,8 @@ class PhotoCommandService(
                 ),
             )
         }
-
-        mapPhotosCacheService.evictForUser(userId)
+        val coupleId = albumRepository.findById(updated.albumId!!)?.coupleId
+        if (coupleId != null) mapPhotosCacheService.evictForCouple(coupleId)
         return result
     }
 
@@ -134,7 +135,8 @@ class PhotoCommandService(
     override fun delete(photoId: Long, userId: Long) {
         val photo = photoRepository.findById(photoId)
         photoRepository.deleteById(photoId)
-        mapPhotosCacheService.evictForUser(userId)
+        val coupleId = photo.albumId?.let { albumRepository.findById(it)?.coupleId }
+        if (coupleId != null) mapPhotosCacheService.evictForCouple(coupleId)
         eventPublisher.publishEvent(PhotoDeletedEvent(photoUrl = photo.url))
     }
 

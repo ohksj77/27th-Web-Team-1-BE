@@ -22,18 +22,24 @@ class ExposedMapQueryAdapter(
         east: Double,
         north: Double,
         gridSize: Double,
-        userId: Long?,
+        coupleId: Long?,
         albumId: Long?,
     ): List<ClusterProjection> = transaction(database) {
         val inverseGridSize = 1.0 / gridSize
 
+        val margin = gridSize * 0.5
+        val expandedWest = west - margin
+        val expandedSouth = south - margin
+        val expandedEast = east + margin
+        val expandedNorth = north + margin
+
         val photos = queryClusterPhotos(
-            west = west,
-            south = south,
-            east = east,
-            north = north,
+            west = expandedWest,
+            south = expandedSouth,
+            east = expandedEast,
+            north = expandedNorth,
             inverseGridSize = inverseGridSize,
-            userId = userId,
+            coupleId = coupleId,
             albumId = albumId,
         )
 
@@ -46,10 +52,10 @@ class ExposedMapQueryAdapter(
         east: Double,
         north: Double,
         inverseGridSize: Double,
-        userId: Long?,
+        coupleId: Long?,
         albumId: Long?,
     ): List<UniquePhotoRecord> {
-        val sql = buildClusterQuery(userId, albumId)
+        val sql = buildClusterQuery(coupleId, albumId)
         val conn = TransactionManager.current().connection
         val stmt = conn.prepareStatement(sql, false)
 
@@ -60,7 +66,7 @@ class ExposedMapQueryAdapter(
         stmt.set(i++, south)
         stmt.set(i++, east)
         stmt.set(i++, north)
-        if (userId != null) stmt.set(i++, userId)
+        if (coupleId != null) stmt.set(i++, coupleId)
         if (albumId != null) stmt.set(i++, albumId)
 
         val results = mutableListOf<UniquePhotoRecord>()
@@ -75,6 +81,7 @@ class ExposedMapQueryAdapter(
                         cellX = rs.getLong("cell_x"),
                         cellY = rs.getLong("cell_y"),
                         takenAt = rs.getTimestamp("taken_at").toLocalDateTime(),
+                        count = rs.getInt("photo_count"),
                     )
                 )
             }
@@ -82,17 +89,18 @@ class ExposedMapQueryAdapter(
         return results
     }
 
-    private fun buildClusterQuery(userId: Long?, albumId: Long?): String = buildString {
+    private fun buildClusterQuery(coupleId: Long?, albumId: Long?): String = buildString {
         append(
             """
         SELECT
             MAX(p.id) AS id,
-            p.url,
-            ST_X(p.location) AS longitude,
-            ST_Y(p.location) AS latitude,
+            MAX(p.url) AS url,
+            MAX(ST_X(p.location)) AS longitude,
+            MAX(ST_Y(p.location)) AS latitude,
             FLOOR(ST_X(p.location) * ?) AS cell_x,
             FLOOR(ST_Y(p.location) * ?) AS cell_y,
-            MAX(p.taken_at) AS taken_at
+            MAX(p.taken_at) AS taken_at,
+            COUNT(*) AS photo_count
         FROM ${PhotoTable.tableName} p
         WHERE 1 = 1
             AND p.location && ST_MakeEnvelope(?, ?, ?, ?, 4326)
@@ -100,16 +108,15 @@ class ExposedMapQueryAdapter(
         """.trimIndent()
         )
 
-        if (userId != null) {
+        if (coupleId != null) {
             append(
                 """
 
             AND EXISTS (
                 SELECT 1
                 FROM album a
-                JOIN couple_user cu ON a.couple_id = cu.couple_id
                 WHERE a.id = p.album_id
-                    AND cu.user_id = ?
+                    AND a.couple_id = ?
             )
             """.trimIndent()
             )
@@ -123,7 +130,7 @@ class ExposedMapQueryAdapter(
             """
 
         GROUP BY
-            cell_x, cell_y, p.url, p.location
+            cell_x, cell_y
         """.trimIndent()
         )
     }
@@ -134,10 +141,10 @@ class ExposedMapQueryAdapter(
         south: Double,
         east: Double,
         north: Double,
-        userId: Long?,
+        coupleId: Long?,
         albumId: Long?,
     ): List<PhotoProjection> = transaction(database) {
-        val sql = buildPhotosQuery(userId, albumId)
+        val sql = buildPhotosQuery(coupleId, albumId)
         val conn = TransactionManager.current().connection
         val stmt = conn.prepareStatement(sql, false)
 
@@ -146,7 +153,7 @@ class ExposedMapQueryAdapter(
         stmt.set(i++, south)
         stmt.set(i++, east)
         stmt.set(i++, north)
-        if (userId != null) stmt.set(i++, userId)
+        if (coupleId != null) stmt.set(i++, coupleId)
         if (albumId != null) stmt.set(i++, albumId)
 
         val results = mutableListOf<PhotoProjection>()
@@ -166,7 +173,7 @@ class ExposedMapQueryAdapter(
         results
     }
 
-    private fun buildPhotosQuery(userId: Long?, albumId: Long?): String = buildString {
+    private fun buildPhotosQuery(coupleId: Long?, albumId: Long?): String = buildString {
         append(
             """
             SELECT
@@ -183,16 +190,15 @@ class ExposedMapQueryAdapter(
             """.trimIndent()
         )
 
-        if (userId != null) {
+        if (coupleId != null) {
             append(
                 """
 
                 AND EXISTS (
                     SELECT 1
                     FROM album a
-                    JOIN couple_user cu ON a.couple_id = cu.couple_id
                     WHERE a.id = p.album_id
-                        AND cu.user_id = ?
+                        AND a.couple_id = ?
                 )
                 """.trimIndent()
             )
@@ -210,9 +216,9 @@ class ExposedMapQueryAdapter(
         south: Double,
         east: Double,
         north: Double,
-        userId: Long?,
+        coupleId: Long?,
     ): List<ClusterPhotoProjection> = transaction(database) {
-        val sql = buildGridCellQuery(userId)
+        val sql = buildGridCellQuery(coupleId)
         val conn = TransactionManager.current().connection
         val stmt = conn.prepareStatement(sql, false)
 
@@ -221,7 +227,7 @@ class ExposedMapQueryAdapter(
         stmt.set(i++, south)
         stmt.set(i++, east)
         stmt.set(i++, north)
-        if (userId != null) stmt.set(i++, userId)
+        if (coupleId != null) stmt.set(i++, coupleId)
 
         val results = mutableListOf<ClusterPhotoProjection>()
         stmt.executeQuery().use { rs ->
@@ -241,7 +247,7 @@ class ExposedMapQueryAdapter(
         results
     }
 
-    private fun buildGridCellQuery(userId: Long?): String = buildString {
+    private fun buildGridCellQuery(coupleId: Long?): String = buildString {
         append(
             """
             SELECT
@@ -258,16 +264,15 @@ class ExposedMapQueryAdapter(
             """.trimIndent()
         )
 
-        if (userId != null) {
+        if (coupleId != null) {
             append(
                 """
 
                 AND EXISTS (
                     SELECT 1
                     FROM album a
-                    JOIN couple_user cu ON a.couple_id = cu.couple_id
                     WHERE a.id = p.album_id
-                        AND cu.user_id = ?
+                        AND a.couple_id = ?
                 )
                 """.trimIndent()
             )

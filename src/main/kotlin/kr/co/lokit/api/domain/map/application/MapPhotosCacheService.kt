@@ -11,6 +11,7 @@ import org.springframework.cache.annotation.Cacheable
 import org.springframework.cache.caffeine.CaffeineCache
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import kotlin.math.floor
 
 @Service
 class MapPhotosCacheService(
@@ -18,11 +19,11 @@ class MapPhotosCacheService(
     private val cacheManager: CacheManager,
 ) {
 
-    fun evictForUser(userId: Long) {
+    fun evictForCouple(coupleId: Long) {
         val cache = cacheManager.getCache("mapPhotos") ?: return
         val nativeCache = (cache as CaffeineCache).nativeCache
         nativeCache.asMap().keys.removeIf { key ->
-            (key as String).contains(":u$userId")
+            (key as String).contains("_c$coupleId")
         }
     }
 
@@ -30,12 +31,12 @@ class MapPhotosCacheService(
     @Cacheable(
         cacheNames = ["mapPhotos"],
         key = "#cacheKey",
-        unless = "#result.clusters?.isEmpty() == true && #result.photos?.isEmpty() == true",
+        unless = "(#result.clusters == null || #result.clusters.isEmpty()) && (#result.photos == null || #result.photos.isEmpty())",
     )
     fun getClusteredPhotos(
         zoom: Int,
         bbox: BBox,
-        userId: Long?,
+        coupleId: Long?,
         albumId: Long?,
         cacheKey: String,
     ): MapPhotosResponse {
@@ -48,7 +49,7 @@ class MapPhotosCacheService(
                 east = bbox.east,
                 north = bbox.north,
                 gridSize = gridSize,
-                userId = userId,
+                coupleId = coupleId,
                 albumId = albumId,
             )
 
@@ -61,11 +62,11 @@ class MapPhotosCacheService(
     @Cacheable(
         cacheNames = ["mapPhotos"],
         key = "#cacheKey",
-        unless = "#result.clusters?.isEmpty() == true && #result.photos?.isEmpty() == true",
+        unless = "(#result.clusters == null || #result.clusters.isEmpty()) && (#result.photos == null || #result.photos.isEmpty())",
     )
     fun getIndividualPhotos(
         bbox: BBox,
-        userId: Long?,
+        coupleId: Long?,
         albumId: Long?,
         cacheKey: String,
     ): MapPhotosResponse {
@@ -74,7 +75,7 @@ class MapPhotosCacheService(
             south = bbox.south,
             east = bbox.east,
             north = bbox.north,
-            userId = userId,
+            coupleId = coupleId,
             albumId = albumId,
         )
 
@@ -83,27 +84,17 @@ class MapPhotosCacheService(
         )
     }
 
-    fun buildCacheKey(zoom: Int, bbox: BBox, userId: Long?, albumId: Long?): String {
-        val gridSize = 0.001
-        val centerLon = (bbox.west + bbox.east) / 2.0
-        val centerLat = (bbox.south + bbox.north) / 2.0
-        val gridX = (centerLon / gridSize).toLong()
-        val gridY = (centerLat / gridSize).toLong()
-
+    fun buildCacheKey(zoom: Int, bbox: BBox, coupleId: Long?, albumId: Long?): String {
+        val precision = if (zoom < GridValues.CLUSTER_ZOOM_THRESHOLD) 100 else 10000
+        val w = floor(bbox.west * precision) / precision
+        val s = floor(bbox.south * precision) / precision
+        val e = floor(bbox.east * precision) / precision
+        val n = floor(bbox.north * precision) / precision
         return buildString {
-            append(zoom)
-            append(":")
-            append(gridX)
-            append(":")
-            append(gridY)
-            if (userId != null) {
-                append(":u")
-                append(userId)
-            }
-            if (albumId != null) {
-                append(":a")
-                append(albumId)
-            }
+            append("z$zoom")
+            append("_${w}_${s}_${e}_${n}")
+            if (coupleId != null) append("_c$coupleId")
+            if (albumId != null) append("_a$albumId")
         }
     }
 }
