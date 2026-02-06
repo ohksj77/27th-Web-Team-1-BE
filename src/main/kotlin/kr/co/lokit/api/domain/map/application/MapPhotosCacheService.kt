@@ -121,7 +121,9 @@ class MapPhotosCacheService(
     @Cacheable(
         cacheNames = ["mapPhotos"],
         key = "#cacheKey",
-        unless = "(#result.clusters == null || #result.clusters.isEmpty()) && (#result.photos == null || #result.photos.isEmpty())",
+        unless =
+            "(#result.clusters == null || #result.clusters.isEmpty())" +
+                " && (#result.photos == null || #result.photos.isEmpty())",
     )
     fun getIndividualPhotos(
         bbox: BBox,
