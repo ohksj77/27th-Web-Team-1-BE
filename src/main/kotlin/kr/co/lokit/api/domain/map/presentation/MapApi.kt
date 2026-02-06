@@ -83,9 +83,9 @@ interface MapApi {
         )
         @RequestParam zoom: Int,
         @Parameter(
-            description = "바운딩 박스 (west,south,east,north 형식의 경도/위도)",
-            example = "126.9,37.4,127.1,37.6",
-            required = true,
+            description = "앨범 ID (선택). 지정 시 해당 앨범의 사진만 조회",
+            example = "1",
+            required = false,
         )
         @RequestParam albumId: Long?,
         @Parameter(
@@ -199,7 +199,7 @@ interface MapApi {
             required = true,
         )
         @PathVariable clusterId: String,
-    ): ClusterPhotosPageResponse
+    ): List<ClusterPhotoResponse>
 
     @Operation(
         summary = "앨범 지도 정보 조회",
