@@ -34,13 +34,13 @@ data class BBox(
 
         fun fromStringCenter(bbox: String, zoom: Int): BBox {
             val parsed = fromString(bbox)
-				    val gridSize = GridValues.getGridSize(zoom)
-				    return BBox(
-				        west = floor(parsed.west / gridSize) * gridSize,
-				        south = floor(parsed.south / gridSize) * gridSize,
-				        east = ceil(parsed.east / gridSize) * gridSize,
-				        north = ceil(parsed.north / gridSize) * gridSize,
-				    )
+            val gridSize = GridValues.getGridSize(zoom)
+            return BBox(
+                west = floor(parsed.west / gridSize) * gridSize,
+                south = floor(parsed.south / gridSize) * gridSize,
+                east = ceil(parsed.east / gridSize) * gridSize,
+                north = ceil(parsed.north / gridSize) * gridSize,
+            )
         }
     }
 }
