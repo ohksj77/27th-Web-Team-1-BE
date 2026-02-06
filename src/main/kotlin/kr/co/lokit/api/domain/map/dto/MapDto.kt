@@ -237,8 +237,6 @@ data class HomeResponse(
     }
 }
 
-typealias ClusterPhotosPageResponse = List<ClusterPhotoResponse>
-
 @Schema(description = "지도 ME 응답 (홈 + 사진 조회 통합)")
 data class MapMeResponse(
     @Schema(description = "위치 정보")
