@@ -130,7 +130,7 @@ class ExposedMapQueryAdapter(
     }
 
     private fun buildPhotosQuery(userId: Long?, albumId: Long?): String = buildString {
-        append("SELECT p.id, p.url, p.taken_at, p.address")
+        append("SELECT p.id, p.url, p.taken_at, p.address, ")
         append("       ST_X(p.location) as longitude, ST_Y(p.location) as latitude ")
         append("FROM ${PhotoTable.tableName} p ")
         if (userId != null) {
