@@ -4,6 +4,8 @@ import kr.co.lokit.api.domain.photo.application.port.PhotoStoragePort
 import kr.co.lokit.api.domain.photo.dto.PresignedUrl
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.retry.annotation.Backoff
+import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Component
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest
@@ -16,8 +18,10 @@ class S3PhotoStorageAdapter(
     private val s3Client: S3Client,
     @Value("\${aws.s3.bucket}") private val bucket: String,
 ) : PhotoStoragePort {
-    override fun generatePresignedUrl(key: String, contentType: String): PresignedUrl =
-        s3PresignedUrlGenerator.generate(key, contentType)
+    override fun generatePresignedUrl(
+        key: String,
+        contentType: String,
+    ): PresignedUrl = s3PresignedUrlGenerator.generate(key, contentType)
 
     override fun verifyFileExists(objectUrl: String) {
         s3FileVerifier.verify(objectUrl)
@@ -27,9 +31,14 @@ class S3PhotoStorageAdapter(
         s3FileVerifier.verifyNotExists(key)
     }
 
+    @Retryable(
+        maxAttempts = 3,
+        backoff = Backoff(delay = 100, multiplier = 2.0, random = true),
+    )
     override fun deleteFileByKey(key: String) {
         s3Client.deleteObject(
-            DeleteObjectRequest.builder()
+            DeleteObjectRequest
+                .builder()
                 .bucket(bucket)
                 .key(key)
                 .build(),

@@ -23,6 +23,8 @@ spring:
         open-in-view: false
 
 logging:
+    request:
+        verbose: true
     level:
         root: INFO
         kr.co.lokit.api: DEBUG

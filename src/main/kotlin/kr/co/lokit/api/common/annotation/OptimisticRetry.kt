@@ -8,7 +8,7 @@ import org.springframework.retry.annotation.Retryable
 @Retention(AnnotationRetention.RUNTIME)
 @Retryable(
     retryFor = [ObjectOptimisticLockingFailureException::class],
-    maxAttempts = 3,
-    backoff = Backoff(delay = 50, multiplier = 2.0),
+    maxAttempts = 5,
+    backoff = Backoff(delay = 50, multiplier = 2.0, random = true),
 )
 annotation class OptimisticRetry

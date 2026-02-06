@@ -28,6 +28,8 @@ spring:
             file: infra/local/compose.yaml
 
 logging:
+    request:
+        verbose: true
     level:
         org.hibernate.orm.jdbc.bind: trace
         root: INFO

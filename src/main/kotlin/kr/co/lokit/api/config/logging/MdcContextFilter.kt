@@ -16,6 +16,7 @@ class MdcContextFilter : OncePerRequestFilter() {
         const val REQUEST_URI = "requestUri"
         const val REQUEST_METHOD = "requestMethod"
         const val CLIENT_IP = "clientIp"
+        const val QUERY_STRING = "queryString"
         const val USER_ID = "userId"
         const val START_TIME_ATTR = "requestStartTime"
         const val WRAPPED_REQUEST_ATTR = "wrappedRequest"
@@ -33,10 +34,12 @@ class MdcContextFilter : OncePerRequestFilter() {
         val wrappedResponse = ContentCachingResponseWrapper(response)
 
         try {
+            RequestTrace.init()
             MDC.put(REQUEST_ID, generateRequestId())
             MDC.put(REQUEST_URI, request.requestURI)
             MDC.put(REQUEST_METHOD, request.method)
             MDC.put(CLIENT_IP, getClientIp(request))
+            request.queryString?.let { MDC.put(QUERY_STRING, it) }
 
             request.setAttribute(START_TIME_ATTR, System.currentTimeMillis())
             request.setAttribute(WRAPPED_REQUEST_ATTR, wrappedRequest)
