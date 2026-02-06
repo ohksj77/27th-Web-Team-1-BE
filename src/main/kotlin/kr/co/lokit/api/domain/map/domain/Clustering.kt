@@ -38,11 +38,12 @@ data class BBox(
         fun fromStringCenter(bbox: String, zoom: Int): BBox {
             val parsed = fromString(bbox)
             val gridSize = GridValues.getGridSize(zoom)
+            val inverseGridSize = 1.0 / gridSize
             return BBox(
-                west = floor(parsed.west / gridSize) * gridSize,
-                south = floor(parsed.south / gridSize) * gridSize,
-                east = ceil(parsed.east / gridSize) * gridSize,
-                north = ceil(parsed.north / gridSize) * gridSize,
+                west = floor(parsed.west * inverseGridSize) * gridSize,
+                south = floor(parsed.south * inverseGridSize) * gridSize,
+                east = ceil(parsed.east * inverseGridSize) * gridSize,
+                north = ceil(parsed.north * inverseGridSize) * gridSize,
             )
         }
     }
