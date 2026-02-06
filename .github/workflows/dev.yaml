@@ -150,8 +150,8 @@ jobs:
                             --log-opt awslogs-group=/docker/lokit-api-dev \
                             --log-opt awslogs-stream=$CONTAINER_NAME-$(date +%Y%m%d-%H%M%S) \
                             --log-opt awslogs-create-group=true \
-                            --memory="550m" \
-                            --memory-swap="1100m" \
+                            --memory="700m" \
+                            --memory-swap="1400m" \
                             --cpus="1" \
                             $ECR_REGISTRY/$ECR_REPOSITORY:dev-latest
 
