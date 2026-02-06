@@ -6,6 +6,7 @@ import kr.co.lokit.api.domain.map.application.port.AlbumBoundsRepositoryPort
 import kr.co.lokit.api.domain.map.application.port.MapClientPort
 import kr.co.lokit.api.domain.map.application.port.MapQueryPort
 import kr.co.lokit.api.domain.map.domain.BBox
+import kr.co.lokit.api.domain.map.domain.BoundsIdType
 import kr.co.lokit.api.domain.map.dto.ClusterResponse
 import kr.co.lokit.api.domain.map.dto.LocationInfoResponse
 import kr.co.lokit.api.domain.map.dto.MapPhotoResponse
@@ -120,7 +121,7 @@ class MapServiceTest {
             minLongitude = 126.0, maxLongitude = 128.0,
             minLatitude = 37.0, maxLatitude = 38.0,
         )
-        `when`(albumBoundsRepository.findByAlbumId(1L)).thenReturn(bounds)
+        `when`(albumBoundsRepository.findByStandardIdAndIdType(1L, BoundsIdType.ALBUM)).thenReturn(bounds)
 
         val result = mapService.getAlbumMapInfo(1L)
 
@@ -132,7 +133,7 @@ class MapServiceTest {
 
     @Test
     fun `사진이 없는 앨범의 지도 정보는 null을 반환한다`() {
-        `when`(albumBoundsRepository.findByAlbumId(1L)).thenReturn(null)
+        `when`(albumBoundsRepository.findByStandardIdAndIdType(1L, BoundsIdType.ALBUM)).thenReturn(null)
 
         val result = mapService.getAlbumMapInfo(1L)
 

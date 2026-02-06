@@ -4,6 +4,7 @@ import kr.co.lokit.api.common.constant.UserRole
 import kr.co.lokit.api.domain.album.domain.Album
 import kr.co.lokit.api.domain.couple.domain.Couple
 import kr.co.lokit.api.domain.map.domain.AlbumBounds
+import kr.co.lokit.api.domain.map.domain.BoundsIdType
 import kr.co.lokit.api.domain.photo.domain.Location
 import kr.co.lokit.api.domain.photo.domain.Photo
 import kr.co.lokit.api.domain.photo.domain.PhotoDetail
@@ -43,6 +44,7 @@ fun createAlbum(
 fun createPhoto(
     id: Long = 0L,
     albumId: Long = 1L,
+    coupleId: Long? = null,
     location: Location = createLocation(),
     description: String? = null,
     url: String = "https://example.com/photo.jpg",
@@ -52,6 +54,7 @@ fun createPhoto(
 ) = Photo(
     id = id,
     albumId = albumId,
+    coupleId = coupleId,
     location = location,
     description = description,
     url = url,
@@ -86,6 +89,7 @@ fun createPhotoDetail(
 fun createAlbumBounds(
     id: Long = 0L,
     albumId: Long = 1L,
+    idType: BoundsIdType = BoundsIdType.ALBUM,
     minLongitude: Double = 127.0,
     maxLongitude: Double = 127.0,
     minLatitude: Double = 37.5,
@@ -93,6 +97,7 @@ fun createAlbumBounds(
 ) = AlbumBounds(
     id = id,
     standardId = albumId,
+    idType = idType,
     minLongitude = minLongitude,
     maxLongitude = maxLongitude,
     minLatitude = minLatitude,

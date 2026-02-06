@@ -62,6 +62,7 @@ class PhotoCommandServiceTest {
         val savedPhoto = createPhoto(
             id = 1L,
             albumId = 1L,
+            coupleId = 1L,
             url = "https://example.com/picture.png",
             location = createLocation(127.0, 37.5)
         )
@@ -92,11 +93,12 @@ class PhotoCommandServiceTest {
     fun `사진을 수정할 수 있다`() {
         val request = createUpdatePhotoRequest(1L, 0.0, 0.0, description = "수정된 설명")
         val originalPhoto =
-            createPhoto(id = 1L, albumId = 1L, uploadedById = 1L, location = createLocation(127.0, 37.5))
+            createPhoto(id = 1L, albumId = 1L, coupleId = 1L, uploadedById = 1L, location = createLocation(127.0, 37.5))
         val updatedPhoto =
             createPhoto(
                 id = 1L,
                 albumId = 1L,
+                coupleId = 1L,
                 description = "수정된 설명",
                 location = createLocation(0.0, 0.0),
                 uploadedById = 1L
@@ -113,11 +115,12 @@ class PhotoCommandServiceTest {
     fun `사진 위치 수정 시 이벤트가 발행된다`() {
         val request = createUpdatePhotoRequest(1L, longitude = 128.0, latitude = 38.0)
         val originalPhoto =
-            createPhoto(id = 1L, albumId = 1L, uploadedById = 1L, location = createLocation(127.0, 37.5))
+            createPhoto(id = 1L, albumId = 1L, coupleId = 1L, uploadedById = 1L, location = createLocation(127.0, 37.5))
         val updatedPhoto =
             createPhoto(
                 id = 1L,
                 albumId = 1L,
+                coupleId = 1L,
                 location = createLocation(longitude = 128.0, latitude = 38.0),
                 uploadedById = 1L
             )
