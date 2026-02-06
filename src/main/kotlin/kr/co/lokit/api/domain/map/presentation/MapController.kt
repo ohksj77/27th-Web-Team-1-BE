@@ -32,6 +32,7 @@ class MapController(
         @RequestParam zoom: Int,
         @RequestParam(required = false) albumId: Long?,
         @RequestParam(required = false) lastDataVersion: Long?,
+        @RequestParam(required = false) loadedCells: List<String>?,
     ): MapMeResponse =
         getMapUseCase.getMe(
             userId,
@@ -41,6 +42,7 @@ class MapController(
             BBox.fromCenter(zoom, longitude, latitude),
             albumId,
             lastDataVersion,
+            loadedCells?.toSet(),
         )
 
     @GetMapping("clusters/{clusterId}/photos")

@@ -64,7 +64,7 @@ class MapControllerTest {
     @Test
     fun `지도 사진 조회 성공`() {
         doReturn(MapPhotosResponse(clusters = emptyList()))
-            .`when`(getMapUseCase).getPhotos(anyInt(), anyObject(), anyObject(), anyObject())
+            .`when`(getMapUseCase).getPhotos(anyInt(), anyObject(), anyObject(), anyObject(), anyObject())
 
         mockMvc.perform(
             get("/map/photos")
