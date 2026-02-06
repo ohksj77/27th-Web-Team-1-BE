@@ -2,6 +2,7 @@ package kr.co.lokit.api.domain.map.domain
 
 import kotlin.math.floor
 import kotlin.math.ceil
+import kotlin.math.pow
 
 /**
  * 공간 영역을 나타내는 Bounding Box.
