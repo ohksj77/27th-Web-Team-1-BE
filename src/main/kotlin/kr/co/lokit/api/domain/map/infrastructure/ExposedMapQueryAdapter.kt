@@ -87,7 +87,6 @@ class ExposedMapQueryAdapter(
         buildString {
             append(
                 """
-
                 WITH projected_photos AS (
                     SELECT
                         p.id, p.url, p.taken_at,
@@ -104,7 +103,6 @@ class ExposedMapQueryAdapter(
 
             append(
                 """
-
                 ),
                 ranked AS (
                     SELECT *,
