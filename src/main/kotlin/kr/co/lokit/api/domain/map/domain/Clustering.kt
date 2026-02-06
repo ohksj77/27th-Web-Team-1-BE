@@ -12,7 +12,7 @@ data class BBox(
     companion object {
         fun fromCenter(zoom: Int, longitude: Double, latitude: Double): BBox {
             val gridSize = GridValues.getGridSize(zoom)
-            val halfSize = gridSize / 2
+            val halfSize = gridSize / 2.0
             return BBox(
                 west = longitude - halfSize,
                 south = latitude - halfSize,
@@ -30,6 +30,13 @@ data class BBox(
                 east = parts[2].toDouble(),
                 north = parts[3].toDouble(),
             )
+        }
+
+        fun fromStringCenter(bbox: String, zoom: Int): BBox {
+            val parsed = fromString(bbox)
+            val centerLongitude = (parsed.west + parsed.east) / 2.0
+            val centerLatitude = (parsed.south + parsed.north) / 2.0
+            return fromCenter(zoom, centerLongitude, centerLatitude)
         }
     }
 }
