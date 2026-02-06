@@ -57,7 +57,7 @@ class ClusteringTest {
     @Test
     fun `GridCell에서 BBox를 계산할 수 있다`() {
         val cell = GridCell(zoom = 14, cellX = 1, cellY = 1)
-        val gridSize = GridValues.getGridSize(14 - 1)
+        val gridSize = GridValues.getGridSize(14)
         val bbox = cell.toBBox()
 
         assertEquals(gridSize, bbox.west)
