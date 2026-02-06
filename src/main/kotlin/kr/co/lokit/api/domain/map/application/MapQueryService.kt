@@ -10,6 +10,7 @@ import kr.co.lokit.api.domain.map.application.port.MapQueryPort
 import kr.co.lokit.api.domain.map.application.port.`in`.GetMapUseCase
 import kr.co.lokit.api.domain.map.application.port.`in`.SearchLocationUseCase
 import kr.co.lokit.api.domain.map.domain.BBox
+import kr.co.lokit.api.domain.map.domain.BoundsIdType
 import kr.co.lokit.api.domain.map.domain.ClusterId
 import kr.co.lokit.api.domain.map.domain.GridValues
 import kr.co.lokit.api.domain.map.dto.AlbumMapInfoResponse
@@ -116,7 +117,7 @@ class MapQueryService(
 
     @Transactional(readOnly = true)
     override fun getAlbumMapInfo(albumId: Long): AlbumMapInfoResponse {
-        val bounds = albumBoundsRepository.findByAlbumId(albumId)
+        val bounds = albumBoundsRepository.findByStandardIdAndIdType(albumId, BoundsIdType.ALBUM)
         return bounds.toAlbumMapInfoResponse(albumId)
     }
 
@@ -129,7 +130,7 @@ class MapQueryService(
         albumId: Long?,
         lastDataVersion: Long?,
     ): MapMeResponse {
-        val homeBBox = BBox.fromCenter(GridValues.HOME_ZOOM_LEVEL, longitude, latitude)
+        val homeBBox = BBox.fromCenter(zoom, longitude, latitude)
         val coupleId = coupleRepository.findByUserId(userId)?.id
         val currentVersion = mapPhotosCacheService.getDataVersion(coupleId)
         val versionUnchanged = lastDataVersion != null && lastDataVersion == currentVersion

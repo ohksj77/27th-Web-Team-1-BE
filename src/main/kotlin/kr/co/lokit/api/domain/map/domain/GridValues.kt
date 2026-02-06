@@ -4,10 +4,10 @@ import kotlin.math.pow
 
 object GridValues {
     const val HOME_ZOOM_LEVEL = 13
-    const val CLUSTER_ZOOM_THRESHOLD = 15
+    const val CLUSTER_ZOOM_THRESHOLD = 18
 
     fun getGridSize(zoom: Int): Double {
-        val effectiveZoom = (zoom - 1).coerceIn(0, 22)
+        val effectiveZoom = (zoom).coerceIn(0, 22)
         return 1.0 / 2.0.pow(effectiveZoom - 4.0)
     }
 

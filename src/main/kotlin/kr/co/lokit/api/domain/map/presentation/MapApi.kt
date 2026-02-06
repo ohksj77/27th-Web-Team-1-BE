@@ -2,6 +2,7 @@ package kr.co.lokit.api.domain.map.presentation
 
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.media.ArraySchema
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -10,7 +11,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import kr.co.lokit.api.domain.map.dto.AlbumMapInfoResponse
 import kr.co.lokit.api.domain.map.dto.ClusterPhotoResponse
-import kr.co.lokit.api.domain.map.dto.ClusterPhotosPageResponse
 import kr.co.lokit.api.domain.map.dto.HomeResponse
 import kr.co.lokit.api.domain.map.dto.LocationInfoResponse
 import kr.co.lokit.api.domain.map.dto.MapMeResponse
@@ -83,9 +83,9 @@ interface MapApi {
         )
         @RequestParam zoom: Int,
         @Parameter(
-            description = "바운딩 박스 (west,south,east,north 형식의 경도/위도)",
-            example = "126.9,37.4,127.1,37.6",
-            required = true,
+            description = "앨범 ID (선택). 지정 시 해당 앨범의 사진만 조회",
+            example = "1",
+            required = false,
         )
         @RequestParam albumId: Long?,
         @Parameter(
@@ -172,7 +172,7 @@ interface MapApi {
             ApiResponse(
                 responseCode = "200",
                 description = "조회 성공",
-                content = [Content(schema = Schema(implementation = ClusterPhotoResponse::class))],
+                content = [Content(array = ArraySchema(schema = Schema(implementation = ClusterPhotoResponse::class)))],
             ),
             ApiResponse(
                 responseCode = "400",
@@ -198,8 +198,8 @@ interface MapApi {
             example = "z14_130234_38456",
             required = true,
         )
-        @RequestParam clusterId: String,
-    ): ClusterPhotosPageResponse
+        @PathVariable clusterId: String,
+    ): List<ClusterPhotoResponse>
 
     @Operation(
         summary = "앨범 지도 정보 조회",

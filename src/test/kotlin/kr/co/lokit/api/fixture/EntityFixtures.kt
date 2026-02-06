@@ -5,6 +5,7 @@ import kr.co.lokit.api.common.entity.BaseEntity
 import kr.co.lokit.api.config.security.UserPrincipal
 import kr.co.lokit.api.domain.album.infrastructure.AlbumEntity
 import kr.co.lokit.api.domain.couple.infrastructure.CoupleEntity
+import kr.co.lokit.api.domain.map.domain.BoundsIdType
 import kr.co.lokit.api.domain.map.infrastructure.AlbumBoundsEntity
 import kr.co.lokit.api.domain.photo.infrastructure.PhotoEntity
 import kr.co.lokit.api.domain.user.infrastructure.UserEntity
@@ -77,6 +78,7 @@ fun createPhotoEntity(
 fun createAlbumBoundsEntity(
     id: Long? = null,
     albumId: Long = 1L,
+    idType: BoundsIdType = BoundsIdType.ALBUM,
     minLongitude: Double = 127.0,
     maxLongitude: Double = 127.0,
     minLatitude: Double = 37.5,
@@ -84,6 +86,7 @@ fun createAlbumBoundsEntity(
 ): AlbumBoundsEntity {
     val entity = AlbumBoundsEntity(
         standardId = albumId,
+        idType = idType,
         minLongitude = minLongitude,
         maxLongitude = maxLongitude,
         minLatitude = minLatitude,
