@@ -35,6 +35,7 @@ logging:
     level:
         root: INFO
         kr.co.lokit.api: DEBUG
+        kr.co.lokit.api.config.security: WARN
 
 management:
     endpoints:

@@ -20,3 +20,4 @@ server:
     servlet:
         context-path: /api
     shutdown: graceful
+    forward-headers-strategy: native
