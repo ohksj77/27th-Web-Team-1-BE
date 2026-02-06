@@ -37,7 +37,7 @@ data class BBox(
 
         fun fromStringCenter(bbox: String, zoom: Int): BBox {
             val parsed = fromString(bbox)
-            val gridSize = GridValues.getGridSize(zoom)
+            val gridSize = GridValues.getGridSize(zoom - 1)
             val inverseGridSize = 1.0 / gridSize
             return BBox(
                 west = floor(parsed.west * inverseGridSize) * gridSize,
