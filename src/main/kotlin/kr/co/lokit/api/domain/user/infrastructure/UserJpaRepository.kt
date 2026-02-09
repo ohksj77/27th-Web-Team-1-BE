@@ -7,5 +7,5 @@ interface UserJpaRepository : JpaRepository<UserEntity, Long> {
     fun findByEmail(email: String): UserEntity?
 
     @Query(value = "select pg_advisory_xact_lock(hashtext(:email))", nativeQuery = true)
-    fun lockWithEmail(email: String): UserEntity?
+    fun lockWithEmail(email: String)
 }
