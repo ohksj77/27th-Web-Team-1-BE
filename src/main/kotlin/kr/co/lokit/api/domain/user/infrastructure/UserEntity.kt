@@ -9,7 +9,7 @@ import kr.co.lokit.api.common.entity.BaseEntity
 
 @Entity(name = "Users")
 class UserEntity(
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     val email: String,
     @Column(nullable = false)
     val name: String,
