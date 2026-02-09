@@ -34,7 +34,6 @@ class SecurityConfig(
         http
             .cors { it.configurationSource(corsConfigurationSource()) }
             .csrf { it.disable() }
-            .headers { headers -> headers.cacheControl { it.disable() } }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests { auth ->
                 auth
@@ -77,6 +76,7 @@ class SecurityConfig(
                 allowedMethods = listOf("*")
                 allowedHeaders = listOf("*")
                 allowCredentials = true
+                maxAge = 3600L
             }
         logger.info("allowedOrigins: {}", configuration.allowedOriginPatterns?.joinToString { "[$it], " })
         return UrlBasedCorsConfigurationSource().apply {
