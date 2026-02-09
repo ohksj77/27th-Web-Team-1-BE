@@ -10,6 +10,6 @@ data class Comment(
     val commentedAt: LocalDate = LocalDate.now(),
 ) {
     init {
-        require(content.length <= 500) { "댓글은 500자 이내여야 합니다." } // 최대 길이 수정 필요
+        require(content.length <= 200) { "댓글은 200자 이내여야 합니다." }
     }
 }

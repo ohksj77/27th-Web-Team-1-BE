@@ -24,8 +24,7 @@ class CommentEntity(
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     val user: UserEntity,
-    // 최대 길이 수정 필요
-    @Column(nullable = false, length = 500)
+    @Column(nullable = false, length = 200)
     var content: String,
     @Column(nullable = false)
     var commentedAt: LocalDate,
