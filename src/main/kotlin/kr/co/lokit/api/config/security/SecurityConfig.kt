@@ -73,7 +73,7 @@ class SecurityConfig(
                         .split(",")
                         .map { it.trim() }
                         .filter { it.isNotEmpty() }
-                allowedMethods = listOf("*")
+                allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
                 allowedHeaders = listOf("*")
                 allowCredentials = true
                 maxAge = 3600L
