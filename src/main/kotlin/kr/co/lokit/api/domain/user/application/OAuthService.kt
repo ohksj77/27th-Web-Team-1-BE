@@ -47,9 +47,7 @@ class OAuthService(
         val name = userInfo.name ?: "${provider.name} 사용자"
 
         val user =
-            userRepository.findByEmail(email)
-                ?: registerUser(email, name)
-        userRepository.apply(user, name, userInfo.profileImageUrl)
+            userRepository.findByEmailForUpdate(email, name, userInfo.profileImageUrl)
 
         return generateTokens(user)
     }

@@ -9,6 +9,12 @@ interface UserRepositoryPort {
 
     fun findByEmail(email: String): User?
 
+    fun findByEmailForUpdate(
+        email: String,
+        name: String,
+        profileImageUrl: String?,
+    ): User
+
     fun apply(
         user: User,
         name: String,
