@@ -5,11 +5,29 @@ import kr.co.lokit.api.domain.album.domain.Album
 import kr.co.lokit.api.domain.couple.domain.Couple
 import kr.co.lokit.api.domain.map.domain.AlbumBounds
 import kr.co.lokit.api.domain.map.domain.BoundsIdType
+import kr.co.lokit.api.domain.photo.domain.Comment
+import kr.co.lokit.api.domain.photo.domain.Emoticon
 import kr.co.lokit.api.domain.photo.domain.Location
 import kr.co.lokit.api.domain.photo.domain.Photo
 import kr.co.lokit.api.domain.photo.domain.PhotoDetail
 import kr.co.lokit.api.domain.user.domain.User
+import java.time.LocalDate
 import java.time.LocalDateTime
+
+fun createComment(
+    id: Long = 0L,
+    photoId: Long = 1L,
+    userId: Long = 1L,
+    content: String = "테스트 댓글",
+    commentedAt: LocalDate = LocalDate.of(2025, 1, 1),
+) = Comment(id = id, photoId = photoId, userId = userId, content = content, commentedAt = commentedAt)
+
+fun createEmoticon(
+    id: Long = 0L,
+    commentId: Long = 1L,
+    userId: Long = 1L,
+    emoji: String = "😀",
+) = Emoticon(id = id, commentId = commentId, userId = userId, emoji = emoji)
 
 fun createUser(
     id: Long = 0L,
@@ -38,7 +56,7 @@ fun createAlbum(
     coupleId = coupleId,
     createdById = createdById,
     photoCount = photoCount,
-    isDefault = isDefault
+    isDefault = isDefault,
 )
 
 fun createPhoto(

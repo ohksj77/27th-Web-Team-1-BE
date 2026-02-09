@@ -7,6 +7,8 @@ import kr.co.lokit.api.domain.album.infrastructure.AlbumEntity
 import kr.co.lokit.api.domain.couple.infrastructure.CoupleEntity
 import kr.co.lokit.api.domain.map.domain.BoundsIdType
 import kr.co.lokit.api.domain.map.infrastructure.AlbumBoundsEntity
+import kr.co.lokit.api.domain.photo.infrastructure.CommentEntity
+import kr.co.lokit.api.domain.photo.infrastructure.EmoticonEntity
 import kr.co.lokit.api.domain.photo.infrastructure.PhotoEntity
 import kr.co.lokit.api.domain.user.infrastructure.RefreshTokenEntity
 import kr.co.lokit.api.domain.user.infrastructure.UserEntity
@@ -104,6 +106,28 @@ fun createRefreshTokenEntity(
     expiresAt: LocalDateTime = LocalDateTime.now().plusDays(7),
 ): RefreshTokenEntity {
     val entity = RefreshTokenEntity(token = token, user = user, expiresAt = expiresAt)
+    id?.let { setEntityId(entity, it) }
+    return entity
+}
+
+fun createCommentEntity(
+    id: Long? = null,
+    photo: PhotoEntity = createPhotoEntity(),
+    user: UserEntity = createUserEntity(),
+    content: String = "테스트 댓글",
+): CommentEntity {
+    val entity = CommentEntity(photo = photo, user = user, content = content)
+    id?.let { setEntityId(entity, it) }
+    return entity
+}
+
+fun createEmoticonEntity(
+    id: Long? = null,
+    comment: CommentEntity = createCommentEntity(),
+    user: UserEntity = createUserEntity(),
+    emoji: String = "😀",
+): EmoticonEntity {
+    val entity = EmoticonEntity(comment = comment, user = user, emoji = emoji)
     id?.let { setEntityId(entity, it) }
     return entity
 }
