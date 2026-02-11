@@ -18,7 +18,7 @@ object ClusteringPipeline {
 
             ClusterData(
                 gridKey = key,
-                count = first.count.takeIf { it > 0 } ?: photos.size,
+                count = photos.sumOf { it.count },
                 centerLongitude = first.avgLongitude ?: photos.map { it.longitude }.average(),
                 centerLatitude = first.avgLatitude ?: photos.map { it.latitude }.average(),
                 photosByRank =
