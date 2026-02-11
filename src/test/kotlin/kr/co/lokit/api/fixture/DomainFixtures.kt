@@ -1,5 +1,6 @@
 package kr.co.lokit.api.fixture
 
+import kr.co.lokit.api.common.constant.AccountStatus
 import kr.co.lokit.api.common.constant.UserRole
 import kr.co.lokit.api.common.util.InviteCodeGenerator
 import kr.co.lokit.api.domain.album.domain.Album
@@ -35,7 +36,8 @@ fun createUser(
     email: String = "test@test.com",
     name: String = "테스트",
     role: UserRole = UserRole.USER,
-) = User(id = id, email = email, name = name, role = role)
+    status: AccountStatus = AccountStatus.ACTIVE,
+) = User(id = id, email = email, name = name, role = role, status = status)
 
 fun createCouple(
     id: Long = 0L,
