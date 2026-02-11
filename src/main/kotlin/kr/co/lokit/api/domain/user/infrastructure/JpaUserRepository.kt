@@ -21,11 +21,6 @@ class JpaUserRepository(
     @Transactional(readOnly = true)
     override fun findById(id: Long): User? = userJpaRepository.findByIdOrNull(id)?.toDomain()
 
-    @Transactional(readOnly = true)
-    override fun lockWithEmail(email: String) {
-        userJpaRepository.lockWithEmail(email)
-    }
-
     @Transactional
     override fun findByEmail(
         email: String,
@@ -38,8 +33,9 @@ class JpaUserRepository(
 
     @Transactional
     override fun apply(user: User): User {
-        val entity = userJpaRepository.findByIdOrNull(user.id)
-            ?: throw entityNotFound<UserEntity>(user.id)
+        val entity =
+            userJpaRepository.findByIdOrNull(user.id)
+                ?: throw entityNotFound<UserEntity>(user.id)
         entity.name = user.name
         entity.profileImageUrl = user.profileImageUrl
         return entity.toDomain()
