@@ -14,6 +14,7 @@ interface UserRepositoryPort {
         name: String,
     ): User
 
+    fun apply(user: User): User
     fun apply(
         user: User,
         name: String,
