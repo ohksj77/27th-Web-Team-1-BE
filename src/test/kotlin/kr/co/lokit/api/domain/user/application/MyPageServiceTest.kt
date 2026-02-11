@@ -26,12 +26,12 @@ class MyPageServiceTest {
         val user = createUser(id = 1L, name = "기존닉네임")
         val updatedUser = createUser(id = 1L, name = "새닉네임")
         `when`(userRepository.findById(1L)).thenReturn(user)
-        `when`(userRepository.updateNickname(1L, "새닉네임")).thenReturn(updatedUser)
+        `when`(userRepository.apply(user.copy(name = "새닉네임"))).thenReturn(updatedUser)
 
         val result = myPageService.updateNickname(1L, "새닉네임")
 
         assertEquals("새닉네임", result.name)
-        verify(userRepository).updateNickname(1L, "새닉네임")
+        verify(userRepository).apply(user.copy(name = "새닉네임"))
     }
 
     @Test
@@ -48,12 +48,12 @@ class MyPageServiceTest {
         val user = createUser(id = 1L)
         val updatedUser = createUser(id = 1L).apply { profileImageUrl = "https://example.com/new.jpg" }
         `when`(userRepository.findById(1L)).thenReturn(user)
-        `when`(userRepository.updateProfileImage(1L, "https://example.com/new.jpg")).thenReturn(updatedUser)
+        `when`(userRepository.apply(user.copy(profileImageUrl = "https://example.com/new.jpg"))).thenReturn(updatedUser)
 
         val result = myPageService.updateProfileImage(1L, "https://example.com/new.jpg")
 
         assertEquals("https://example.com/new.jpg", result.profileImageUrl)
-        verify(userRepository).updateProfileImage(1L, "https://example.com/new.jpg")
+        verify(userRepository).apply(user.copy(profileImageUrl = "https://example.com/new.jpg"))
     }
 
     @Test
