@@ -111,7 +111,7 @@ class MapPhotosCacheService(
                         ClusterProjection(
                             cellX = projections.first().cellX,
                             cellY = projections.first().cellY,
-                            count = projections.sumOf { it.count },
+                            count = projections.first().count,
                             thumbnailUrl = latest.thumbnailUrl,
                             centerLongitude = projections.map { it.centerLongitude }.average(),
                             centerLatitude = projections.map { it.centerLatitude }.average(),
