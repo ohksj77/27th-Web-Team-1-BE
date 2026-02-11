@@ -1,0 +1,101 @@
+package kr.co.lokit.api.domain.user.application
+
+import kr.co.lokit.api.common.exception.BusinessException
+import kr.co.lokit.api.domain.couple.application.port.CoupleRepositoryPort
+import kr.co.lokit.api.domain.user.application.port.UserRepositoryPort
+import kr.co.lokit.api.domain.user.infrastructure.RefreshTokenJpaRepository
+import kr.co.lokit.api.fixture.createUser
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.extension.ExtendWith
+import org.mockito.Mock
+import org.mockito.Mockito.mock
+import org.mockito.Mockito.verify
+import org.mockito.junit.jupiter.MockitoExtension
+import org.mockito.kotlin.whenever
+import org.springframework.cache.Cache
+import org.springframework.cache.CacheManager
+
+@ExtendWith(MockitoExtension::class)
+class UserWithdrawServiceTest {
+    @Mock
+    lateinit var userRepository: UserRepositoryPort
+
+    @Mock
+    lateinit var coupleRepository: CoupleRepositoryPort
+
+    @Mock
+    lateinit var refreshTokenJpaRepository: RefreshTokenJpaRepository
+
+    @Mock
+    lateinit var cacheManager: CacheManager
+
+    lateinit var userWithdrawService: UserWithdrawService
+
+    @BeforeEach
+    fun setUp() {
+        userWithdrawService =
+            UserWithdrawService(
+                userRepository,
+                coupleRepository,
+                refreshTokenJpaRepository,
+                cacheManager,
+            )
+    }
+
+    @Test
+    fun `회원 탈퇴 시 리프레시 토큰을 삭제한다`() {
+        val user = createUser(id = 1L, email = "test@test.com")
+        whenever(userRepository.findById(1L)).thenReturn(user)
+
+        userWithdrawService.withdraw(1L)
+
+        verify(refreshTokenJpaRepository).deleteByUserId(1L)
+    }
+
+    @Test
+    fun `회원 탈퇴 시 커플에서 유저를 분리한다`() {
+        val user = createUser(id = 1L, email = "test@test.com")
+        whenever(userRepository.findById(1L)).thenReturn(user)
+
+        userWithdrawService.withdraw(1L)
+
+        verify(coupleRepository).removeCoupleUser(1L)
+    }
+
+    @Test
+    fun `회원 탈퇴 시 유저 상태를 WITHDRAWN으로 변경한다`() {
+        val user = createUser(id = 1L, email = "test@test.com")
+        whenever(userRepository.findById(1L)).thenReturn(user)
+
+        userWithdrawService.withdraw(1L)
+
+        verify(userRepository).withdraw(1L)
+    }
+
+    @Test
+    fun `회원 탈퇴 시 캐시를 무효화한다`() {
+        val user = createUser(id = 1L, email = "test@test.com")
+        whenever(userRepository.findById(1L)).thenReturn(user)
+
+        val userDetailsCache = mock(Cache::class.java)
+        val userCoupleCache = mock(Cache::class.java)
+        whenever(cacheManager.getCache("userDetails")).thenReturn(userDetailsCache)
+        whenever(cacheManager.getCache("userCouple")).thenReturn(userCoupleCache)
+
+        userWithdrawService.withdraw(1L)
+
+        verify(userDetailsCache).evict("test@test.com")
+        verify(userCoupleCache).evict(1L)
+    }
+
+    @Test
+    fun `존재하지 않는 유저 탈퇴 시 UserNotFoundException이 발생한다`() {
+        whenever(userRepository.findById(999L)).thenReturn(null)
+
+        assertThrows<BusinessException.UserNotFoundException> {
+            userWithdrawService.withdraw(999L)
+        }
+    }
+}
