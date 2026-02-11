@@ -47,7 +47,7 @@ class OAuthService(
         val user =
             userRepository.findByEmail(email, name)
 
-        user.profileImageUrl = userInfo.profileImageUrl
+        userRepository.apply(user.copy(profileImageUrl = userInfo.profileImageUrl))
 
         createCoupleUseCase.createIfNone(
             Couple(name = "default"),

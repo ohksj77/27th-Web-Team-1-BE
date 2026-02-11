@@ -37,16 +37,11 @@ class JpaUserRepository(
     }
 
     @Transactional
-    override fun apply(
-        user: User,
-        name: String,
-        profileImageUrl: String?,
-    ) {
-        val updatedUser =
-            findById(user.id)?.copy(
-                name = name,
-                profileImageUrl = profileImageUrl,
-            ) ?: throw entityNotFound<UserEntity>(user.id)
-        save(updatedUser)
+    override fun apply(user: User): User {
+        val entity = userJpaRepository.findByIdOrNull(user.id)
+            ?: throw entityNotFound<UserEntity>(user.id)
+        entity.name = user.name
+        entity.profileImageUrl = user.profileImageUrl
+        return entity.toDomain()
     }
 }

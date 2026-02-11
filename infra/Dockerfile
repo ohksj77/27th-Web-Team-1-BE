@@ -18,7 +18,6 @@ USER spring
 
 EXPOSE 8080
 
-# Dockerfile의 ENV JAVA_OPTS 수정
 ENV JAVA_OPTS="-XX:+UseContainerSupport \
     -XX:MaxRAMPercentage=80 \
     -XX:+UseStringDeduplication \

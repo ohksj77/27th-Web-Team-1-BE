@@ -54,7 +54,7 @@ class AlbumCommandService(
                 errors = mapOf("title" to title)
             )
         }
-        val updated = albumRepository.applyTitle(id, title)
+        val updated = albumRepository.apply(album.copy(title = title))
         cacheManager.getCache("coupleAlbums")?.evict(album.coupleId)
         return updated
     }

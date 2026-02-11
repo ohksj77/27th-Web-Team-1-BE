@@ -14,9 +14,5 @@ interface UserRepositoryPort {
         name: String,
     ): User
 
-    fun apply(
-        user: User,
-        name: String,
-        profileImageUrl: String?,
-    )
+    fun apply(user: User): User
 }
