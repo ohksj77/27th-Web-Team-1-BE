@@ -8,4 +8,6 @@ interface EmoticonJpaRepository : JpaRepository<EmoticonEntity, Long> {
     fun findByCommentIdAndUserIdAndEmoji(commentId: Long, userId: Long, emoji: String): EmoticonEntity?
 
     fun countByCommentIdAndUserId(commentId: Long, userId: Long): Long
+
+    fun existsByCommentIdAndUserIdAndEmoji(commentId: Long, userId: Long, emoji: String): Boolean
 }

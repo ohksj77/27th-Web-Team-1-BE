@@ -54,6 +54,11 @@ class CommentService(
 
     @Transactional
     override fun addEmoticon(commentId: Long, userId: Long, emoji: String): Emoticon {
+        if (emoticonRepository.existsByCommentIdAndUserIdAndEmoji(commentId, userId, emoji)) {
+            throw BusinessException.EmoticonAlreadyExistsException(
+                errors = mapOf("commentId" to commentId.toString(), "userId" to userId.toString(), "emoji" to emoji),
+            )
+        }
         val count = emoticonRepository.countByCommentIdAndUserId(commentId, userId)
         if (count >= MAX_EMOTICONS_PER_USER_PER_COMMENT) {
             throw BusinessException.CommentMaxEmoticonsExceededException(

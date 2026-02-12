@@ -8,4 +8,6 @@ interface EmoticonRepositoryPort {
     fun delete(commentId: Long, userId: Long, emoji: String)
 
     fun countByCommentIdAndUserId(commentId: Long, userId: Long): Long
+
+    fun existsByCommentIdAndUserIdAndEmoji(commentId: Long, userId: Long, emoji: String): Boolean
 }

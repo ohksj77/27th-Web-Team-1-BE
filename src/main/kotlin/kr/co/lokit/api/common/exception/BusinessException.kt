@@ -145,6 +145,12 @@ sealed class BusinessException(
         cause: Throwable? = null,
         errors: Map<String, String> = emptyMap(),
     ) : BusinessException(ErrorCode.COMMENT_MAX_EMOTICONS_EXCEEDED, message, cause, errors)
+
+    class EmoticonAlreadyExistsException(
+        message: String = ErrorCode.EMOTICON_ALREADY_EXISTS.message,
+        cause: Throwable? = null,
+        errors: Map<String, String> = emptyMap(),
+    ) : BusinessException(ErrorCode.EMOTICON_ALREADY_EXISTS, message, cause, errors)
 }
 
 inline fun <reified T> entityNotFound(id: Long): BusinessException.ResourceNotFoundException =

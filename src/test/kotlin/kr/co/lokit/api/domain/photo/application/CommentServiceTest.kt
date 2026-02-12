@@ -53,6 +53,7 @@ class CommentServiceTest {
     @Test
     fun `이모지를 추가할 수 있다`() {
         val savedEmoticon = createEmoticon(id = 1L, commentId = 1L, userId = 1L, emoji = "❤️")
+        `when`(emoticonRepository.existsByCommentIdAndUserIdAndEmoji(1L, 1L, "❤️")).thenReturn(false)
         `when`(emoticonRepository.countByCommentIdAndUserId(1L, 1L)).thenReturn(0)
         `when`(emoticonRepository.save(any())).thenReturn(savedEmoticon)
 
@@ -63,7 +64,17 @@ class CommentServiceTest {
     }
 
     @Test
+    fun `동일한 이모지를 중복 추가하면 예외가 발생한다`() {
+        `when`(emoticonRepository.existsByCommentIdAndUserIdAndEmoji(1L, 1L, "❤️")).thenReturn(true)
+
+        assertThrows<BusinessException.EmoticonAlreadyExistsException> {
+            commentService.addEmoticon(1L, 1L, "❤️")
+        }
+    }
+
+    @Test
     fun `이모지가 최대 개수를 초과하면 예외가 발생한다`() {
+        `when`(emoticonRepository.existsByCommentIdAndUserIdAndEmoji(1L, 1L, "❤️")).thenReturn(false)
         `when`(emoticonRepository.countByCommentIdAndUserId(1L, 1L)).thenReturn(10)
 
         assertThrows<BusinessException.CommentMaxEmoticonsExceededException> {

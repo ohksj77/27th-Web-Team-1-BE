@@ -34,4 +34,7 @@ class JpaEmoticonRepository(
 
     override fun countByCommentIdAndUserId(commentId: Long, userId: Long): Long =
         emoticonJpaRepository.countByCommentIdAndUserId(commentId, userId)
+
+    override fun existsByCommentIdAndUserIdAndEmoji(commentId: Long, userId: Long, emoji: String): Boolean =
+        emoticonJpaRepository.existsByCommentIdAndUserIdAndEmoji(commentId, userId, emoji)
 }
