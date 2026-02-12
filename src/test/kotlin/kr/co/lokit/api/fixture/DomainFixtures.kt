@@ -1,6 +1,7 @@
 package kr.co.lokit.api.fixture
 
 import kr.co.lokit.api.common.constant.AccountStatus
+import kr.co.lokit.api.common.constant.CoupleStatus
 import kr.co.lokit.api.common.constant.UserRole
 import kr.co.lokit.api.common.util.InviteCodeGenerator
 import kr.co.lokit.api.domain.album.domain.Album
@@ -44,7 +45,8 @@ fun createCouple(
     name: String = "테스트",
     inviteCode: String = InviteCodeGenerator.generate(),
     userIds: List<Long> = emptyList(),
-) = Couple(id = id, name = name, inviteCode = inviteCode, userIds = userIds)
+    status: CoupleStatus = CoupleStatus.CONNECTED,
+) = Couple(id = id, name = name, inviteCode = inviteCode, userIds = userIds, status = status)
 
 fun createAlbum(
     id: Long = 0L,
