@@ -46,8 +46,9 @@ fun createCouple(
     inviteCode: String = InviteCodeGenerator.generate(),
     userIds: List<Long> = emptyList(),
     status: CoupleStatus = CoupleStatus.CONNECTED,
+    disconnectedAt: LocalDateTime? = null,
     disconnectedByUserId: Long? = null,
-) = Couple(id = id, name = name, inviteCode = inviteCode, userIds = userIds, status = status, disconnectedByUserId = disconnectedByUserId)
+) = Couple(id = id, name = name, inviteCode = inviteCode, userIds = userIds, status = status, disconnectedAt = disconnectedAt, disconnectedByUserId = disconnectedByUserId)
 
 fun createAlbum(
     id: Long = 0L,
