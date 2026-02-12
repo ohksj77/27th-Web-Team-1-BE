@@ -72,6 +72,9 @@ jobs:
                         --cidr ${{ steps.setup.outputs.runner_ip }}/32 \
                         --region ${{ env.AWS_REGION }} 2>/dev/null || true
 
+            -   name: Wait for SG propagation
+                run: sleep 15
+
             -   name: Build with Gradle
                 run: ./gradlew build -x test --no-daemon --parallel --build-cache
 
@@ -99,15 +102,15 @@ jobs:
                     ECR_REPOSITORY: ${{ secrets.DEV_ECR_REPOSITORY }}
                     CONTAINER_NAME: ${{ env.CONTAINER_NAME }}
                     AWS_REGION: ${{ env.AWS_REGION }}
-                    proxy_timeout: 30s
-                    command_timeout: 10m
-                    script_stop: true
-                    debug: true
                 with:
                     host: ${{ secrets.DEV_EC2_HOST }}
                     username: ${{ secrets.DEV_EC2_USERNAME }}
                     key: ${{ secrets.DEV_EC2_SSH_KEY }}
                     envs: ECR_REGISTRY,ECR_REPOSITORY,CONTAINER_NAME,AWS_REGION
+                    proxy_timeout: 30s
+                    command_timeout: 10m
+                    script_stop: true
+                    debug: true
                     script: |
                         set -e
 
