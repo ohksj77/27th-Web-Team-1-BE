@@ -49,12 +49,12 @@ class CoupleReconnectServiceTest {
             userIds = listOf(1L, 2L),
             status = CoupleStatus.CONNECTED,
         )
-        `when`(coupleRepository.findByInviteCode("12345678")).thenReturn(disconnectedCouple)
+        `when`(coupleRepository.findByDisconnectedByUserId(1L)).thenReturn(disconnectedCouple)
         `when`(coupleRepository.findByUserId(1L)).thenReturn(null)
         `when`(coupleRepository.reconnect(1L, 1L)).thenReturn(reconnectedCouple)
         `when`(cacheManager.getCache("userCouple")).thenReturn(cache)
 
-        val result = coupleReconnectService.reconnect("12345678", 1L)
+        val result = coupleReconnectService.reconnect(1L)
 
         assertEquals(1L, result.id)
         assertEquals(CoupleStatus.CONNECTED, result.status)
@@ -88,13 +88,13 @@ class CoupleReconnectServiceTest {
             userIds = listOf(1L, 2L),
             status = CoupleStatus.CONNECTED,
         )
-        `when`(coupleRepository.findByInviteCode("12345678")).thenReturn(disconnectedCouple)
+        `when`(coupleRepository.findByDisconnectedByUserId(1L)).thenReturn(disconnectedCouple)
         `when`(coupleRepository.findByUserId(1L)).thenReturn(existingSoloCouple)
         `when`(coupleRepository.findById(3L)).thenReturn(existingSoloCouple)
         `when`(coupleRepository.reconnect(1L, 1L)).thenReturn(reconnectedCouple)
         `when`(cacheManager.getCache("userCouple")).thenReturn(cache)
 
-        val result = coupleReconnectService.reconnect("12345678", 1L)
+        val result = coupleReconnectService.reconnect(1L)
 
         assertEquals(1L, result.id)
         verify(coupleRepository).deleteById(3L)
@@ -110,10 +110,10 @@ class CoupleReconnectServiceTest {
             userIds = listOf(1L, 2L),
             status = CoupleStatus.CONNECTED,
         )
-        `when`(coupleRepository.findByInviteCode("12345678")).thenReturn(connectedCouple)
+        `when`(coupleRepository.findByDisconnectedByUserId(1L)).thenReturn(connectedCouple)
 
         assertThrows<BusinessException.CoupleNotDisconnectedException> {
-            coupleReconnectService.reconnect("12345678", 1L)
+            coupleReconnectService.reconnect(1L)
         }
     }
 
@@ -128,37 +128,19 @@ class CoupleReconnectServiceTest {
             disconnectedAt = LocalDateTime.now().minusDays(32),
             disconnectedByUserId = 1L,
         )
-        `when`(coupleRepository.findByInviteCode("12345678")).thenReturn(expiredCouple)
+        `when`(coupleRepository.findByDisconnectedByUserId(1L)).thenReturn(expiredCouple)
 
         assertThrows<BusinessException.CoupleReconnectExpiredException> {
-            coupleReconnectService.reconnect("12345678", 1L)
+            coupleReconnectService.reconnect(1L)
         }
     }
 
     @Test
-    fun `연결 해제한 사용자가 아니면 권한 예외가 발생한다`() {
-        val disconnectedCouple = createCouple(
-            id = 1L,
-            name = "우리 커플",
-            inviteCode = "12345678",
-            userIds = listOf(2L),
-            status = CoupleStatus.DISCONNECTED,
-            disconnectedAt = LocalDateTime.now().minusDays(10),
-            disconnectedByUserId = 1L,
-        )
-        `when`(coupleRepository.findByInviteCode("12345678")).thenReturn(disconnectedCouple)
-
-        assertThrows<BusinessException.CoupleReconnectNotAllowedException> {
-            coupleReconnectService.reconnect("12345678", 99L)
-        }
-    }
-
-    @Test
-    fun `존재하지 않는 초대 코드면 예외가 발생한다`() {
-        `when`(coupleRepository.findByInviteCode("invalid1")).thenReturn(null)
+    fun `DISCONNECTED 커플이 없으면 예외가 발생한다`() {
+        `when`(coupleRepository.findByDisconnectedByUserId(1L)).thenReturn(null)
 
         assertThrows<BusinessException.ResourceNotFoundException> {
-            coupleReconnectService.reconnect("invalid1", 1L)
+            coupleReconnectService.reconnect(1L)
         }
     }
 }
