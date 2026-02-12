@@ -48,6 +48,18 @@ class JpaUserRepository(
     }
 
     @Transactional
+    override fun apply(
+        user: User,
+        name: String,
+        profileImageUrl: String?,
+    ) {
+        val entity = userJpaRepository.findByIdOrNull(user.id)
+            ?: throw entityNotFound<UserEntity>(user.id)
+        entity.name = name
+        entity.profileImageUrl = profileImageUrl
+    }
+
+    @Transactional
     override fun withdraw(userId: Long) {
         val entity =
             userJpaRepository.findByIdOrNull(userId)

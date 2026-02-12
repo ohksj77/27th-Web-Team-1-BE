@@ -50,6 +50,8 @@ class OAuthService(
         val user =
             userRepository.findByEmail(email, name)
 
+        userRepository.apply(user.copy(profileImageUrl = userInfo.profileImageUrl))
+
         // 탈퇴한 사용자가 다시 로그인하면 계정 복구
         if (user.status == AccountStatus.WITHDRAWN) {
             userRepository.reactivate(user.id)
