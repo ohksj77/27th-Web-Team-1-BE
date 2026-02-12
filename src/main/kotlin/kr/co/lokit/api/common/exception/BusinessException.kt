@@ -151,6 +151,24 @@ sealed class BusinessException(
         cause: Throwable? = null,
         errors: Map<String, String> = emptyMap(),
     ) : BusinessException(ErrorCode.EMOTICON_ALREADY_EXISTS, message, cause, errors)
+
+    class CoupleReconnectExpiredException(
+        message: String = ErrorCode.COUPLE_RECONNECT_EXPIRED.message,
+        cause: Throwable? = null,
+        errors: Map<String, String> = emptyMap(),
+    ) : BusinessException(ErrorCode.COUPLE_RECONNECT_EXPIRED, message, cause, errors)
+
+    class CoupleNotDisconnectedException(
+        message: String = ErrorCode.COUPLE_NOT_DISCONNECTED.message,
+        cause: Throwable? = null,
+        errors: Map<String, String> = emptyMap(),
+    ) : BusinessException(ErrorCode.COUPLE_NOT_DISCONNECTED, message, cause, errors)
+
+    class CoupleReconnectNotAllowedException(
+        message: String = ErrorCode.COUPLE_RECONNECT_NOT_ALLOWED.message,
+        cause: Throwable? = null,
+        errors: Map<String, String> = emptyMap(),
+    ) : BusinessException(ErrorCode.COUPLE_RECONNECT_NOT_ALLOWED, message, cause, errors)
 }
 
 inline fun <reified T> entityNotFound(id: Long): BusinessException.ResourceNotFoundException =

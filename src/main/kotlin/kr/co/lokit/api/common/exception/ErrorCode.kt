@@ -58,4 +58,7 @@ enum class ErrorCode(
     COUPLE_ALREADY_CONNECTED(HttpStatus.CONFLICT, "COUPLE_002", "이미 다른 사용자와 커플로 연결되어 있습니다"),
     COUPLE_NOT_FOUND(HttpStatus.NOT_FOUND, "COUPLE_003", "커플을 찾을 수 없습니다"),
     COUPLE_ALREADY_DISCONNECTED(HttpStatus.CONFLICT, "COUPLE_004", "이미 연결이 해제된 커플입니다"),
+    COUPLE_RECONNECT_EXPIRED(HttpStatus.GONE, "COUPLE_005", "재연결 가능 기간이 만료되었습니다"),
+    COUPLE_NOT_DISCONNECTED(HttpStatus.BAD_REQUEST, "COUPLE_006", "연결 해제 상태가 아닌 커플입니다"),
+    COUPLE_RECONNECT_NOT_ALLOWED(HttpStatus.FORBIDDEN, "COUPLE_007", "해당 커플에 대한 재연결 권한이 없습니다"),
 }
