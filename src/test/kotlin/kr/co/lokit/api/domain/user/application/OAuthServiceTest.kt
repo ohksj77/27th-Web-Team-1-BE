@@ -1,6 +1,7 @@
 package kr.co.lokit.api.domain.user.application
 
 import jakarta.persistence.EntityManager
+import kr.co.lokit.api.common.concurrency.LockManager
 import kr.co.lokit.api.common.constant.AccountStatus
 import kr.co.lokit.api.common.exception.BusinessException
 import kr.co.lokit.api.config.security.JwtTokenProvider
@@ -72,6 +73,7 @@ class OAuthServiceTest {
                 jwtTokenProvider,
                 createCoupleUseCase,
                 cacheManager,
+                lockManager = LockManager(),
             )
     }
 

@@ -1,6 +1,7 @@
 package kr.co.lokit.api.domain.user.application
 
 import kr.co.lokit.api.common.constant.AccountStatus
+import kr.co.lokit.api.common.concurrency.LockManager
 import kr.co.lokit.api.common.exception.BusinessException
 import kr.co.lokit.api.config.security.JwtTokenProvider
 import kr.co.lokit.api.domain.couple.application.port.`in`.CreateCoupleUseCase
@@ -26,6 +27,7 @@ class OAuthService(
     private val refreshTokenJpaRepository: RefreshTokenJpaRepository,
     private val jwtTokenProvider: JwtTokenProvider,
     private val createCoupleUseCase: CreateCoupleUseCase,
+    private val lockManager: LockManager,
     private val cacheManager: CacheManager,
 ) {
     @Transactional
@@ -45,12 +47,19 @@ class OAuthService(
                 )
 
         val name = userInfo.name ?: "${provider.name} 사용자"
-        userRepository.lockWithEmail(email)
-
         val user =
-            userRepository.findByEmail(email, name)
+            lockManager.withLock(key = "email:$email", operation = {
+                val user =
+                    userRepository.findByEmail(email, name)
 
-        userRepository.apply(user.copy(profileImageUrl = userInfo.profileImageUrl))
+                userRepository.apply(user.copy(profileImageUrl = userInfo.profileImageUrl))
+
+                createCoupleUseCase.createIfNone(
+                    Couple(name = "default"),
+                    user.id,
+                )
+                user
+            })
 
         // 탈퇴한 사용자가 다시 로그인하면 계정 복구
         if (user.status == AccountStatus.WITHDRAWN) {

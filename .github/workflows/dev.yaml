@@ -99,6 +99,10 @@ jobs:
                     ECR_REPOSITORY: ${{ secrets.DEV_ECR_REPOSITORY }}
                     CONTAINER_NAME: ${{ env.CONTAINER_NAME }}
                     AWS_REGION: ${{ env.AWS_REGION }}
+                    proxy_timeout: 30s
+                    command_timeout: 10m
+                    script_stop: true
+                    debug: true
                 with:
                     host: ${{ secrets.DEV_EC2_HOST }}
                     username: ${{ secrets.DEV_EC2_USERNAME }}
@@ -141,6 +145,8 @@ jobs:
                             --name $CONTAINER_NAME \
                             --restart unless-stopped \
                             --network lokit-net \
+                            --memory="768m" \
+                            --memory-swap="1024m" \
                             -p 8080:8080 \
                             -e SPRING_PROFILES_ACTIVE=dev \
                             -e TZ=Asia/Seoul \
@@ -152,6 +158,9 @@ jobs:
                             --log-opt awslogs-stream=$CONTAINER_NAME-$(date +%Y%m%d-%H%M%S) \
                             --log-opt awslogs-create-group=true \
                             $ECR_REGISTRY/$ECR_REPOSITORY:dev-latest
+
+                        docker rm -f caddy
+                        docker compose -f compose.yaml up -d
 
                         docker ps --filter "name=$CONTAINER_NAME" --format "{{.Status}}"
 

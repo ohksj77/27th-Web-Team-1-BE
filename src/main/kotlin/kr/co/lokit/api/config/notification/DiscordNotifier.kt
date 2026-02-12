@@ -9,7 +9,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.context.annotation.Profile
 import org.springframework.context.event.EventListener
-import org.springframework.scheduling.annotation.Async
 import org.springframework.http.client.SimpleClientHttpRequestFactory
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClient
@@ -89,30 +88,31 @@ class DiscordNotifier(
         }
     }
 
-    @Async
     @EventListener(ApplicationReadyEvent::class)
     fun notifyDeployment() {
-        try {
-            val timestamp = KST_FORMATTER.format(Instant.now())
-            val payload = mapOf(
-                "embeds" to listOf(
-                    mapOf(
-                        "title" to "서버 배포 완료",
-                        "color" to 0x00FF00,
-                        "fields" to listOf(
-                            mapOf("name" to "Timestamp", "value" to timestamp, "inline" to false),
+        Thread.startVirtualThread {
+            try {
+                val timestamp = KST_FORMATTER.format(Instant.now())
+                val payload = mapOf(
+                    "embeds" to listOf(
+                        mapOf(
+                            "title" to "서버 배포 완료",
+                            "color" to 0x00FF00,
+                            "fields" to listOf(
+                                mapOf("name" to "Timestamp", "value" to timestamp, "inline" to false),
+                            ),
                         ),
                     ),
-                ),
-            )
-            restClient.post()
-                .uri(webhookUrl)
-                .header("Content-Type", "application/json")
-                .body(payload)
-                .retrieve()
-                .toBodilessEntity()
-        } catch (e: Exception) {
-            log.warn("Discord 배포 알림 전송 실패: ${e.message}")
+                )
+                restClient.post()
+                    .uri(webhookUrl)
+                    .header("Content-Type", "application/json")
+                    .body(payload)
+                    .retrieve()
+                    .toBodilessEntity()
+            } catch (e: Exception) {
+                log.warn("Discord 배포 알림 전송 실패: ${e.message}")
+            }
         }
     }
 
