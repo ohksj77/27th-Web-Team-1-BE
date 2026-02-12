@@ -72,8 +72,8 @@ class OAuthServiceTest {
                 refreshTokenJpaRepository,
                 jwtTokenProvider,
                 createCoupleUseCase,
-                cacheManager,
                 lockManager = LockManager(),
+                cacheManager,
             )
     }
 
