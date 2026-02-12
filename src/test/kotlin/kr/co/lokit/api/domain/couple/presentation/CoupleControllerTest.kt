@@ -7,6 +7,7 @@ import kr.co.lokit.api.config.security.JwtTokenProvider
 import kr.co.lokit.api.config.web.CookieGenerator
 import kr.co.lokit.api.config.web.CookieProperties
 import kr.co.lokit.api.domain.couple.application.port.`in`.CreateCoupleUseCase
+import kr.co.lokit.api.domain.couple.application.port.`in`.DisconnectCoupleUseCase
 import kr.co.lokit.api.domain.couple.application.port.`in`.JoinCoupleUseCase
 import kr.co.lokit.api.domain.user.application.AuthService
 import kr.co.lokit.api.fixture.createCouple
@@ -58,6 +59,9 @@ class CoupleControllerTest {
 
     @MockitoBean
     lateinit var joinCoupleUseCase: JoinCoupleUseCase
+
+    @MockitoBean
+    lateinit var disconnectCoupleUseCase: DisconnectCoupleUseCase
 
     @Test
     fun `커플 생성 성공`() {
