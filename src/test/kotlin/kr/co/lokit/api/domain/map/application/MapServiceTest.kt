@@ -12,7 +12,6 @@ import kr.co.lokit.api.domain.map.dto.ClusterResponse
 import kr.co.lokit.api.domain.map.dto.LocationInfoResponse
 import kr.co.lokit.api.domain.map.dto.MapPhotosResponse
 import kr.co.lokit.api.domain.map.dto.PlaceResponse
-import kr.co.lokit.api.fixture.createAlbum
 import kr.co.lokit.api.fixture.createAlbumBounds
 import kr.co.lokit.api.fixture.createCouple
 import org.junit.jupiter.api.BeforeEach
@@ -155,38 +154,6 @@ class MapServiceTest {
 
         assertEquals("서울 강남구", result.address)
         assertEquals("역삼역", result.placeName)
-    }
-
-    @Test
-    fun `home은 위치 정보와 앨범 목록을 반환한다`() {
-        val couple = createCouple(id = 1L)
-        val albums =
-            listOf(
-                createAlbum(id = 1L, title = "default", isDefault = true, coupleId = 1L),
-                createAlbum(id = 2L, title = "여행", coupleId = 1L),
-            )
-        `when`(coupleRepository.findByUserId(1L)).thenReturn(couple)
-        `when`(mapClientPort.reverseGeocode(127.0, 37.5)).thenReturn(
-            LocationInfoResponse(address = "서울 강남구", placeName = "역삼역", regionName = "강남구"),
-        )
-        `when`(albumRepository.findAllByCoupleId(1L)).thenReturn(albums)
-
-        val result = mapService.home(1L, 127.0, 37.5)
-
-        assertNotNull(result.location)
-        assertEquals(2, result.albums.size)
-    }
-
-    @Test
-    fun `home에서 커플이 없으면 빈 앨범 목록을 반환한다`() {
-        `when`(coupleRepository.findByUserId(1L)).thenReturn(null)
-        `when`(mapClientPort.reverseGeocode(127.0, 37.5)).thenReturn(
-            LocationInfoResponse(address = "서울 강남구", placeName = null, regionName = "강남구"),
-        )
-
-        val result = mapService.home(1L, 127.0, 37.5)
-
-        assertTrue(result.albums.isEmpty())
     }
 
     @Test

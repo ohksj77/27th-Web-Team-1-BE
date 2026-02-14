@@ -16,7 +16,6 @@ import kr.co.lokit.api.domain.map.domain.ClusterId
 import kr.co.lokit.api.domain.map.domain.GridValues
 import kr.co.lokit.api.domain.map.dto.AlbumMapInfoResponse
 import kr.co.lokit.api.domain.map.dto.ClusterPhotoResponse
-import kr.co.lokit.api.domain.map.dto.HomeResponse
 import kr.co.lokit.api.domain.map.dto.HomeResponse.Companion.toAlbumThumbnails
 import kr.co.lokit.api.domain.map.dto.LocationInfoResponse
 import kr.co.lokit.api.domain.map.dto.MapMeResponse
@@ -41,41 +40,7 @@ class MapQueryService(
     SearchLocationUseCase {
     private val dbSemaphore = Semaphore(6)
 
-    override fun home(
-        userId: Long,
-        longitude: Double,
-        latitude: Double,
-    ): HomeResponse {
-        val bBox = BBox.fromCenter(GridValues.HOME_ZOOM_LEVEL, longitude, latitude).clampToKorea() ?: BBox.KOREA_BOUNDS
-        val coupleId = coupleRepository.findByUserId(userId)?.id
-
-        val (locationFuture, albumsFuture) =
-            StructuredConcurrency.run { scope ->
-                Pair(
-                    scope.fork { mapClientPort.reverseGeocode(longitude, latitude) },
-                    scope.fork {
-                        dbSemaphore.withPermit {
-                            if (coupleId != null) {
-                                albumRepository
-                                    .findAllByCoupleId(coupleId)
-                                    .sortedByDescending { it.isDefault }
-                            } else {
-                                emptyList()
-                            }
-                        }
-                    },
-                )
-            }
-
-        return HomeResponse.of(
-            locationFuture.get(),
-            albumsFuture.get(),
-            bBox,
-        )
-    }
-
-    @Transactional(readOnly = true)
-    override fun getPhotos(
+    private fun getPhotos(
         zoom: Int,
         bbox: BBox,
         userId: Long?,
@@ -132,11 +97,12 @@ class MapQueryService(
     @Transactional(readOnly = true)
     override fun getAlbumMapInfo(albumId: Long): AlbumMapInfoResponse {
         val album = albumRepository.findById(albumId)
-        val (standardId, idType) = if (album?.isDefault == true) {
-            album.coupleId to BoundsIdType.COUPLE
-        } else {
-            albumId to BoundsIdType.ALBUM
-        }
+        val (standardId, idType) =
+            if (album?.isDefault == true) {
+                album.coupleId to BoundsIdType.COUPLE
+            } else {
+                albumId to BoundsIdType.ALBUM
+            }
         val bounds = albumBoundsRepository.findByStandardIdAndIdType(standardId, idType)
         return bounds.toAlbumMapInfoResponse(albumId)
     }
