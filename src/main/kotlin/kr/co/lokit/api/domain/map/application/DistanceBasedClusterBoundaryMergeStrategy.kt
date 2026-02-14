@@ -4,10 +4,11 @@ import kr.co.lokit.api.domain.map.domain.ClusterId
 import kr.co.lokit.api.domain.map.domain.GridValues
 import kr.co.lokit.api.domain.map.dto.ClusterResponse
 import kotlin.math.PI
+import kotlin.math.asin
 import kotlin.math.abs
-import kotlin.math.ln
+import kotlin.math.cos
+import kotlin.math.sin
 import kotlin.math.sqrt
-import kotlin.math.tan
 
 class DistanceBasedClusterBoundaryMergeStrategy : ClusterBoundaryMergeStrategy {
     private val earthRadius = 6378137.0
@@ -136,7 +137,7 @@ class DistanceBasedClusterBoundaryMergeStrategy : ClusterBoundaryMergeStrategy {
                 }
                 val a = coordExtractor(nodes[i])
                 val b = coordExtractor(nodes[j])
-                if (planarDistanceMeters(a.longitude, a.latitude, b.longitude, b.latitude) <= thresholdMeters) {
+                if (haversineDistanceMeters(a.longitude, a.latitude, b.longitude, b.latitude) <= thresholdMeters) {
                     union(i, j)
                 }
             }
@@ -154,37 +155,29 @@ class DistanceBasedClusterBoundaryMergeStrategy : ClusterBoundaryMergeStrategy {
     ): List<List<Int>> = buildGroups(cells, thresholdMeters, { it }, centerResolver)
 
     private fun getBoundaryMergeEpsMeters(
-        zoom: Int,
+        @Suppress("UNUSED_PARAMETER") zoom: Int,
         gridSize: Double,
-    ): Double {
-        val ratio =
-            when {
-                zoom <= 10 -> 0.16
-                zoom == 11 -> 0.20
-                zoom == 12 -> 0.18
-                zoom == 13 -> 0.16
-                else -> 0.14
-            }
-        return (gridSize * ratio).coerceIn(120.0, 900.0)
-    }
+    ): Double = gridSize * BOUNDARY_MERGE_RATIO
 
-    private fun lonToM(lon: Double): Double = lon * (PI * earthRadius / 180.0)
+    private fun toRad(degree: Double): Double = degree * PI / 180.0
 
-    private fun latToM(lat: Double): Double = ln(tan((90.0 + lat) * PI / 360.0)) * earthRadius
-
-    private fun planarDistanceMeters(
+    private fun haversineDistanceMeters(
         lonA: Double,
         latA: Double,
         lonB: Double,
         latB: Double,
     ): Double {
-        val ax = lonToM(lonA)
-        val ay = latToM(latA)
-        val bx = lonToM(lonB)
-        val by = latToM(latB)
-        val dx = ax - bx
-        val dy = ay - by
-        return sqrt(dx * dx + dy * dy)
+        val latARad = toRad(latA)
+        val latBRad = toRad(latB)
+        val dLat = toRad(latB - latA)
+        val dLon = toRad(lonB - lonA)
+
+        val a =
+            sin(dLat / 2.0) * sin(dLat / 2.0) +
+                cos(latARad) * cos(latBRad) *
+                sin(dLon / 2.0) * sin(dLon / 2.0)
+        val c = 2.0 * asin(sqrt(a.coerceIn(0.0, 1.0)))
+        return earthRadius * c
     }
 
     private data class MergeNode(
@@ -195,4 +188,8 @@ class DistanceBasedClusterBoundaryMergeStrategy : ClusterBoundaryMergeStrategy {
         val longitude: Double,
         val latitude: Double,
     )
+
+    companion object {
+        private const val BOUNDARY_MERGE_RATIO = 0.20
+    }
 }
