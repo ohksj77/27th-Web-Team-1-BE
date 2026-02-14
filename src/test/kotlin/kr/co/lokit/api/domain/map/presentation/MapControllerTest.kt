@@ -10,13 +10,11 @@ import kr.co.lokit.api.domain.map.application.port.`in`.SearchLocationUseCase
 import kr.co.lokit.api.domain.map.dto.AlbumMapInfoResponse
 import kr.co.lokit.api.domain.map.dto.BoundingBoxResponse
 import kr.co.lokit.api.domain.map.dto.LocationInfoResponse
-import kr.co.lokit.api.domain.map.dto.MapPhotosResponse
 import kr.co.lokit.api.domain.map.dto.PlaceSearchResponse
 import kr.co.lokit.api.domain.user.application.AuthService
 import kr.co.lokit.api.fixture.userAuth
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentMatchers.anyDouble
-import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.ArgumentMatchers.anyLong
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.doReturn
@@ -59,21 +57,6 @@ class MapControllerTest {
 
     @MockitoBean
     lateinit var permissionService: PermissionService
-
-    @Test
-    fun `지도 사진 조회 성공`() {
-        doReturn(MapPhotosResponse(clusters = emptyList()))
-            .`when`(getMapUseCase)
-            .getPhotos(anyInt(), anyObject(), anyObject(), anyObject())
-
-        mockMvc
-            .perform(
-                get("/map/photos")
-                    .with(authentication(userAuth()))
-                    .param("zoom", "12")
-                    .param("bbox", "126.9,37.4,127.1,37.6"),
-            ).andExpect(status().isOk)
-    }
 
     @Test
     fun `앨범 지도 정보 조회 성공`() {
@@ -125,7 +108,7 @@ class MapControllerTest {
     @Test
     fun `인증되지 않은 사용자는 접근할 수 없다`() {
         mockMvc
-            .perform(get("/map/photos").param("zoom", "12").param("bbox", "126.9,37.4,127.1,37.6"))
+            .perform(get("/map/me").param("zoom", "12").param("long", "126.9,37.4").param("lat", "127.1,37.6"))
             .andExpect(status().isUnauthorized)
     }
 }

@@ -11,10 +11,8 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
 import kr.co.lokit.api.domain.map.dto.AlbumMapInfoResponse
 import kr.co.lokit.api.domain.map.dto.ClusterPhotoResponse
-import kr.co.lokit.api.domain.map.dto.HomeResponse
 import kr.co.lokit.api.domain.map.dto.LocationInfoResponse
 import kr.co.lokit.api.domain.map.dto.MapMeResponse
-import kr.co.lokit.api.domain.map.dto.MapPhotosResponse
 import kr.co.lokit.api.domain.map.dto.PlaceSearchResponse
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestParam
@@ -22,17 +20,6 @@ import org.springframework.web.bind.annotation.RequestParam
 @SecurityRequirement(name = "Authorization")
 @Tag(name = "Map", description = "지도 API")
 interface MapApi {
-    @Operation(
-        summary = "홈 조회(홈 화면 초기 진입 시 1회 호출)",
-        description = "",
-        hidden = true,
-    )
-    fun home(
-        @Parameter(hidden = true) userId: Long,
-        @RequestParam longitude: Double,
-        @RequestParam latitude: Double,
-    ): HomeResponse
-
     @Operation(
         summary = "지도 ME 조회 (홈 + 사진 조회 통합)",
         description = """
@@ -95,66 +82,6 @@ interface MapApi {
         )
         @RequestParam lastDataVersion: Long?,
     ): MapMeResponse
-
-    @Operation(
-        summary = "지도 사진 조회",
-        description = """
-            줌 레벨과 바운딩 박스를 기반으로 지도에 표시할 사진 또는 클러스터를 조회합니다.
-
-            - **줌 레벨 < 15**: ST_SnapToGrid를 사용하여 사진을 클러스터링하여 반환
-            - clusterId: 줌 레벨 + 그리드 셀 인덱스 (예: z14_130234_38456)
-            - count: 클러스터 내 사진 개수
-            - thumbnailUrl: 클러스터 내 가장 최근 생성된 사진의 URL
-
-            - **줌 레벨 >= 15**: 개별 사진 썸네일을 반환
-        """,
-        hidden = true,
-    )
-    @ApiResponses(
-        value = [
-            ApiResponse(
-                responseCode = "200",
-                description = "조회 성공",
-                content = [Content(schema = Schema(implementation = MapPhotosResponse::class))],
-            ),
-            ApiResponse(
-                responseCode = "400",
-                description = "잘못된 요청 파라미터",
-                content = [Content()],
-            ),
-            ApiResponse(
-                responseCode = "401",
-                description = "인증 필요",
-                content = [Content()],
-            ),
-            ApiResponse(
-                responseCode = "403",
-                description = "접근 권한 없음",
-                content = [Content()],
-            ),
-        ],
-    )
-    fun getPhotos(
-        @Parameter(hidden = true) userId: Long,
-        @Parameter(
-            description = "줌 레벨 (0-20). 15 미만이면 클러스터링, 16 이상이면 개별 사진 반환",
-            example = "12",
-            required = true,
-        )
-        zoom: Int,
-        @Parameter(
-            description = "바운딩 박스 (west,south,east,north 형식의 경도/위도)",
-            example = "126.9,37.4,127.1,37.6",
-            required = true,
-        )
-        bbox: String,
-        @Parameter(
-            description = "앨범 ID (선택). 지정 시 해당 앨범의 사진만 조회",
-            example = "1",
-            required = false,
-        )
-        @RequestParam albumId: Long?,
-    ): MapPhotosResponse
 
     @Operation(
         summary = "클러스터 내 사진 목록 조회",

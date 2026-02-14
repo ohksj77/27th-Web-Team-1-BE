@@ -6,10 +6,8 @@ import kr.co.lokit.api.domain.map.application.port.`in`.SearchLocationUseCase
 import kr.co.lokit.api.domain.map.domain.BBox
 import kr.co.lokit.api.domain.map.dto.AlbumMapInfoResponse
 import kr.co.lokit.api.domain.map.dto.ClusterPhotoResponse
-import kr.co.lokit.api.domain.map.dto.HomeResponse
 import kr.co.lokit.api.domain.map.dto.LocationInfoResponse
 import kr.co.lokit.api.domain.map.dto.MapMeResponse
-import kr.co.lokit.api.domain.map.dto.MapPhotosResponse
 import kr.co.lokit.api.domain.map.dto.PlaceSearchResponse
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
@@ -66,21 +64,4 @@ class MapController(
     override fun searchPlaces(
         @RequestParam query: String,
     ): PlaceSearchResponse = searchLocationUseCase.searchPlaces(query)
-
-    // 삭제 예정
-    @GetMapping("home")
-    override fun home(
-        @CurrentUserId userId: Long,
-        @RequestParam longitude: Double,
-        @RequestParam latitude: Double,
-    ): HomeResponse = getMapUseCase.home(userId, longitude, latitude)
-
-    // 삭제 예정
-    @GetMapping("photos")
-    override fun getPhotos(
-        @CurrentUserId userId: Long,
-        @RequestParam zoom: Int,
-        @RequestParam bbox: String,
-        @RequestParam(required = false) albumId: Long?,
-    ): MapPhotosResponse = getMapUseCase.getPhotos(zoom, BBox.parseToBBox(bbox), userId, albumId)
 }
