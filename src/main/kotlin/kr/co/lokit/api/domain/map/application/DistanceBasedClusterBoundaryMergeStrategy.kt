@@ -190,6 +190,6 @@ class DistanceBasedClusterBoundaryMergeStrategy : ClusterBoundaryMergeStrategy {
     )
 
     companion object {
-        private const val BOUNDARY_MERGE_RATIO = 0.30
+        private const val BOUNDARY_MERGE_RATIO = 0.60
     }
 }
