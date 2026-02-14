@@ -141,7 +141,7 @@ class MapQueryService(
         val homeBBox = BBox.fromCenter(zoom, longitude, latitude).clampToKorea() ?: BBox.KOREA_BOUNDS
         val coupleId = coupleRepository.findByUserId(userId)?.id
         val effectiveAlbumId = resolveEffectiveAlbumId(userId, albumId)
-        val currentVersion = mapPhotosCacheService.getVersion(zoom, homeBBox, coupleId, effectiveAlbumId)
+        val currentVersion = mapPhotosCacheService.getDataVersion(zoom, homeBBox, coupleId, effectiveAlbumId)
         val versionUnchanged = lastDataVersion != null && lastDataVersion == currentVersion
 
         val (locationFuture, albumsFuture, photosFuture) =

@@ -157,7 +157,9 @@ class DistanceBasedClusterBoundaryMergeStrategy : ClusterBoundaryMergeStrategy {
     private fun getBoundaryMergeEpsMeters(
         @Suppress("UNUSED_PARAMETER") zoom: Int,
         gridSize: Double,
-    ): Double = gridSize * BOUNDARY_MERGE_RATIO
+    ): Double = gridSize * getBoundaryMergeRatio(gridSize)
+
+    private fun getBoundaryMergeRatio(gridSize: Double): Double = TARGET_BOUNDARY_MERGE_DISTANCE_METERS / gridSize
 
     private fun toRad(degree: Double): Double = degree * PI / 180.0
 
@@ -190,6 +192,6 @@ class DistanceBasedClusterBoundaryMergeStrategy : ClusterBoundaryMergeStrategy {
     )
 
     companion object {
-        private const val BOUNDARY_MERGE_RATIO = 0.60
+        private const val TARGET_BOUNDARY_MERGE_DISTANCE_METERS = 2751.7
     }
 }

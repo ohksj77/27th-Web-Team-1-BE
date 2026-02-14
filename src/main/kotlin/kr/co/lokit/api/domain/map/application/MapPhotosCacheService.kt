@@ -91,6 +91,56 @@ class MapPhotosCacheService(
         return maxSequence
     }
 
+    fun getDataVersion(
+        zoom: Int,
+        bbox: BBox,
+        coupleId: Long?,
+        albumId: Long?,
+    ): Long {
+        val mutationVersion = getVersion(zoom, bbox, coupleId, albumId)
+        val gridSize = GridValues.getGridSize(zoom)
+        val westCell = floor(lonToM(bbox.west) / gridSize).toLong()
+        val southCell = floor(latToM(bbox.south) / gridSize).toLong()
+        val eastCell = floor(lonToM(bbox.east) / gridSize).toLong()
+        val northCell = floor(latToM(bbox.north) / gridSize).toLong()
+
+        val hash =
+            fnv64(
+                zoom.toLong(),
+                westCell,
+                southCell,
+                eastCell,
+                northCell,
+                coupleId ?: 0L,
+                albumId ?: 0L,
+                mutationVersion,
+            )
+        return hash and Long.MAX_VALUE
+    }
+
+    fun getDataVersionContext(
+        zoom: Int,
+        bbox: BBox,
+        coupleId: Long?,
+        albumId: Long?,
+    ): String {
+        val gridSize = GridValues.getGridSize(zoom)
+        val westCell = floor(lonToM(bbox.west) / gridSize).toLong()
+        val southCell = floor(latToM(bbox.south) / gridSize).toLong()
+        val eastCell = floor(lonToM(bbox.east) / gridSize).toLong()
+        val northCell = floor(latToM(bbox.north) / gridSize).toLong()
+        return "z${zoom}_w${westCell}_s${southCell}_e${eastCell}_n${northCell}_c${coupleId ?: 0}_a${albumId ?: 0}"
+    }
+
+    private fun fnv64(vararg values: Long): Long {
+        var hash = FNV64_OFFSET_BASIS
+        values.forEach { value ->
+            hash = hash xor value
+            hash *= FNV64_PRIME
+        }
+        return hash
+    }
+
     fun evictForPhotoMutation(
         coupleId: Long,
         albumId: Long?,
@@ -579,6 +629,8 @@ class MapPhotosCacheService(
         private val INDIVIDUAL_KEY_REGEX =
             Regex("^ind_z(-?\\d+)_w(-?\\d+)_s(-?\\d+)_e(-?\\d+)_n(-?\\d+)_c(-?\\d+)_a(-?\\d+)_v(-?\\d+)$")
         private const val EARTH_RADIUS = 6378137.0
+        private const val FNV64_OFFSET_BASIS = -3750763034362895579L
+        private const val FNV64_PRIME = 1099511628211L
     }
 }
 
