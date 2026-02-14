@@ -155,9 +155,9 @@ jobs:
                     - Branch Coverage: ${BRANCH_RATE:-N/A}%
                     - Run: ${RUN_URL}"
 
-                    curl -sS -X POST "${DISCORD_WEBHOOK_URL}" \
+                    curl -fsS -X POST "${DISCORD_WEBHOOK_URL}" \
                       -H "Content-Type: application/json" \
-                      -d "$(jq -n --arg content "$MSG" '{content: $content}')"
+                      -d "$(jq -n --arg sender "GitHub" --arg content "$MSG" '{sender: $sender, content: $content}')"
 
     cd:
         if: github.event_name == 'push'
