@@ -5,6 +5,10 @@ import kr.co.lokit.api.domain.map.application.port.ClusterProjection
 import kr.co.lokit.api.domain.map.application.port.MapQueryPort
 import kr.co.lokit.api.domain.map.application.port.PhotoProjection
 import kr.co.lokit.api.domain.map.domain.BBox
+import kr.co.lokit.api.domain.map.domain.ClusterId
+import kr.co.lokit.api.domain.map.domain.GridValues
+import kr.co.lokit.api.domain.map.domain.MercatorProjection
+import kr.co.lokit.api.domain.map.dto.ClusterResponse
 import kr.co.lokit.api.domain.map.dto.MapPhotosResponse
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -17,6 +21,7 @@ import org.mockito.Mockito.isNull
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
+import org.mockito.ArgumentCaptor
 import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.cache.CacheManager
 import org.springframework.cache.caffeine.CaffeineCache
@@ -201,11 +206,12 @@ class MapPhotosCacheServiceTest {
         `when`(cacheManager.getCache("mapCells")).thenReturn(mapCells)
         `when`(cacheManager.getCache("mapPhotos")).thenReturn(mapPhotos)
 
+        val coupleId = 11_001L
         val bbox = BBox(126.9, 37.4, 127.1, 37.6)
-        service.evictForPhotoMutation(coupleId = 1L, albumId = 10L, longitude = 127.0, latitude = 37.5)
+        service.evictForPhotoMutation(coupleId = coupleId, albumId = 10L, longitude = 127.0, latitude = 37.5)
 
-        assertTrue(service.getVersion(14, bbox, 1L, 10L) > 0L)
-        assertEquals(0L, service.getVersion(14, bbox, 1L, 11L))
+        assertTrue(service.getVersion(14, bbox, coupleId, 10L) > 0L)
+        assertEquals(0L, service.getVersion(14, bbox, coupleId, 11L))
     }
 
     @Test
@@ -225,6 +231,55 @@ class MapPhotosCacheServiceTest {
 
         assertEquals(seoulVersion, busanVersion)
         assertTrue(seoulVersion > 0L)
+    }
+
+    @Test
+    fun `dataVersion은 albumId가 다르면 서로 다른 값을 반환할 수 있다`() {
+        val mapCells = CaffeineCache("mapCells", Caffeine.newBuilder().build())
+        val mapPhotos = CaffeineCache("mapPhotos", Caffeine.newBuilder().build())
+        `when`(cacheManager.getCache("mapCells")).thenReturn(mapCells)
+        `when`(cacheManager.getCache("mapPhotos")).thenReturn(mapPhotos)
+
+        service.evictForPhotoMutation(coupleId = 1L, albumId = 10L, longitude = 127.0, latitude = 37.5)
+        service.evictForPhotoMutation(coupleId = 1L, albumId = 11L, longitude = 127.0, latitude = 37.5)
+
+        val bbox = BBox(126.9, 37.4, 127.1, 37.6)
+        val v10 = service.getDataVersion(14, bbox, 1L, 10L)
+        val v11 = service.getDataVersion(14, bbox, 1L, 11L)
+
+        assertTrue(v10 > 0L)
+        assertTrue(v11 > 0L)
+        assertTrue(v10 != v11)
+    }
+
+    @Test
+    fun `evictForPhotoMutation은 동일 couple과 좌표에 해당하는 캐시만 무효화한다`() {
+        val mapCells = CaffeineCache("mapCells", Caffeine.newBuilder().build())
+        val mapPhotos = CaffeineCache("mapPhotos", Caffeine.newBuilder().build())
+        `when`(cacheManager.getCache("mapCells")).thenReturn(mapCells)
+        `when`(cacheManager.getCache("mapPhotos")).thenReturn(mapPhotos)
+
+        val zoom = 14
+        val gridSize = GridValues.getGridSize(zoom)
+        val cellX = kotlin.math.floor(lonToMHelper(127.0) / gridSize).toLong()
+        val cellY = kotlin.math.floor(latToMHelper(37.5) / gridSize).toLong()
+        val bbox = BBox(126.9, 37.4, 127.1, 37.6)
+        val targetCellKey = service.buildCellKey(zoom, cellX, cellY, 1L, null, 0L)
+        val otherCoupleCellKey = service.buildCellKey(zoom, cellX, cellY, 2L, null, 0L)
+        val targetIndividualKey = MapCacheKeyFactory.buildIndividualKey(bbox, 17, 1L, null, 0L)
+        val otherCoupleIndividualKey = MapCacheKeyFactory.buildIndividualKey(bbox, 17, 2L, null, 0L)
+
+        mapCells.nativeCache.put(targetCellKey, MapPhotosCacheService.CachedCell(null))
+        mapCells.nativeCache.put(otherCoupleCellKey, MapPhotosCacheService.CachedCell(null))
+        mapPhotos.nativeCache.put(targetIndividualKey, MapPhotosResponse(photos = emptyList()))
+        mapPhotos.nativeCache.put(otherCoupleIndividualKey, MapPhotosResponse(photos = emptyList()))
+
+        service.evictForPhotoMutation(coupleId = 1L, albumId = null, longitude = 127.0, latitude = 37.5)
+
+        assertNull(mapCells.nativeCache.getIfPresent(targetCellKey))
+        assertNull(mapPhotos.nativeCache.getIfPresent(targetIndividualKey))
+        assertNotNull(mapCells.nativeCache.getIfPresent(otherCoupleCellKey))
+        assertNotNull(mapPhotos.nativeCache.getIfPresent(otherCoupleIndividualKey))
     }
 
     // --- getClusteredPhotos 테스트 ---
@@ -250,6 +305,50 @@ class MapPhotosCacheServiceTest {
 
         assertNotNull(result)
         assertTrue(result.clusters.isNullOrEmpty())
+    }
+
+    @Test
+    fun `조회 셀이 너무 많으면 캐시를 사용하지 않고 queryDirectly로 폴백한다`() {
+        val caffeineCache = CaffeineCache("mapCells", Caffeine.newBuilder().build())
+        `when`(cacheManager.getCache("mapCells")).thenReturn(caffeineCache)
+        val zoom = 14
+        val gridSize = GridValues.getGridSize(zoom)
+        val westMeters = 10_000.0
+        val southMeters = 10_000.0
+        val eastMeters = westMeters + gridSize * 23.0
+        val northMeters = southMeters + gridSize * 23.0
+        val wideBbox =
+            BBox(
+                west = MercatorProjection.metersToLongitude(westMeters),
+                south = MercatorProjection.metersToLatitude(southMeters),
+                east = MercatorProjection.metersToLongitude(eastMeters),
+                north = MercatorProjection.metersToLatitude(northMeters),
+            )
+
+        `when`(
+            mapQueryPort.findClustersWithinBBox(
+                west = anyDouble(),
+                south = anyDouble(),
+                east = anyDouble(),
+                north = anyDouble(),
+                gridSize = anyDouble(),
+                coupleId = isNull(),
+                albumId = isNull(),
+            ),
+        ).thenReturn(emptyList())
+
+        val result = service.getClusteredPhotos(zoom, wideBbox, null, null)
+
+        assertNotNull(result)
+        verify(mapQueryPort).findClustersWithinBBox(
+            west = anyDouble(),
+            south = anyDouble(),
+            east = anyDouble(),
+            north = anyDouble(),
+            gridSize = anyDouble(),
+            coupleId = isNull(),
+            albumId = isNull(),
+        )
     }
 
     @Test
@@ -328,6 +427,105 @@ class MapPhotosCacheServiceTest {
         val result = service.getClusteredPhotos(14, bbox, null, null)
 
         assertNotNull(result)
+    }
+
+    @Test
+    fun `일부 셀만 캐시되어 있으면 미캐시 셀만 DB 조회하고 hit와 miss를 합쳐 반환한다`() {
+        val caffeineCache = CaffeineCache("mapCells", Caffeine.newBuilder().build())
+        `when`(cacheManager.getCache("mapCells")).thenReturn(caffeineCache)
+
+        val zoom = 14
+        val gridSize = GridValues.getGridSize(zoom)
+        val baseX = 1000L
+        val baseY = 2000L
+        val cachedCellX = baseX
+        val missedCellX = baseX + 1
+        val cellY = baseY
+
+        val westMeters = baseX * gridSize + 1.0
+        val southMeters = baseY * gridSize + 1.0
+        val eastMeters = (baseX + 2) * gridSize - 1.0
+        val northMeters = (baseY + 1) * gridSize - 1.0
+        val bbox =
+            BBox(
+                west = MercatorProjection.metersToLongitude(westMeters),
+                south = MercatorProjection.metersToLatitude(southMeters),
+                east = MercatorProjection.metersToLongitude(eastMeters),
+                north = MercatorProjection.metersToLatitude(northMeters),
+            )
+
+        val expectedWest = missedCellX * gridSize
+        val expectedSouth = cellY * gridSize
+        val expectedEast = (missedCellX + 1) * gridSize
+        val expectedNorth = (cellY + 1) * gridSize
+
+        val version = service.getVersion(zoom, bbox, null, null)
+        val cachedKey = service.buildCellKey(zoom, cachedCellX, cellY, null, null, version)
+        val missedKey = service.buildCellKey(zoom, missedCellX, cellY, null, null, version)
+
+        caffeineCache.nativeCache.put(
+            cachedKey,
+            MapPhotosCacheService.CachedCell(
+                ClusterResponse(
+                    clusterId = ClusterId.format(zoom, cachedCellX, cellY),
+                    count = 1,
+                    thumbnailUrl = "cached.jpg",
+                    longitude = MercatorProjection.metersToLongitude(cachedCellX * gridSize + (gridSize / 2.0)),
+                    latitude = MercatorProjection.metersToLatitude(cellY * gridSize + (gridSize / 2.0)),
+                ),
+            ),
+        )
+
+        `when`(
+            mapQueryPort.findClustersWithinBBox(
+                west = anyDouble(),
+                south = anyDouble(),
+                east = anyDouble(),
+                north = anyDouble(),
+                gridSize = anyDouble(),
+                coupleId = isNull(),
+                albumId = isNull(),
+            ),
+        ).thenReturn(
+            listOf(
+                ClusterProjection(
+                    cellX = missedCellX,
+                    cellY = cellY,
+                    count = 2,
+                    thumbnailUrl = "missed.jpg",
+                    centerLongitude = MercatorProjection.metersToLongitude(missedCellX * gridSize + (gridSize / 2.0)),
+                    centerLatitude = MercatorProjection.metersToLatitude(cellY * gridSize + (gridSize / 2.0)),
+                    takenAt = LocalDateTime.now(),
+                ),
+            ),
+        )
+
+        val result = service.getClusteredPhotos(zoom, bbox, null, null)
+
+        assertNotNull(result.clusters)
+        assertEquals(2, result.clusters!!.size)
+        assertNotNull(caffeineCache.nativeCache.getIfPresent(missedKey))
+
+        val westCaptor = ArgumentCaptor.forClass(Double::class.java)
+        val southCaptor = ArgumentCaptor.forClass(Double::class.java)
+        val eastCaptor = ArgumentCaptor.forClass(Double::class.java)
+        val northCaptor = ArgumentCaptor.forClass(Double::class.java)
+        val gridSizeCaptor = ArgumentCaptor.forClass(Double::class.java)
+        verify(mapQueryPort).findClustersWithinBBox(
+            westCaptor.capture(),
+            southCaptor.capture(),
+            eastCaptor.capture(),
+            northCaptor.capture(),
+            gridSizeCaptor.capture(),
+            isNull(),
+            isNull(),
+        )
+
+        assertEquals(expectedWest, westCaptor.value, 1e-6)
+        assertEquals(expectedSouth, southCaptor.value, 1e-6)
+        assertEquals(expectedEast, eastCaptor.value, 1e-6)
+        assertEquals(expectedNorth, northCaptor.value, 1e-6)
+        assertEquals(gridSize, gridSizeCaptor.value, 1e-9)
     }
 
     @Test

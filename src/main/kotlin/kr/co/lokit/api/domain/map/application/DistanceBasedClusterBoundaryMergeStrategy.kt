@@ -2,6 +2,7 @@ package kr.co.lokit.api.domain.map.application
 
 import kr.co.lokit.api.domain.map.domain.ClusterId
 import kr.co.lokit.api.domain.map.domain.GridValues
+import kr.co.lokit.api.domain.map.domain.MercatorProjection
 import kr.co.lokit.api.domain.map.dto.ClusterResponse
 import kotlin.math.PI
 import kotlin.math.abs
@@ -12,8 +13,6 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 
 class DistanceBasedClusterBoundaryMergeStrategy : ClusterBoundaryMergeStrategy {
-    private val earthRadius = 6378137.0
-
     override fun mergeClusters(
         clusters: List<ClusterResponse>,
         zoom: Int,
@@ -184,7 +183,7 @@ class DistanceBasedClusterBoundaryMergeStrategy : ClusterBoundaryMergeStrategy {
                 cos(latARad) * cos(latBRad) *
                 sin(dLon / 2.0) * sin(dLon / 2.0)
         val c = 2.0 * asin(sqrt(a.coerceIn(0.0, 1.0)))
-        return earthRadius * c
+        return MercatorProjection.EARTH_RADIUS_METERS * c
     }
 
     private data class MergeNode(
@@ -197,7 +196,7 @@ class DistanceBasedClusterBoundaryMergeStrategy : ClusterBoundaryMergeStrategy {
     )
 
     companion object {
-        private const val TARGET_BOUNDARY_MERGE_DISTANCE_METERS = 917.2
+        private const val TARGET_BOUNDARY_MERGE_DISTANCE_METERS = 366.88
         private const val REFERENCE_BOUNDARY_MERGE_RATIO = 0.6
         private const val REFERENCE_GRID_SIZE_METERS =
             TARGET_BOUNDARY_MERGE_DISTANCE_METERS / REFERENCE_BOUNDARY_MERGE_RATIO

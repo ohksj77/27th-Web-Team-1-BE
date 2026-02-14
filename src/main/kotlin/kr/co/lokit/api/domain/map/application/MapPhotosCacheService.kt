@@ -1,9 +1,11 @@
 package kr.co.lokit.api.domain.map.application
 
+import kr.co.lokit.api.config.cache.CacheNames
 import kr.co.lokit.api.domain.map.application.port.ClusterProjection
 import kr.co.lokit.api.domain.map.application.port.MapQueryPort
 import kr.co.lokit.api.domain.map.domain.BBox
 import kr.co.lokit.api.domain.map.domain.GridValues
+import kr.co.lokit.api.domain.map.domain.MercatorProjection
 import kr.co.lokit.api.domain.map.dto.ClusterResponse
 import kr.co.lokit.api.domain.map.dto.MapPhotosResponse
 import kr.co.lokit.api.domain.map.mapping.toMapPhotoResponse
@@ -18,13 +20,10 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedDeque
 import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicLong
-import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.floor
-import kotlin.math.ln
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.tan
 
 @Service
 class MapPhotosCacheService(
@@ -36,9 +35,9 @@ class MapPhotosCacheService(
         val response: ClusterResponse?,
     )
 
-    private fun lonToM(lon: Double): Double = lon * (PI * EARTH_RADIUS / 180.0)
+    private fun lonToM(lon: Double): Double = MercatorProjection.longitudeToMeters(lon)
 
-    private fun latToM(lat: Double): Double = ln(tan((90.0 + lat) * PI / 360.0)) * EARTH_RADIUS
+    private fun latToM(lat: Double): Double = MercatorProjection.latitudeToMeters(lat)
 
     private data class ViewportState(
         val centerX: Long,
@@ -55,8 +54,8 @@ class MapPhotosCacheService(
 
     fun evictForCouple(coupleId: Long) {
         coupleVersions.computeIfAbsent(coupleId) { AtomicLong(0) }.incrementAndGet()
-        evictCoupleEntries("mapCells", coupleId)
-        evictCoupleEntries("mapPhotos", coupleId)
+        evictCoupleEntries(CacheNames.MAP_CELLS, coupleId)
+        evictCoupleEntries(CacheNames.MAP_PHOTOS, coupleId)
         requestStates.keys.removeIf { it.contains("_c${coupleId}_") }
         coupleMutations.remove(coupleId)
     }
@@ -133,7 +132,7 @@ class MapPhotosCacheService(
     ): MapPhotosResponse {
         val gridSize = GridValues.getGridSize(zoom)
         val cache =
-            cacheManager.getCache("mapCells") as? CaffeineCache
+            cacheManager.getCache(CacheNames.MAP_CELLS) as? CaffeineCache
                 ?: return queryDirectly(zoom, bbox, gridSize, coupleId, albumId)
         val version = getVersion(zoom, bbox, coupleId, albumId)
         val sequence = getMutationSequence(coupleId)
@@ -371,7 +370,7 @@ class MapPhotosCacheService(
         longitude: Double,
         latitude: Double,
     ) {
-        val cache = cacheManager.getCache("mapCells") as? CaffeineCache ?: return
+        val cache = cacheManager.getCache(CacheNames.MAP_CELLS) as? CaffeineCache ?: return
         val keys =
             cache.nativeCache
                 .asMap()
@@ -405,7 +404,7 @@ class MapPhotosCacheService(
         longitude: Double,
         latitude: Double,
     ) {
-        val cache = cacheManager.getCache("mapPhotos") as? CaffeineCache ?: return
+        val cache = cacheManager.getCache(CacheNames.MAP_PHOTOS) as? CaffeineCache ?: return
         val keys =
             cache.nativeCache
                 .asMap()
@@ -531,7 +530,7 @@ class MapPhotosCacheService(
 
     @Transactional(readOnly = true)
     @Cacheable(
-        cacheNames = ["mapPhotos"],
+        cacheNames = [CacheNames.MAP_PHOTOS],
         key =
             "T(kr.co.lokit.api.domain.map.application.MapCacheKeyFactory)" +
                 ".buildIndividualKey(#bbox, #zoom, #coupleId, #albumId, @mapPhotosCacheService.getVersion(#zoom, #bbox, #coupleId, #albumId))",
@@ -601,7 +600,6 @@ class MapPhotosCacheService(
         private val coupleVersions = ConcurrentHashMap<Long, AtomicLong>()
         private val coupleMutations = ConcurrentHashMap<Long, ConcurrentLinkedDeque<PhotoMutation>>()
         private val requestStates = ConcurrentHashMap<String, ViewportState>()
-        private const val EARTH_RADIUS = 6378137.0
         private const val FNV64_OFFSET_BASIS = -3750763034362895579L
         private const val FNV64_PRIME = 1099511628211L
     }

@@ -8,6 +8,7 @@ import kr.co.lokit.api.domain.map.application.port.MapClientPort
 import kr.co.lokit.api.domain.map.application.port.MapQueryPort
 import kr.co.lokit.api.domain.map.domain.BBox
 import kr.co.lokit.api.domain.map.domain.BoundsIdType
+import kr.co.lokit.api.domain.map.domain.GridValues
 import kr.co.lokit.api.domain.map.dto.LocationInfoResponse
 import kr.co.lokit.api.domain.map.dto.MapPhotosResponse
 import kr.co.lokit.api.domain.map.dto.PlaceResponse
@@ -24,6 +25,7 @@ import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.transaction.support.TransactionTemplate
 import java.time.LocalDateTime
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import org.mockito.kotlin.any
@@ -101,6 +103,22 @@ class MapServiceTest {
         assertEquals(1L, result.albumId)
         assertNull(result.centerLongitude)
         assertNull(result.boundingBox)
+    }
+
+    @Test
+    fun `기본 앨범의 지도 정보 조회는 couple 기준 bounds를 사용한다`() {
+        val albumId = 1L
+        val coupleId = 99L
+        val defaultAlbum = createAlbum(id = albumId, coupleId = coupleId, isDefault = true)
+        val bounds = createAlbumBounds(id = 10L)
+        `when`(albumRepository.findById(albumId)).thenReturn(defaultAlbum)
+        `when`(albumBoundsRepository.findByStandardIdAndIdType(coupleId, BoundsIdType.COUPLE)).thenReturn(bounds)
+
+        val result = mapService.getAlbumMapInfo(albumId)
+
+        assertEquals(albumId, result.albumId)
+        assertNotNull(result.boundingBox)
+        verify(albumBoundsRepository).findByStandardIdAndIdType(coupleId, BoundsIdType.COUPLE)
     }
 
     @Test
@@ -207,5 +225,114 @@ class MapServiceTest {
         assertEquals(currentVersion, result.dataVersion)
         verify(mapPhotosCacheService).getDataVersion(any(), any(), eq(1L), anyOrNull())
         verify(mapPhotosCacheService).getClusteredPhotos(any(), any(), eq(1L), anyOrNull())
+    }
+
+    @Test
+    fun `getMe는 zoom 이상에서 개별 사진 조회 경로를 사용한다`() {
+        val zoom = GridValues.CLUSTER_ZOOM_THRESHOLD
+        `when`(coupleRepository.findByUserId(1L)).thenReturn(createCouple(id = 1L))
+        `when`(mapPhotosCacheService.getDataVersion(any(), any(), eq(1L), anyOrNull())).thenReturn(3L)
+        `when`(mapPhotosCacheService.getIndividualPhotos(any(), any(), eq(1L), anyOrNull())).thenReturn(
+            MapPhotosResponse(photos = emptyList()),
+        )
+        `when`(mapClientPort.reverseGeocode(any(), any())).thenReturn(
+            LocationInfoResponse(address = "서울 강남구", placeName = "역삼역", regionName = "강남구"),
+        )
+        `when`(albumRepository.findAllByCoupleId(1L)).thenReturn(emptyList())
+        `when`(albumRepository.photoCountSumByUserId(1L)).thenReturn(0)
+
+        mapService.getMe(
+            userId = 1L,
+            longitude = 127.0,
+            latitude = 37.5,
+            zoom = zoom,
+            bbox = BBox(126.9, 37.4, 127.1, 37.6),
+            albumId = null,
+            lastDataVersion = 3L,
+        )
+
+        verify(mapPhotosCacheService).getIndividualPhotos(any(), any(), eq(1L), anyOrNull())
+    }
+
+    @Test
+    fun `연결되지 않은 유저의 getMe는 빈 사진 응답을 반환한다`() {
+        `when`(coupleRepository.findByUserId(1L)).thenReturn(null)
+        `when`(mapPhotosCacheService.getDataVersion(any(), any(), anyOrNull(), anyOrNull())).thenReturn(0L)
+        `when`(mapClientPort.reverseGeocode(any(), any())).thenReturn(
+            LocationInfoResponse(address = "서울 강남구", placeName = "역삼역", regionName = "강남구"),
+        )
+        `when`(albumRepository.photoCountSumByUserId(1L)).thenReturn(0)
+
+        val result =
+            mapService.getMe(
+                userId = 1L,
+                longitude = 127.0,
+                latitude = 37.5,
+                zoom = 14,
+                bbox = BBox(126.9, 37.4, 127.1, 37.6),
+                albumId = null,
+                lastDataVersion = null,
+            )
+
+        assertNotNull(result.clusters)
+        assertTrue(result.clusters!!.isEmpty())
+        verify(mapPhotosCacheService, org.mockito.Mockito.never()).getClusteredPhotos(any(), any(), anyOrNull(), anyOrNull())
+    }
+
+    @Test
+    fun `비기본 앨범 요청의 dataVersion 계산에는 albumId를 유지한다`() {
+        val albumId = 22L
+        `when`(coupleRepository.findByUserId(1L)).thenReturn(createCouple(id = 1L))
+        `when`(albumRepository.findById(albumId)).thenReturn(createAlbum(id = albumId, isDefault = false))
+        `when`(mapPhotosCacheService.getDataVersion(any(), any(), eq(1L), eq(albumId))).thenReturn(10L)
+        `when`(mapPhotosCacheService.getClusteredPhotos(any(), any(), eq(1L), eq(albumId))).thenReturn(
+            MapPhotosResponse(clusters = emptyList()),
+        )
+        `when`(mapClientPort.reverseGeocode(any(), any())).thenReturn(
+            LocationInfoResponse(address = "서울 강남구", placeName = "역삼역", regionName = "강남구"),
+        )
+        `when`(albumRepository.findAllByCoupleId(1L)).thenReturn(emptyList())
+        `when`(albumRepository.photoCountSumByUserId(1L)).thenReturn(0)
+
+        mapService.getMe(
+            userId = 1L,
+            longitude = 127.0,
+            latitude = 37.5,
+            zoom = 14,
+            bbox = BBox(126.9, 37.4, 127.1, 37.6),
+            albumId = albumId,
+            lastDataVersion = null,
+        )
+
+        verify(mapPhotosCacheService).getDataVersion(any(), any(), eq(1L), eq(albumId))
+        verify(mapPhotosCacheService).getClusteredPhotos(any(), any(), eq(1L), eq(albumId))
+    }
+
+    @Test
+    fun `getClusterPhotos는 연결되지 않은 유저면 빈 리스트를 반환한다`() {
+        `when`(coupleRepository.findByUserId(1L)).thenReturn(null)
+
+        val result = mapService.getClusterPhotos("z14_24661_7867", 1L)
+
+        assertTrue(result.isEmpty())
+        verify(mapQueryPort, org.mockito.Mockito.never()).findPhotosInGridCell(any(), any(), any(), any(), anyOrNull())
+    }
+
+    @Test
+    fun `getClusterPhotos는 비로그인 요청에서 coupleId null로 조회한다`() {
+        `when`(
+            mapQueryPort.findPhotosInGridCell(
+                any(),
+                any(),
+                any(),
+                any(),
+                anyOrNull(),
+            ),
+        ).thenReturn(emptyList())
+
+        val result = mapService.getClusterPhotos("z14_24661_7867", null)
+
+        assertTrue(result.isEmpty())
+        verify(mapQueryPort).findPhotosInGridCell(any(), any(), any(), any(), anyOrNull())
     }
 }

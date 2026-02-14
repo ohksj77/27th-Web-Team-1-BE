@@ -42,7 +42,9 @@ object MapCacheKeyFactory {
         val south = toScaledInt(bbox.south)
         val east = toScaledInt(bbox.east)
         val north = toScaledInt(bbox.north)
-        return "ind_z${zoom}_w${west}_s${south}_e${east}_n${north}_c${normalizeId(coupleId)}_a${normalizeId(albumId)}_v$version"
+        return "ind_z${zoom}_w${west}_s${south}_e${east}_n${north}_c${normalizeId(
+            coupleId,
+        )}_a${normalizeId(albumId)}_v$version"
     }
 
     fun parseCellKey(key: String): ParsedCellKey? {
