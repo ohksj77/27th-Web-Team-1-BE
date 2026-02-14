@@ -7,6 +7,7 @@ import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.asin
 import kotlin.math.cos
+import kotlin.math.pow
 import kotlin.math.sin
 import kotlin.math.sqrt
 
@@ -159,7 +160,11 @@ class DistanceBasedClusterBoundaryMergeStrategy : ClusterBoundaryMergeStrategy {
         gridSize: Double,
     ): Double = gridSize * getBoundaryMergeRatio(gridSize)
 
-    private fun getBoundaryMergeRatio(gridSize: Double): Double = TARGET_BOUNDARY_MERGE_DISTANCE_METERS / gridSize
+    private fun getBoundaryMergeRatio(gridSize: Double): Double =
+        (TARGET_BOUNDARY_MERGE_DISTANCE_METERS / gridSize) *
+            (gridSize / REFERENCE_GRID_SIZE_METERS).pow(
+                GRID_SCALE_EXPONENT,
+            )
 
     private fun toRad(degree: Double): Double = degree * PI / 180.0
 
@@ -193,5 +198,9 @@ class DistanceBasedClusterBoundaryMergeStrategy : ClusterBoundaryMergeStrategy {
 
     companion object {
         private const val TARGET_BOUNDARY_MERGE_DISTANCE_METERS = 2751.7
+        private const val REFERENCE_BOUNDARY_MERGE_RATIO = 0.6
+        private const val REFERENCE_GRID_SIZE_METERS =
+            TARGET_BOUNDARY_MERGE_DISTANCE_METERS / REFERENCE_BOUNDARY_MERGE_RATIO
+        private const val GRID_SCALE_EXPONENT = 0.5
     }
 }

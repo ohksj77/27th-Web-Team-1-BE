@@ -43,12 +43,7 @@ class CacheControlInterceptor : HandlerInterceptor {
         val cacheControl: String,
         val pattern: Regex? = null,
     ) {
-        fun matches(path: String): Boolean =
-            if (pattern != null) {
-                pattern.matches(path)
-            } else {
-                path.startsWith(prefix)
-            }
+        fun matches(path: String): Boolean = pattern?.matches(path) ?: path.startsWith(prefix)
     }
 
     companion object {
