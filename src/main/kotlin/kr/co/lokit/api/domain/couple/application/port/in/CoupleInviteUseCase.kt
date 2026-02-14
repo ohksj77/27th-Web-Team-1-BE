@@ -10,12 +10,10 @@ interface CoupleInviteUseCase {
 
     fun generateInviteCode(
         userId: Long,
-        clientIp: String,
     ): InviteCodeResponse
 
     fun refreshInviteCode(
         userId: Long,
-        clientIp: String,
     ): InviteCodeResponse
 
     fun revokeInviteCode(

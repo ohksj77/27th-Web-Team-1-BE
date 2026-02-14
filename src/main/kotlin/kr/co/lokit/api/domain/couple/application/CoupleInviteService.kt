@@ -1,6 +1,7 @@
 package kr.co.lokit.api.domain.couple.application
 
 import kr.co.lokit.api.common.constant.CoupleStatus
+import kr.co.lokit.api.common.annotation.RateLimit
 import kr.co.lokit.api.common.exception.BusinessException
 import kr.co.lokit.api.common.exception.ErrorField
 import kr.co.lokit.api.common.exception.errorDetailsOf
@@ -51,11 +52,14 @@ class CoupleInviteService(
     }
 
     @Transactional
+    @RateLimit(
+        key = "'invite:create:' + #userId",
+        windowSeconds = 60,
+        maxRequests = 5,
+    )
     override fun generateInviteCode(
         userId: Long,
-        clientIp: String,
     ): InviteCodeResponse {
-        rateLimiter.checkCreateAllowed(userId)
         validateIssuerReady(userId)
 
         val now = LocalDateTime.now()
@@ -75,11 +79,14 @@ class CoupleInviteService(
     }
 
     @Transactional
+    @RateLimit(
+        key = "'invite:create:' + #userId",
+        windowSeconds = 60,
+        maxRequests = 5,
+    )
     override fun refreshInviteCode(
         userId: Long,
-        clientIp: String,
     ): InviteCodeResponse {
-        rateLimiter.checkCreateAllowed(userId)
         validateIssuerReady(userId)
 
         val now = LocalDateTime.now()

@@ -8,25 +8,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 @Component
 class CoupleInviteRateLimiter {
-    private val createCounters = ConcurrentHashMap<Long, WindowCounter>()
     private val verificationFailures = ConcurrentHashMap<String, FailureCounter>()
-
-    fun checkCreateAllowed(userId: Long) {
-        val now = Instant.now()
-        val exceeded =
-            createCounters.compute(userId) { _, current ->
-                val state = current ?: WindowCounter(windowStart = now, count = 0)
-                if (state.windowStart.plus(CREATE_WINDOW_SECONDS, ChronoUnit.SECONDS).isBefore(now)) {
-                    WindowCounter(windowStart = now, count = 1)
-                } else {
-                    state.copy(count = state.count + 1)
-                }
-            }!!.count > CREATE_MAX_REQUESTS
-
-        if (exceeded) {
-            throw BusinessException.InviteTooManyRequestsException()
-        }
-    }
 
     fun checkVerificationAllowed(
         userId: Long,
@@ -75,11 +57,6 @@ class CoupleInviteRateLimiter {
         clientIp: String,
     ): String = "$userId:$clientIp"
 
-    private data class WindowCounter(
-        val windowStart: Instant,
-        val count: Int,
-    )
-
     private data class FailureCounter(
         val windowStart: Instant,
         val count: Int,
@@ -87,8 +64,6 @@ class CoupleInviteRateLimiter {
     )
 
     companion object {
-        private const val CREATE_WINDOW_SECONDS = 60L
-        private const val CREATE_MAX_REQUESTS = 5
         private const val FAILURE_WINDOW_SECONDS = 60L
         private const val MAX_FAILURES = 5
         private const val COOLDOWN_SECONDS = 60L

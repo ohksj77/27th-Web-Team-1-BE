@@ -27,7 +27,6 @@ interface CoupleApi {
     )
     fun getCode(
         @Parameter(hidden = true) userId: Long,
-        @Parameter(hidden = true) request: HttpServletRequest,
     ): InviteCodeResponse
 
     @Operation(
@@ -44,7 +43,6 @@ interface CoupleApi {
     )
     fun createInvite(
         @Parameter(hidden = true) userId: Long,
-        @Parameter(hidden = true) request: HttpServletRequest,
     ): InviteCodeResponse
 
     @Operation(
@@ -53,7 +51,6 @@ interface CoupleApi {
     )
     fun refreshInvite(
         @Parameter(hidden = true) userId: Long,
-        @Parameter(hidden = true) request: HttpServletRequest,
     ): InviteCodeResponse
 
     @Operation(

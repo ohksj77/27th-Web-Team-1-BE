@@ -37,12 +37,7 @@ class CoupleController(
     @GetMapping("code")
     override fun getCode(
         @CurrentUserId userId: Long,
-        request: HttpServletRequest,
-    ): InviteCodeResponse =
-        coupleInviteUseCase.generateInviteCode(
-            userId = userId,
-            clientIp = request.remoteAddr,
-        )
+    ): InviteCodeResponse = coupleInviteUseCase.generateInviteCode(userId = userId)
 
     @GetMapping("me/status")
     override fun getMyStatus(
@@ -53,22 +48,12 @@ class CoupleController(
     @ResponseStatus(HttpStatus.CREATED)
     override fun createInvite(
         @CurrentUserId userId: Long,
-        request: HttpServletRequest,
-    ): InviteCodeResponse =
-        coupleInviteUseCase.generateInviteCode(
-            userId = userId,
-            clientIp = request.remoteAddr,
-        )
+    ): InviteCodeResponse = coupleInviteUseCase.generateInviteCode(userId = userId)
 
     @PostMapping("invites/refresh")
     override fun refreshInvite(
         @CurrentUserId userId: Long,
-        request: HttpServletRequest,
-    ): InviteCodeResponse =
-        coupleInviteUseCase.refreshInviteCode(
-            userId = userId,
-            clientIp = request.remoteAddr,
-        )
+    ): InviteCodeResponse = coupleInviteUseCase.refreshInviteCode(userId = userId)
 
     @DeleteMapping("invites/{inviteCode}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
