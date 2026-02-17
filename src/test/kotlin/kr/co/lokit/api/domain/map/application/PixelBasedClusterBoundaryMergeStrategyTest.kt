@@ -101,7 +101,7 @@ class PixelBasedClusterBoundaryMergeStrategyTest {
     }
 
     @Test
-    fun `클러스터 중심과 겹치는 단일 마커는 시각적으로 흡수된다`() {
+    fun `단일 마커는 complete-linkage 조건을 만족하지 않으면 자동 흡수되지 않는다`() {
         val zoom = 13.2
         val base = lonLatToWorldPx(127.0, 37.3, zoom)
         val clusters =
@@ -114,8 +114,9 @@ class PixelBasedClusterBoundaryMergeStrategyTest {
 
         val result = strategy.mergeClusters(clusters, zoom)
 
-        assertEquals(1, result.size)
-        assertEquals(4, result.first().count)
+        assertEquals(2, result.size)
+        assertTrue(result.any { it.count == 3 })
+        assertTrue(result.any { it.count == 1 })
     }
 
     @Test
