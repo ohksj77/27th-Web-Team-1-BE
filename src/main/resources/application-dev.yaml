@@ -105,6 +105,8 @@ cookie:
 discord:
     webhook:
         url: ${DISCORD_WEBHOOK_URL:}
+    lifecycle:
+        enabled: false
 
 admin.key: ${ADMIN_KEY:}
 

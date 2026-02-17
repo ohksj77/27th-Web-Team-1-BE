@@ -25,6 +25,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 @Profile("!local")
 class DiscordNotifier(
     @Value("\${discord.webhook.url}") private val webhookUrl: String,
+    @Value("\${discord.lifecycle.enabled:false}") private val lifecycleNotificationEnabled: Boolean,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
     private val restClient =
@@ -75,6 +76,9 @@ class DiscordNotifier(
 
     @PreDestroy
     fun notifyShutdown() {
+        if (!lifecycleNotificationEnabled) {
+            return
+        }
         if (!shutdownNotified.compareAndSet(false, true)) {
             return
         }
@@ -102,6 +106,9 @@ class DiscordNotifier(
 
     @EventListener(ApplicationReadyEvent::class)
     fun notifyDeployment() {
+        if (!lifecycleNotificationEnabled) {
+            return
+        }
         if (!deploymentNotified.compareAndSet(false, true)) {
             return
         }
