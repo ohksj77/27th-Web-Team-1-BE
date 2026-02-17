@@ -4,12 +4,12 @@ enum class ClusterBoundaryMergeType(
     val propertyValue: String,
 ) {
     DISTANCE("distance"),
-    DISTANCE_PIXEL("distance-pixel"),
+    PIXEL("pixel"),
     LEGACY("legacy"),
     ;
 
     companion object {
         fun from(raw: String?): ClusterBoundaryMergeType =
-            entries.firstOrNull { it.propertyValue.equals(raw, ignoreCase = true) } ?: DISTANCE
+            entries.firstOrNull { it.propertyValue.equals(raw, ignoreCase = true) } ?: PIXEL
     }
 }
