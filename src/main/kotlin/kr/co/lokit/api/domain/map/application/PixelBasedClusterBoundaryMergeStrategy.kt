@@ -320,8 +320,8 @@ class PixelBasedClusterBoundaryMergeStrategy : ClusterBoundaryMergeStrategy {
         private const val POI_HEIGHT_PX = 100.0
         private const val REQUIRED_OVERLAP_RATIO = 1.0 / 3.0
 
-        private const val EXTRA_CLOSENESS_PX_X = 2.0
-        private const val EXTRA_CLOSENESS_PX_Y = 4.0
+        private const val EXTRA_CLOSENESS_PX_X = 9.0
+        private const val EXTRA_CLOSENESS_PX_Y = 18.0
         private const val MERGE_DX_PX = ((1.0 - REQUIRED_OVERLAP_RATIO) * POI_WIDTH_PX) - EXTRA_CLOSENESS_PX_X
         private const val MERGE_DY_PX = ((1.0 - REQUIRED_OVERLAP_RATIO) * POI_HEIGHT_PX) - EXTRA_CLOSENESS_PX_Y
     }
