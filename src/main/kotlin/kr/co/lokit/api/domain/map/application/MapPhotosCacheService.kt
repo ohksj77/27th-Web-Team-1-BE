@@ -1,5 +1,6 @@
 package kr.co.lokit.api.domain.map.application
 
+import kr.co.lokit.api.common.util.orZero
 import kr.co.lokit.api.config.cache.CacheNames
 import kr.co.lokit.api.domain.map.application.port.ClusterProjection
 import kr.co.lokit.api.domain.map.application.port.MapQueryPort
@@ -10,7 +11,6 @@ import kr.co.lokit.api.domain.map.dto.ClusterResponse
 import kr.co.lokit.api.domain.map.dto.MapPhotosResponse
 import kr.co.lokit.api.domain.map.mapping.toMapPhotoResponse
 import kr.co.lokit.api.domain.map.mapping.toResponse
-import kr.co.lokit.api.common.util.orZero
 import org.springframework.cache.CacheManager
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.cache.caffeine.CaffeineCache
@@ -186,7 +186,15 @@ class MapPhotosCacheService(
                             coord to cell
                         }.toMap()
                 cachedByCoord.keys.forEach { coord ->
-                    latestCellVersionByBaseKey[MapCacheKeyFactory.buildCellBaseKey(zoom, coord.first, coord.second, coupleId, albumId)] =
+                    latestCellVersionByBaseKey[
+                        MapCacheKeyFactory.buildCellBaseKey(
+                            zoom,
+                            coord.first,
+                            coord.second,
+                            coupleId,
+                            albumId,
+                        ),
+                    ] =
                         version
                 }
                 cachedByCoord to (requestedCoords - cachedByCoord.keys)
@@ -224,7 +232,9 @@ class MapPhotosCacheService(
             val projection = dbCellMap[coord.first to coord.second]
             val response = projection?.toResponse(zoom)
             bulkInsertMap[key] = CachedCell(response)
-            latestCellVersionByBaseKey[MapCacheKeyFactory.buildCellBaseKey(zoom, coord.first, coord.second, coupleId, albumId)] =
+            latestCellVersionByBaseKey[
+                MapCacheKeyFactory.buildCellBaseKey(zoom, coord.first, coord.second, coupleId, albumId),
+            ] =
                 version
             response?.let { newResponses.add(it) }
         }

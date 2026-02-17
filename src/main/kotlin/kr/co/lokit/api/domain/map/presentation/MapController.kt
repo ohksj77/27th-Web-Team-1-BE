@@ -29,8 +29,8 @@ class MapController(
         @RequestParam zoom: Double,
         @RequestParam(required = false) albumId: Long?,
         @RequestParam(required = false) lastDataVersion: Long?,
-    ): MapMeResponse {
-        return getMapUseCase.getMe(
+    ): MapMeResponse =
+        getMapUseCase.getMe(
             userId,
             longitude,
             latitude,
@@ -38,7 +38,6 @@ class MapController(
             albumId,
             lastDataVersion,
         )
-    }
 
     @GetMapping("clusters/{clusterId}/photos")
     override fun getClusterPhotos(

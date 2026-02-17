@@ -118,4 +118,4 @@ redirect:
 map:
     cluster:
         boundary-merge:
-            strategy: distance
+            strategy: distance-pixel

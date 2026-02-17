@@ -3,8 +3,6 @@ package kr.co.lokit.api.domain.map.application
 import kr.co.lokit.api.common.concurrency.StructuredConcurrency
 import kr.co.lokit.api.common.concurrency.withPermit
 import kr.co.lokit.api.common.dto.isValidId
-import kr.co.lokit.api.common.exception.BusinessException
-import kr.co.lokit.api.common.exception.errorDetailsOf
 import kr.co.lokit.api.domain.album.application.port.AlbumRepositoryPort
 import kr.co.lokit.api.domain.couple.application.port.CoupleRepositoryPort
 import kr.co.lokit.api.domain.map.application.port.AlbumBoundsRepositoryPort
@@ -156,56 +154,58 @@ class MapQueryService(
         zoom: Double,
         albumId: Long?,
         lastDataVersion: Long?,
-    ): MapMeResponse =
-        getMeByBBox(
-            userId = userId,
-            centerLongitude = longitude,
-            centerLatitude = latitude,
-            zoom = zoom,
-            bbox =
-                BBox
-                    .fromCenter(MapZoom.from(zoom).discrete, longitude, latitude)
-                    .clampToKorea() ?: BBox.KOREA_BOUNDS,
-            albumId = albumId,
-            lastDataVersion = lastDataVersion,
-        )
-
-    override fun getMe(
-        userId: Long,
-        west: Double,
-        south: Double,
-        east: Double,
-        north: Double,
-        zoom: Double,
-        albumId: Long?,
-        lastDataVersion: Long?,
     ): MapMeResponse {
-        val requestedBBox =
-            try {
-                BBox.fromRequestedBoundsInKorea(
-                    west = west,
-                    south = south,
-                    east = east,
-                    north = north,
-                )
-            } catch (e: IllegalArgumentException) {
-                throw BusinessException.InvalidInputException(
-                    message = "유효하지 않은 BBox 범위입니다",
-                    cause = e,
-                    errors = errorDetailsOf("west" to west, "south" to south, "east" to east, "north" to north),
+        val bbox =
+            BBox
+                .fromCenter(MapZoom.from(zoom).discrete, longitude, latitude)
+                .clampToKorea() ?: BBox.KOREA_BOUNDS
+
+        val mapZoom = MapZoom.from(zoom)
+        val context = resolveViewerContext(userId = userId, albumId = albumId)
+        val currentVersion =
+            mapPhotosCacheService.getDataVersion(
+                _zoom = mapZoom.discrete,
+                _bbox = bbox,
+                coupleId = context.coupleId,
+                albumId = context.albumId,
+            )
+
+        val (locationFuture, albumsFuture, photosFuture) =
+            StructuredConcurrency.run { scope ->
+                Triple(
+                    scope.fork { mapClientPort.reverseGeocode(longitude, latitude) },
+                    scope.fork {
+                        dbSemaphore.withPermit {
+                            findAlbumsForCouple(context.coupleId)
+                        }
+                    },
+                    scope.fork {
+                        dbSemaphore.withPermit {
+                            getPhotos(
+                                zoom = mapZoom.discrete,
+                                zoomLevel = mapZoom.level,
+                                bbox = bbox,
+                                context = context,
+                                lastDataVersion = lastDataVersion,
+                                currentDataVersion = currentVersion,
+                            )
+                        }
+                    },
                 )
             }
-        val centerLongitude = (requestedBBox.west + requestedBBox.east) / 2.0
-        val centerLatitude = (requestedBBox.south + requestedBBox.north) / 2.0
 
-        return getMeByBBox(
-            userId = userId,
-            centerLongitude = centerLongitude,
-            centerLatitude = centerLatitude,
-            zoom = zoom,
-            bbox = requestedBBox,
-            albumId = albumId,
-            lastDataVersion = lastDataVersion,
+        val formattedLocation = formatLocation(locationFuture.get())
+        val photosResponse = photosFuture.get()
+        val albums = albumsFuture.get()
+
+        return MapMeResponse(
+            location = formattedLocation,
+            boundingBox = bbox.toResponse(),
+            albums = albums.toAlbumThumbnails(),
+            dataVersion = currentVersion,
+            clusters = photosResponse?.clusters,
+            photos = photosResponse?.photos,
+            totalHistoryCount = albumRepository.photoCountSumByUserId(userId),
         )
     }
 
@@ -304,7 +304,8 @@ class MapQueryService(
 
     private fun findAlbumsForCouple(coupleId: Long?) =
         coupleId
-            ?.let { albumRepository.findAllByCoupleId(it).sortedByDescending { album -> album.isDefault } }.orEmpty()
+            ?.let { albumRepository.findAllByCoupleId(it).sortedByDescending { album -> album.isDefault } }
+            .orEmpty()
 
     private fun formatLocation(location: LocationInfoResponse): LocationInfoResponse =
         LocationInfoResponse(
