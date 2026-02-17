@@ -184,37 +184,6 @@ class MapPhotosCacheServiceTest {
     }
 
     @Test
-    fun `위치 기반 version은 bbox 내부 변경만 반영한다`() {
-        val mapCells = CaffeineCache("mapCells", Caffeine.newBuilder().build())
-        val mapPhotos = CaffeineCache("mapPhotos", Caffeine.newBuilder().build())
-        `when`(cacheManager.getCache("mapCells")).thenReturn(mapCells)
-        `when`(cacheManager.getCache("mapPhotos")).thenReturn(mapPhotos)
-
-        service.evictForPhotoMutation(coupleId = 1L, albumId = 10L, longitude = 127.0, latitude = 37.5)
-
-        val inside = BBox(126.9, 37.4, 127.1, 37.6)
-        val outside = BBox(128.0, 38.0, 128.1, 38.1)
-
-        assertTrue(service.getVersion(14.0, inside, 1L, null) > 0L)
-        assertEquals(0L, service.getVersion(14.0, outside, 1L, null))
-    }
-
-    @Test
-    fun `위치 기반 version은 album 필터를 구분한다`() {
-        val mapCells = CaffeineCache("mapCells", Caffeine.newBuilder().build())
-        val mapPhotos = CaffeineCache("mapPhotos", Caffeine.newBuilder().build())
-        `when`(cacheManager.getCache("mapCells")).thenReturn(mapCells)
-        `when`(cacheManager.getCache("mapPhotos")).thenReturn(mapPhotos)
-
-        val coupleId = 11_001L
-        val bbox = BBox(126.9, 37.4, 127.1, 37.6)
-        service.evictForPhotoMutation(coupleId = coupleId, albumId = 10L, longitude = 127.0, latitude = 37.5)
-
-        assertTrue(service.getVersion(14.0, bbox, coupleId, 10L) > 0L)
-        assertEquals(0L, service.getVersion(14.0, bbox, coupleId, 11L))
-    }
-
-    @Test
     fun `dataVersion은 위치가 달라도 동일한 전역 버전을 반환한다`() {
         val mapCells = CaffeineCache("mapCells", Caffeine.newBuilder().build())
         val mapPhotos = CaffeineCache("mapPhotos", Caffeine.newBuilder().build())

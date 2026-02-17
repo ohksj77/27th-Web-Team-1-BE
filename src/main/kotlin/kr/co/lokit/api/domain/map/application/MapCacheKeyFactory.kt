@@ -1,6 +1,7 @@
 package kr.co.lokit.api.domain.map.application
 
 import kr.co.lokit.api.domain.map.domain.BBox
+import kr.co.lokit.api.domain.map.domain.GridValues
 import kr.co.lokit.api.common.util.orZero
 
 object MapCacheKeyFactory {
@@ -53,7 +54,7 @@ object MapCacheKeyFactory {
         val south = toScaledInt(bbox.south)
         val east = toScaledInt(bbox.east)
         val north = toScaledInt(bbox.north)
-        val zoomToken = java.lang.Double.doubleToRawLongBits(zoomLevel)
+        val zoomToken = if (zoomLevel >= GridValues.CLUSTER_ZOOM_THRESHOLD.toDouble()) 1 else 0
         return "ind_z${zoomToken}_w${west}_s${south}_e${east}_n${north}_c${normalizeId(
             coupleId,
         )}_a${normalizeId(albumId)}_v$version"
