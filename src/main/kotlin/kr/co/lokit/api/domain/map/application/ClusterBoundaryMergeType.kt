@@ -4,6 +4,7 @@ enum class ClusterBoundaryMergeType(
     val propertyValue: String,
 ) {
     DISTANCE("distance"),
+    DISTANCE_PIXEL("distance-pixel"),
     LEGACY("legacy"),
     ;
 
