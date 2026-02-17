@@ -339,6 +339,7 @@ jobs:
                             --memory-swap="1024m" \
                             -p 8080:8080 \
                             -e SPRING_PROFILES_ACTIVE=dev \
+                            -e DISCORD_LIFECYCLE_ENABLED=true \
                             -e TZ=Asia/Seoul \
                             -e AWS_REGION=$AWS_REGION \
                             $ENV_ARGS \

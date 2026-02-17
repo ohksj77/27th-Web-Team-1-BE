@@ -25,6 +25,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 @Profile("!local")
 class DiscordNotifier(
     @Value("\${discord.webhook.url}") private val webhookUrl: String,
+    @Value("\${discord.lifecycle.enabled:false}") private val lifecycleNotificationEnabled: Boolean,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
     private val restClient =
@@ -53,6 +54,8 @@ class DiscordNotifier(
 
     private val pendingErrors = ConcurrentLinkedQueue<ErrorSnapshot>()
     private val flushScheduled = AtomicBoolean(false)
+    private val deploymentNotified = AtomicBoolean(false)
+    private val shutdownNotified = AtomicBoolean(false)
 
     companion object {
         private const val STACKTRACE_MAX_LENGTH = 800
@@ -73,6 +76,12 @@ class DiscordNotifier(
 
     @PreDestroy
     fun notifyShutdown() {
+        if (!lifecycleNotificationEnabled) {
+            return
+        }
+        if (!shutdownNotified.compareAndSet(false, true)) {
+            return
+        }
         try {
             val timestamp = KST_FORMATTER.format(Instant.now())
             val payload =
@@ -97,6 +106,12 @@ class DiscordNotifier(
 
     @EventListener(ApplicationReadyEvent::class)
     fun notifyDeployment() {
+        if (!lifecycleNotificationEnabled) {
+            return
+        }
+        if (!deploymentNotified.compareAndSet(false, true)) {
+            return
+        }
         Thread.startVirtualThread {
             try {
                 val timestamp = KST_FORMATTER.format(Instant.now())

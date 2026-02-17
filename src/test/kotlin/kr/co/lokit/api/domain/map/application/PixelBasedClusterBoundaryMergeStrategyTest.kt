@@ -100,6 +100,45 @@ class PixelBasedClusterBoundaryMergeStrategyTest {
         assertTrue(CellCoord(12, 10) !in merged)
     }
 
+    @Test
+    fun `단일 마커는 complete-linkage 조건을 만족하지 않으면 자동 흡수되지 않는다`() {
+        val zoom = 13.2
+        val base = lonLatToWorldPx(127.0, 37.3, zoom)
+        val clusters =
+            listOf(
+                cluster("z13_1_1", worldPxToLonLat(base.first + 0.0, base.second + 0.0, zoom)),
+                cluster("z13_2_1", worldPxToLonLat(base.first + 49.0, base.second + 0.0, zoom)),
+                cluster("z13_3_1", worldPxToLonLat(base.first + 49.0, base.second + 60.0, zoom)),
+                cluster("z13_4_1", worldPxToLonLat(base.first + 51.5, base.second + 20.0, zoom)),
+            )
+
+        val result = strategy.mergeClusters(clusters, zoom)
+
+        assertEquals(2, result.size)
+        assertTrue(result.any { it.count == 3 })
+        assertTrue(result.any { it.count == 1 })
+    }
+
+    @Test
+    fun `동일 clusterId가 여러 그룹에서 생성되면 suffix를 붙여 고유 ID를 보장한다`() {
+        val zoom = 14.0
+        val base = lonLatToWorldPx(127.1, 37.36, zoom)
+        val farEnough = worldPxToLonLat(base.first + 55.0, base.second, zoom)
+        val origin = worldPxToLonLat(base.first, base.second, zoom)
+        val clusters =
+            listOf(
+                ClusterResponse("z14_24681_7832", 1, "a.jpg", origin.first, origin.second),
+                ClusterResponse("z14_24681_7832", 2, "b.jpg", farEnough.first, farEnough.second),
+            )
+
+        val result = strategy.mergeClusters(clusters, zoom)
+
+        assertEquals(2, result.size)
+        assertTrue(result.map { it.clusterId }.toSet().size == 2)
+        assertTrue(result.any { it.clusterId == "z14_24681_7832" })
+        assertTrue(result.any { it.clusterId == "z14_24681_7832_g2" })
+    }
+
     private fun cluster(
         clusterId: String,
         lonLat: Pair<Double, Double>,
