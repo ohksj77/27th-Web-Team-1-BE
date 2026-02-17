@@ -92,4 +92,4 @@ redirect:
 map:
     cluster:
         boundary-merge:
-            strategy: distance-pixel
+            strategy: pixel

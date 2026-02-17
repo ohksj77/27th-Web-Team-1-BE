@@ -19,7 +19,7 @@ class ClusterBoundaryMergeConfig {
             when (ClusterBoundaryMergeType.from(strategy)) {
                 ClusterBoundaryMergeType.LEGACY -> LegacyClusterBoundaryMergeStrategy()
                 ClusterBoundaryMergeType.DISTANCE -> DistanceBasedClusterBoundaryMergeStrategy()
-                ClusterBoundaryMergeType.DISTANCE_PIXEL -> DistancePixelBasedClusterBoundaryMergeStrategy()
+                ClusterBoundaryMergeType.PIXEL -> PixelBasedClusterBoundaryMergeStrategy()
             }
         log.info("Cluster boundary merge strategy selected: {}", selected::class.simpleName)
         return selected
