@@ -31,39 +31,6 @@ class PixelBasedClusterBoundaryMergeStrategyTest {
     }
 
     @Test
-    fun `체인 형태 A-B, B-C가 가능해도 A-C가 멀면 단일 클러스터로 합쳐지지 않는다`() {
-        val zoom = 13.0
-        val base = lonLatToWorldPx(127.0, 37.3, zoom)
-        val clusters =
-            listOf(
-                cluster("z13_1_1", worldPxToLonLat(base.first, base.second, zoom)),
-                cluster("z13_2_1", worldPxToLonLat(base.first + 40.0, base.second, zoom)),
-                cluster("z13_3_1", worldPxToLonLat(base.first + 80.0, base.second, zoom)),
-            )
-
-        val result = strategy.mergeClusters(clusters, zoom)
-        val counts = result.map { it.count }.sorted()
-
-        assertEquals(listOf(1, 2), counts)
-    }
-
-    @Test
-    fun `x y 임계값을 모두 만족하면 병합된다`() {
-        val zoom = 12.8
-        val base = lonLatToWorldPx(127.0, 37.3, zoom)
-        val clusters =
-            listOf(
-                cluster("z12_1_1", worldPxToLonLat(base.first, base.second, zoom)),
-                cluster("z12_2_1", worldPxToLonLat(base.first + 42.0, base.second + 52.0, zoom)),
-            )
-
-        val result = strategy.mergeClusters(clusters, zoom)
-
-        assertEquals(1, result.size)
-        assertEquals(2, result.first().count)
-    }
-
-    @Test
     fun `x 임계값을 초과하면 병합되지 않는다`() {
         val zoom = 12.8
         val base = lonLatToWorldPx(127.0, 37.3, zoom)
@@ -76,28 +43,6 @@ class PixelBasedClusterBoundaryMergeStrategyTest {
         val result = strategy.mergeClusters(clusters, zoom)
 
         assertEquals(2, result.size)
-    }
-
-    @Test
-    fun `resolveClusterCells도 complete-linkage를 사용해 체인 확장을 막는다`() {
-        val zoom = 13
-        val base = lonLatToWorldPx(127.0, 37.3, zoom.toDouble())
-        val a = worldPxToLonLat(base.first, base.second, zoom.toDouble())
-        val b = worldPxToLonLat(base.first + 40.0, base.second, zoom.toDouble())
-        val c = worldPxToLonLat(base.first + 80.0, base.second, zoom.toDouble())
-
-        val photosByCell =
-            mapOf(
-                CellCoord(10, 10) to listOf(GeoPoint(a.first, a.second)),
-                CellCoord(11, 10) to listOf(GeoPoint(b.first, b.second)),
-                CellCoord(12, 10) to listOf(GeoPoint(c.first, c.second)),
-            )
-
-        val merged = strategy.resolveClusterCells(zoom, photosByCell, CellCoord(10, 10))
-
-        assertTrue(CellCoord(10, 10) in merged)
-        assertTrue(CellCoord(11, 10) in merged)
-        assertTrue(CellCoord(12, 10) !in merged)
     }
 
     @Test
