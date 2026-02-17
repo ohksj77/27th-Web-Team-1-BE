@@ -18,7 +18,7 @@ class PixelBasedClusterBoundaryMergeStrategy : ClusterBoundaryMergeStrategy {
     ): List<ClusterResponse> {
         if (clusters.size < 2) return clusters
 
-        val z = normalizeZoomLevel(zoomLevel)
+        val z = normalizeZoom(zoomLevel)
         val zoomDiscrete = floor(z).toInt()
 
         val parsed = mutableListOf<MergeNode>()
@@ -60,7 +60,6 @@ class PixelBasedClusterBoundaryMergeStrategy : ClusterBoundaryMergeStrategy {
                 zoomLevel = z,
                 nodes = sortedParsed,
                 lonLatExtractor = { it.longitude to it.latitude },
-                weightExtractor = { it.count },
             )
 
         val merged =
@@ -128,7 +127,6 @@ class PixelBasedClusterBoundaryMergeStrategy : ClusterBoundaryMergeStrategy {
                     val center = cellCenters[cell] ?: GeoPoint(0.0, 0.0)
                     center.longitude to center.latitude
                 },
-                weightExtractor = { cell -> cellCenters[cell]?.weight ?: 1 },
             )
 
         val idxByCell = cells.withIndex().associate { it.value to it.index }
@@ -156,7 +154,6 @@ class PixelBasedClusterBoundaryMergeStrategy : ClusterBoundaryMergeStrategy {
         zoomLevel: Double,
         nodes: List<T>,
         lonLatExtractor: (T) -> Pair<Double, Double>,
-        weightExtractor: (T) -> Int,
     ): List<List<Int>> {
         if (nodes.isEmpty()) return emptyList()
 
@@ -179,12 +176,7 @@ class PixelBasedClusterBoundaryMergeStrategy : ClusterBoundaryMergeStrategy {
                 .groupBy { dsu.find(it) }
                 .values
                 .map { it.toList() }
-
-        return mergeGroupsByClusterCenter(
-            groups = initialGroups,
-            projected = projected,
-            weights = nodes.map { weightExtractor(it).coerceAtLeast(1) },
-        )
+        return initialGroups
     }
 
     private fun buildCandidateEdges(nodes: List<ProjectedNode>): List<Edge> {
@@ -208,9 +200,9 @@ class PixelBasedClusterBoundaryMergeStrategy : ClusterBoundaryMergeStrategy {
                         if (j <= i) return@forEach
                         val b = nodes[j]
                         val dx = abs(a.x - b.x)
-                        if (dx > MERGE_DX_PX) return@forEach
+                        if (dx >= MERGE_DX_PX) return@forEach
                         val dy = abs(a.y - b.y)
-                        if (dy > MERGE_DY_PX) return@forEach
+                        if (dy >= MERGE_DY_PX) return@forEach
                         val score = max(dx / MERGE_DX_PX, dy / MERGE_DY_PX)
                         edges += Edge(a = i, b = j, score = score, dx = dx, dy = dy)
                     }
@@ -227,65 +219,7 @@ class PixelBasedClusterBoundaryMergeStrategy : ClusterBoundaryMergeStrategy {
         )
     }
 
-    private fun normalizeZoomLevel(zoomLevel: Double): Double = zoomLevel.coerceIn(0.0, MAX_ZOOM_LEVEL.toDouble())
-
-    private fun mergeGroupsByClusterCenter(
-        groups: List<List<Int>>,
-        projected: List<ProjectedNode>,
-        weights: List<Int>,
-    ): List<List<Int>> {
-        if (groups.size < 2) return groups
-        val mutableGroups = groups.map { it.toMutableList() }.toMutableList()
-
-        while (true) {
-            val stats = mutableGroups.map { computeGroupStats(it, projected, weights) }
-            var bestPair: Pair<Int, Int>? = null
-            var bestScore = Double.MAX_VALUE
-
-            for (i in stats.indices) {
-                for (j in i + 1 until stats.size) {
-                    val a = stats[i]
-                    val b = stats[j]
-                    val dx = abs(a.centerX - b.centerX)
-                    val dy = abs(a.centerY - b.centerY)
-                    if (dx > CENTER_MERGE_DX_PX || dy > CENTER_MERGE_DY_PX) continue
-
-                    val mergedSpanX = max(a.maxX, b.maxX) - min(a.minX, b.minX)
-                    val mergedSpanY = max(a.maxY, b.maxY) - min(a.minY, b.minY)
-                    if (mergedSpanX > CENTER_MERGE_MAX_SPAN_DX_PX || mergedSpanY > CENTER_MERGE_MAX_SPAN_DY_PX) {
-                        continue
-                    }
-
-                    val score = max(dx / CENTER_MERGE_DX_PX, dy / CENTER_MERGE_DY_PX)
-                    if (score < bestScore) {
-                        bestScore = score
-                        bestPair = i to j
-                    }
-                }
-            }
-
-            val (left, right) = bestPair ?: break
-            mutableGroups[left].addAll(mutableGroups[right])
-            mutableGroups.removeAt(right)
-        }
-
-        return mutableGroups.map { it.toList() }
-    }
-
-    private fun computeGroupStats(
-        group: List<Int>,
-        projected: List<ProjectedNode>,
-        weights: List<Int>,
-    ): GroupStats {
-        val totalWeight = group.sumOf { weights[it] }.coerceAtLeast(1)
-        val centerX = group.sumOf { projected[it].x * weights[it] } / totalWeight
-        val centerY = group.sumOf { projected[it].y * weights[it] } / totalWeight
-        val minX = group.minOf { projected[it].x }
-        val maxX = group.maxOf { projected[it].x }
-        val minY = group.minOf { projected[it].y }
-        val maxY = group.maxOf { projected[it].y }
-        return GroupStats(centerX, centerY, minX, maxX, minY, maxY)
-    }
+    private fun normalizeZoom(zoomLevel: Double): Double = zoomLevel.coerceIn(0.0, MAX_ZOOM_LEVEL.toDouble())
 
     private fun ensureUniqueClusterIds(clusters: List<ClusterResponse>): List<ClusterResponse> {
         val seen = mutableMapOf<String, Int>()
@@ -379,15 +313,6 @@ class PixelBasedClusterBoundaryMergeStrategy : ClusterBoundaryMergeStrategy {
         val dy: Double,
     )
 
-    private data class GroupStats(
-        val centerX: Double,
-        val centerY: Double,
-        val minX: Double,
-        val maxX: Double,
-        val minY: Double,
-        val maxY: Double,
-    )
-
     companion object {
         private const val MAX_ZOOM_LEVEL = 22
 
@@ -395,12 +320,9 @@ class PixelBasedClusterBoundaryMergeStrategy : ClusterBoundaryMergeStrategy {
         private const val POI_HEIGHT_PX = 100.0
         private const val REQUIRED_OVERLAP_RATIO = 1.0 / 3.0
 
-        private const val MERGE_DX_PX = (1.0 - REQUIRED_OVERLAP_RATIO) * POI_WIDTH_PX
-        private const val MERGE_DY_PX = (1.0 - REQUIRED_OVERLAP_RATIO) * POI_HEIGHT_PX
-        private const val CENTER_MERGE_DX_PX = MERGE_DX_PX
-        private const val CENTER_MERGE_DY_PX = MERGE_DY_PX
-        private const val CENTER_MERGE_MAX_SPAN_DX_PX = 58.0
-        private const val CENTER_MERGE_MAX_SPAN_DY_PX = 78.0
-
+        private const val EXTRA_CLOSENESS_PX_X = 17.0
+        private const val EXTRA_CLOSENESS_PX_Y = 18.0
+        private const val MERGE_DX_PX = ((1.0 - REQUIRED_OVERLAP_RATIO) * POI_WIDTH_PX) - EXTRA_CLOSENESS_PX_X
+        private const val MERGE_DY_PX = ((1.0 - REQUIRED_OVERLAP_RATIO) * POI_HEIGHT_PX) - EXTRA_CLOSENESS_PX_Y
     }
 }

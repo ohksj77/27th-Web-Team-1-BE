@@ -1,6 +1,7 @@
 package kr.co.lokit.api.domain.map.application
 
 import kr.co.lokit.api.domain.map.domain.BBox
+import kr.co.lokit.api.domain.map.domain.GridValues
 import kr.co.lokit.api.common.util.orZero
 
 object MapCacheKeyFactory {
@@ -40,6 +41,24 @@ object MapCacheKeyFactory {
         coupleId: Long?,
         albumId: Long?,
     ): String = "z${zoom}_x${cellX}_y${cellY}_c${normalizeId(coupleId)}_a${normalizeId(albumId)}"
+
+    @JvmStatic
+    fun buildIndividualKey(
+        bbox: BBox,
+        zoomLevel: Double,
+        coupleId: Long?,
+        albumId: Long?,
+        version: Long,
+    ): String {
+        val west = toScaledInt(bbox.west)
+        val south = toScaledInt(bbox.south)
+        val east = toScaledInt(bbox.east)
+        val north = toScaledInt(bbox.north)
+        val zoomToken = if (zoomLevel >= GridValues.CLUSTER_ZOOM_THRESHOLD.toDouble()) 1 else 0
+        return "ind_z${zoomToken}_w${west}_s${south}_e${east}_n${north}_c${normalizeId(
+            coupleId,
+        )}_a${normalizeId(albumId)}_v$version"
+    }
 
     @JvmStatic
     fun buildIndividualKey(
