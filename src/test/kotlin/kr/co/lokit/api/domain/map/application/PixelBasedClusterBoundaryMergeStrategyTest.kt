@@ -167,6 +167,42 @@ class PixelBasedClusterBoundaryMergeStrategyTest {
         assertEquals(listOf(1, 4), result.map { it.count }.sorted())
     }
 
+    @Test
+    fun `동일 셀에서 분리된 g2 클러스터는 해당 그룹 멤버만 반환한다`() {
+        val zoom = 14.0
+        val base = lonLatToWorldPx(127.1, 37.36, zoom)
+        val origin = worldPxToLonLat(base.first, base.second, zoom)
+        val farEnough = worldPxToLonLat(base.first + 55.0, base.second, zoom)
+        val cell = CellCoord(24681, 7832)
+        val photos =
+            listOf(
+                ClusterPhotoMember(id = 1L, cell = cell, point = GeoPoint(origin.first, origin.second)),
+                ClusterPhotoMember(id = 2L, cell = cell, point = GeoPoint(farEnough.first, farEnough.second)),
+            )
+
+        val result = strategy.resolveClusterPhotoIds(zoom = 14, photos = photos, targetClusterId = "z14_24681_7832_g2")
+
+        assertEquals(setOf(2L), result)
+    }
+
+    @Test
+    fun `동일 셀에서 기본 클러스터는 첫 번째 그룹 멤버를 반환한다`() {
+        val zoom = 14.0
+        val base = lonLatToWorldPx(127.1, 37.36, zoom)
+        val origin = worldPxToLonLat(base.first, base.second, zoom)
+        val farEnough = worldPxToLonLat(base.first + 55.0, base.second, zoom)
+        val cell = CellCoord(24681, 7832)
+        val photos =
+            listOf(
+                ClusterPhotoMember(id = 1L, cell = cell, point = GeoPoint(origin.first, origin.second)),
+                ClusterPhotoMember(id = 2L, cell = cell, point = GeoPoint(farEnough.first, farEnough.second)),
+            )
+
+        val result = strategy.resolveClusterPhotoIds(zoom = 14, photos = photos, targetClusterId = "z14_24681_7832")
+
+        assertEquals(setOf(1L), result)
+    }
+
     private fun cluster(
         clusterId: String,
         lonLat: Pair<Double, Double>,

@@ -64,6 +64,15 @@ class ClusteringTest {
     }
 
     @Test
+    fun `ClusterId 상세 파싱은 suffix 그룹 시퀀스를 반환한다`() {
+        val parsed = ClusterId.parseDetailed("z14_130234_38456_g2")
+        assertEquals(14, parsed.zoom)
+        assertEquals(130234L, parsed.cellX)
+        assertEquals(38456L, parsed.cellY)
+        assertEquals(2, parsed.groupSequence)
+    }
+
+    @Test
     fun `GridCell에서 생성된 BBox는 유효한 범위를 가져야 한다`() {
         val cell = GridCell(zoom = 14, cellX = 12345, cellY = 6789)
         val bbox = cell.toBBox()

@@ -128,7 +128,14 @@ data class GridCell(
 }
 
 object ClusterId {
-    private val PATTERN = Regex("""^z(\d+)_(-?\d+)_(-?\d+)(?:_g\d+)?$""")
+    data class ParsedClusterId(
+        val zoom: Int,
+        val cellX: Long,
+        val cellY: Long,
+        val groupSequence: Int,
+    )
+
+    private val PATTERN = Regex("""^z(\d+)_(-?\d+)_(-?\d+)(?:_g(\d+))?$""")
 
     fun format(
         zoom: Int,
@@ -137,13 +144,23 @@ object ClusterId {
     ): String = "z${zoom}_${cellX}_$cellY"
 
     fun parse(clusterId: String): GridCell {
+        val parsed = parseDetailed(clusterId)
+        return GridCell(
+            zoom = parsed.zoom,
+            cellX = parsed.cellX,
+            cellY = parsed.cellY,
+        )
+    }
+
+    fun parseDetailed(clusterId: String): ParsedClusterId {
         val match =
             PATTERN.matchEntire(clusterId) ?: throw IllegalArgumentException("Invalid clusterId format: $clusterId")
 
-        return GridCell(
+        return ParsedClusterId(
             zoom = match.groupValues[1].toInt(),
             cellX = match.groupValues[2].toLong(),
             cellY = match.groupValues[3].toLong(),
+            groupSequence = match.groupValues[4].ifEmpty { "1" }.toInt(),
         )
     }
 

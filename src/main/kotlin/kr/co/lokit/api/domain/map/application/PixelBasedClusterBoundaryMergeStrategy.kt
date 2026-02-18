@@ -138,6 +138,50 @@ class PixelBasedClusterBoundaryMergeStrategy : ClusterBoundaryMergeStrategy {
         return matched.map { cells[it] }.toSet()
     }
 
+    override fun resolveClusterPhotoIds(
+        zoom: Int,
+        photos: List<ClusterPhotoMember>,
+        targetClusterId: String,
+    ): Set<Long> {
+        if (photos.isEmpty()) {
+            return emptySet()
+        }
+
+        val sortedPhotos =
+            photos.sortedWith(
+                compareBy<ClusterPhotoMember> { it.cell.y }
+                    .thenBy { it.cell.x }
+                    .thenBy { it.point.latitude }
+                    .thenBy { it.point.longitude }
+                    .thenBy { it.id },
+            )
+        val groups =
+            buildGroupsByCompleteLinkage(
+                zoom = zoom.toDouble(),
+                nodes = sortedPhotos,
+                lonLatExtractor = { photo -> photo.point.longitude to photo.point.latitude },
+            )
+
+        val seen = mutableMapOf<String, Int>()
+        groups.forEach { group ->
+            val members = group.map { sortedPhotos[it] }
+            val representative =
+                members.minWith(
+                    compareBy<ClusterPhotoMember> { it.cell.y }
+                        .thenBy { it.cell.x },
+                )
+            val baseId = ClusterId.format(zoom, representative.cell.x, representative.cell.y)
+            val seq = (seen[baseId] ?: 0) + 1
+            seen[baseId] = seq
+            val resolvedId = if (seq == 1) baseId else "${baseId}_g$seq"
+            if (resolvedId == targetClusterId) {
+                return members.map { it.id }.toSet()
+            }
+        }
+
+        return super.resolveClusterPhotoIds(zoom, photos, targetClusterId)
+    }
+
     private fun lonLatToWorldPx(
         lon: Double,
         lat: Double,
