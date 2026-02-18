@@ -87,8 +87,8 @@ class MapPhotosCacheService(
         albumId: Long?,
     ): MapPhotosReadModel {
         val discreteZoom = floor(zoom).toInt()
-        val rawGridSize = GridValues.getGridSize(zoom)
-        val prefetchGridSize = GridValues.getGridSize(discreteZoom)
+        val clusterGridSize = GridValues.getGridSize(discreteZoom)
+        val prefetchGridSize = clusterGridSize
         val sequence = mutationTracker.currentSequence(coupleId)
         val requestedWindow = MapGridIndex.toCellWindow(bbox, prefetchGridSize)
 
@@ -101,7 +101,7 @@ class MapPhotosCacheService(
                 coupleId = coupleId,
                 albumId = albumId,
             ).map { photo ->
-                    val (cellX, cellY) = MapGridIndex.toCell(photo.longitude, photo.latitude, rawGridSize)
+                    val (cellX, cellY) = MapGridIndex.toCell(photo.longitude, photo.latitude, clusterGridSize)
                     ClusterReadModel(
                         clusterId = ClusterId.format(discreteZoom, cellX, cellY),
                         count = 1,

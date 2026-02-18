@@ -5,6 +5,8 @@ import kr.co.lokit.api.config.cache.CacheNames
 import kr.co.lokit.api.domain.map.application.port.MapQueryPort
 import kr.co.lokit.api.domain.map.application.port.PhotoProjection
 import kr.co.lokit.api.domain.map.domain.BBox
+import kr.co.lokit.api.domain.map.domain.GridValues
+import kr.co.lokit.api.domain.map.domain.MercatorProjection
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -21,6 +23,7 @@ import org.mockito.junit.jupiter.MockitoExtension
 import org.springframework.cache.CacheManager
 import org.springframework.cache.caffeine.CaffeineCache
 import java.time.LocalDateTime
+import kotlin.math.floor
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -162,6 +165,44 @@ class MapPhotosCacheServiceTest {
             coupleId = eq(1L),
             albumId = eq(2L),
         )
+    }
+
+    @Test
+    fun `getClusteredPhotos uses floored zoom grid for cluster id`() {
+        val bbox = BBox(126.99, 37.49, 127.01, 37.51)
+        val zoom = 14.7
+        val longitude = 127.0
+        val latitude = 37.5
+        val now = LocalDateTime.now()
+        `when`(
+            mapQueryPort.findPhotosWithinBBox(
+                west = eq(bbox.west),
+                south = eq(bbox.south),
+                east = eq(bbox.east),
+                north = eq(bbox.north),
+                coupleId = eq(1L),
+                albumId = isNull(),
+            ),
+        ).thenReturn(
+            listOf(
+                PhotoProjection(
+                    id = 1L,
+                    url = "a.jpg",
+                    longitude = longitude,
+                    latitude = latitude,
+                    takenAt = now,
+                ),
+            ),
+        )
+
+        val result = service.getClusteredPhotos(zoom, bbox, 1L, null)
+        val clusterId = result.clusters!!.asList().single().clusterId
+
+        val discreteZoom = floor(zoom).toInt()
+        val gridSize = GridValues.getGridSize(discreteZoom)
+        val expectedX = floor(MercatorProjection.longitudeToMeters(longitude) / gridSize).toLong()
+        val expectedY = floor(MercatorProjection.latitudeToMeters(latitude) / gridSize).toLong()
+        assertEquals("z${discreteZoom}_${expectedX}_$expectedY", clusterId)
     }
 
     @Test
