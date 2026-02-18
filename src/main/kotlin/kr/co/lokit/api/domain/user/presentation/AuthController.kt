@@ -1,9 +1,12 @@
 package kr.co.lokit.api.domain.user.presentation
 
 import jakarta.servlet.http.HttpServletRequest
+import kr.co.lokit.api.common.exception.BusinessException
+import kr.co.lokit.api.common.exception.ErrorCode
 import kr.co.lokit.api.config.web.CookieGenerator
 import kr.co.lokit.api.domain.user.application.LoginService
 import kr.co.lokit.api.domain.user.infrastructure.oauth.KakaoOAuthProperties
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -13,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.util.UriComponentsBuilder
 import java.net.URI
 import java.net.URLDecoder
 import java.net.URLEncoder
@@ -27,6 +31,8 @@ class AuthController(
     @Value("\${redirect.local-host}") private val localHostRedirect: String,
     @Value("\${redirect.allowed-domain}") private val allowedDomain: String,
 ) : AuthApi {
+    private val log = LoggerFactory.getLogger(javaClass)
+
     @ResponseStatus(HttpStatus.FOUND)
     @GetMapping("kakao")
     override fun kakaoAuthorize(
@@ -59,11 +65,6 @@ class AuthController(
         @RequestParam(required = false) state: String?,
         req: HttpServletRequest,
     ): ResponseEntity<Unit> {
-        val tokens = loginService.login(code)
-
-        val accessTokenCookie = cookieGenerator.createAccessTokenCookie(req, tokens.accessToken)
-        val refreshTokenCookie = cookieGenerator.createRefreshTokenCookie(req, tokens.refreshToken)
-
         val redirectUri =
             state
                 ?.takeIf { it.isNotBlank() }
@@ -71,12 +72,30 @@ class AuthController(
                 ?.takeIf { isAllowedRedirect(it) }
                 ?: kakaoOAuthProperties.frontRedirectUri
 
-        return ResponseEntity
-            .status(HttpStatus.FOUND)
-            .header(HttpHeaders.SET_COOKIE, accessTokenCookie.toString())
-            .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
-            .location(URI.create(redirectUri))
-            .build()
+        return try {
+            val tokens = loginService.login(code)
+            val accessTokenCookie = cookieGenerator.createAccessTokenCookie(req, tokens.accessToken)
+            val refreshTokenCookie = cookieGenerator.createRefreshTokenCookie(req, tokens.refreshToken)
+
+            ResponseEntity
+                .status(HttpStatus.FOUND)
+                .header(HttpHeaders.SET_COOKIE, accessTokenCookie.toString())
+                .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
+                .location(URI.create(redirectUri))
+                .build()
+        } catch (ex: BusinessException) {
+            log.info("Kakao callback failed: {}", ex.errorCode.code)
+            ResponseEntity
+                .status(HttpStatus.FOUND)
+                .location(URI.create(buildErrorRedirectUri(redirectUri, ex.errorCode.code)))
+                .build()
+        } catch (ex: Exception) {
+            log.error("Kakao callback unexpected error", ex)
+            ResponseEntity
+                .status(HttpStatus.FOUND)
+                .location(URI.create(buildErrorRedirectUri(redirectUri, ErrorCode.INTERNAL_SERVER_ERROR.code)))
+                .build()
+        }
     }
 
     private fun resolveRedirectFromReferer(req: HttpServletRequest): String? {
@@ -95,4 +114,14 @@ class AuthController(
         } catch (_: Exception) {
             false
         }
+
+    private fun buildErrorRedirectUri(
+        redirectUri: String,
+        errorCode: String,
+    ): String =
+        UriComponentsBuilder
+            .fromUriString(redirectUri)
+            .queryParam("oauth_error", errorCode)
+            .build(true)
+            .toUriString()
 }
