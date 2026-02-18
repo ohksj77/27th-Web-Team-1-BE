@@ -147,6 +147,10 @@ class PixelBasedClusterBoundaryMergeStrategy : ClusterBoundaryMergeStrategy {
             return emptySet()
         }
 
+        val parsedTarget = ClusterId.parseDetailed(targetClusterId)
+        val targetBaseId = ClusterId.format(parsedTarget.zoom, parsedTarget.cellX, parsedTarget.cellY)
+        val normalizedTargetId = if (parsedTarget.groupSequence == 1) targetBaseId else "${targetBaseId}_g${parsedTarget.groupSequence}"
+
         val sortedPhotos =
             photos.sortedWith(
                 compareBy<ClusterPhotoMember> { it.cell.y }
@@ -174,12 +178,13 @@ class PixelBasedClusterBoundaryMergeStrategy : ClusterBoundaryMergeStrategy {
             val seq = (seen[baseId] ?: 0) + 1
             seen[baseId] = seq
             val resolvedId = if (seq == 1) baseId else "${baseId}_g$seq"
-            if (resolvedId == targetClusterId) {
+            if (resolvedId == normalizedTargetId) {
                 return members.map { it.id }.toSet()
             }
         }
 
-        return super.resolveClusterPhotoIds(zoom, photos, targetClusterId)
+        val targetCell = CellCoord(parsedTarget.cellX, parsedTarget.cellY)
+        return photos.filter { it.cell == targetCell }.map { it.id }.toSet()
     }
 
     private fun lonLatToWorldPx(

@@ -203,6 +203,39 @@ class PixelBasedClusterBoundaryMergeStrategyTest {
         assertEquals(setOf(1L), result)
     }
 
+    @Test
+    fun `merge zoom 토큰이 있는 clusterId도 동일 그룹으로 매칭된다`() {
+        val zoom = 14.0
+        val base = lonLatToWorldPx(127.1, 37.36, zoom)
+        val origin = worldPxToLonLat(base.first, base.second, zoom)
+        val farEnough = worldPxToLonLat(base.first + 55.0, base.second, zoom)
+        val cell = CellCoord(24681, 7832)
+        val photos =
+            listOf(
+                ClusterPhotoMember(id = 1L, cell = cell, point = GeoPoint(origin.first, origin.second)),
+                ClusterPhotoMember(id = 2L, cell = cell, point = GeoPoint(farEnough.first, farEnough.second)),
+            )
+
+        val result = strategy.resolveClusterPhotoIds(zoom = 14.0, photos = photos, targetClusterId = "z14_24681_7832_mz14000")
+
+        assertEquals(setOf(1L), result)
+    }
+
+    @Test
+    fun `그룹 매칭 실패 시 target cell 사진만 fallback 반환한다`() {
+        val cell = CellCoord(24681, 7832)
+        val neighbor = CellCoord(24681, 7833)
+        val photos =
+            listOf(
+                ClusterPhotoMember(id = 1L, cell = cell, point = GeoPoint(127.10, 37.36)),
+                ClusterPhotoMember(id = 2L, cell = neighbor, point = GeoPoint(127.10, 37.37)),
+            )
+
+        val result = strategy.resolveClusterPhotoIds(zoom = 14.0, photos = photos, targetClusterId = "z14_24681_7832_g9_mz14000")
+
+        assertEquals(setOf(1L), result)
+    }
+
     private fun cluster(
         clusterId: String,
         lonLat: Pair<Double, Double>,
