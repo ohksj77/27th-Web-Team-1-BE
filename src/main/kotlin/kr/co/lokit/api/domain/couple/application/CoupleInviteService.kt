@@ -188,6 +188,7 @@ class CoupleInviteService(
         }
 
         validateInviteState(invite, userId, clientIp)
+        pruneIncompleteCoupleIfExists(userId)
 
         val inviterCouple =
             coupleRepository.findByUserId(inviterId)
@@ -239,6 +240,18 @@ class CoupleInviteService(
     private fun isCoupled(userId: Long): Boolean {
         val couple = coupleRepository.findByUserId(userId) ?: return false
         return couple.isConnectedAndFull()
+    }
+
+    private fun pruneIncompleteCoupleIfExists(userId: Long) {
+        val existingCouple = coupleRepository.findByUserId(userId) ?: return
+        val fullCouple = coupleRepository.findById(existingCouple.id) ?: return
+
+        if (fullCouple.isConnectedAndFull()) {
+            throw BusinessException.InviteAlreadyCoupledException(
+                errors = errorDetailsOf(ErrorField.COUPLE_ID to existingCouple.id),
+            )
+        }
+        coupleRepository.deleteById(existingCouple.id)
     }
 
     private fun validateInviteState(

@@ -43,8 +43,8 @@ class CoupleDisconnectService(
                 coupleRepository.removeCoupleUser(userId)
             }
         }
-        createCoupleUseCase.createIfNone(Couple(name = Couple.DEFAULT_COUPLE_NAME), userId)
         cacheManager.evictUserCoupleCache(userId, *couple.userIds.filter { it != userId }.toLongArray())
+        createCoupleUseCase.createIfNone(Couple(name = Couple.DEFAULT_COUPLE_NAME), userId)
         evictPermissionCaches()
         log.info("couple_unlinked userId={} coupleId={}", userId, couple.id)
     }
