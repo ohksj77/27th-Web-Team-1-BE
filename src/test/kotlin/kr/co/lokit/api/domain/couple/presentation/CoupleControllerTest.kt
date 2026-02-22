@@ -109,7 +109,7 @@ class CoupleControllerTest {
         doReturn(ResponseCookie.from("coupleStatus", "COUPLED").build())
             .`when`(cookieGenerator)
             .createCoupleStatusCookie(anyObject(), anyObject())
-        doReturn(linked).`when`(coupleInviteUseCase).confirmInviteCode(anyLong(), anyString(), anyString())
+        doReturn(linked).`when`(coupleInviteUseCase).joinByInviteCode(anyLong(), anyString(), anyString())
 
         mockMvc
             .perform(
@@ -125,7 +125,7 @@ class CoupleControllerTest {
     fun `초대 코드로 커플 합류 실패 - 잘못된 초대 코드`() {
         doThrow(BusinessException.InviteCodeNotFoundException())
             .`when`(coupleInviteUseCase)
-            .confirmInviteCode(anyLong(), anyString(), anyString())
+            .joinByInviteCode(anyLong(), anyString(), anyString())
 
         mockMvc
             .perform(

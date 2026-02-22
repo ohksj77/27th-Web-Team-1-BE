@@ -103,7 +103,7 @@ class CoupleController(
         res: HttpServletResponse,
     ): CoupleStatusResponse =
         coupleInviteUseCase
-            .confirmInviteCode(
+            .joinByInviteCode(
                 userId = userId,
                 inviteCode = request.inviteCode,
                 clientIp = httpRequest.remoteAddr,
