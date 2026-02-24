@@ -1,6 +1,7 @@
 package kr.co.lokit.api.domain.couple.application.port
 
 import kr.co.lokit.api.domain.couple.domain.Couple
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 interface CoupleRepositoryPort {
@@ -37,4 +38,6 @@ interface CoupleRepositoryPort {
     ): Couple
 
     fun findLatestJoinedAt(coupleId: Long): LocalDateTime?
+
+    fun updateFirstMetDate(coupleId: Long, firstMetDate: LocalDate)
 }

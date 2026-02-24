@@ -17,6 +17,7 @@ import org.springframework.cache.annotation.Cacheable
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 @Repository
@@ -156,4 +157,12 @@ class JpaCoupleRepository(
     @Transactional(readOnly = true)
     override fun findLatestJoinedAt(coupleId: Long): LocalDateTime? =
         coupleUserJpaRepository.findLatestJoinedAtByCoupleId(coupleId)
+
+    @Transactional
+    override fun updateFirstMetDate(coupleId: Long, firstMetDate: LocalDate) {
+        val entity =
+            coupleJpaRepository.findByIdOrNull(coupleId)
+                ?: throw entityNotFound<Couple>(coupleId)
+        entity.firstMetDate = firstMetDate
+    }
 }
