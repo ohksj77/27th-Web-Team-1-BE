@@ -33,6 +33,9 @@ class CookieGenerator(
         value: CoupleCookieStatus,
     ): ResponseCookie = createCookie(request, "coupleStatus", value.name, refreshTokenExpiration, httpOnly = false)
 
+    fun clearCoupleStatusCookie(request: HttpServletRequest): ResponseCookie =
+        createCookie(request, "coupleStatus", "", 0, httpOnly = false)
+
     fun createCookie(
         request: HttpServletRequest,
         name: String,
