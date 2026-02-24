@@ -10,6 +10,7 @@ fun MyPageReadModel.toResponse(): MyPageResponse =
         myProfileImageUrl = myProfileImageUrl,
         partnerName = partnerName,
         partnerProfileImageUrl = partnerProfileImageUrl,
+        firstMetDate = firstMetDate,
         coupledDay = coupledDay,
         couplePhotoCount = couplePhotoCount,
     )

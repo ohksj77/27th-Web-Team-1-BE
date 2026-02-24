@@ -44,12 +44,15 @@ class MyPageService(
 
         val couplePhotoCount = couple?.let { photoRepository.countByCoupleId(it.id) } ?: 0L
 
+        val firstMetDate = if (isCoupled) requireNotNull(couple).firstMetDate else null
+
         return MyPageReadModel(
             myEmail = me.email,
             myName = me.name,
             myProfileImageUrl = me.profileImageUrl,
             partnerName = partner?.name,
             partnerProfileImageUrl = partner?.profileImageUrl,
+            firstMetDate = firstMetDate,
             coupledDay = coupledDay,
             couplePhotoCount = couplePhotoCount,
         )

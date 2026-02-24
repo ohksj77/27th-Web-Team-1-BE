@@ -96,6 +96,7 @@ class MyPageServiceTest {
         val result = myPageService.getMyPage(1L)
 
         assertEquals("test@test.com", result.myEmail)
+        assertEquals(LocalDate.now().minusDays(9), result.firstMetDate)
         assertEquals(10L, result.coupledDay)
     }
 
@@ -116,6 +117,7 @@ class MyPageServiceTest {
 
         val result = myPageService.getMyPage(1L)
 
+        assertNull(result.firstMetDate)
         assertNull(result.coupledDay)
     }
 
@@ -127,6 +129,7 @@ class MyPageServiceTest {
 
         val result = myPageService.getMyPage(1L)
 
+        assertNull(result.firstMetDate)
         assertNull(result.coupledDay)
         assertNull(result.partnerName)
     }
