@@ -24,7 +24,7 @@ class CoupleCookieStatusResolverTest {
     lateinit var coupleCookieStatusResolver: CoupleCookieStatusResolver
 
     @Test
-    fun `현재 커플이 CONNECTED 단독 상태면 NOT_COUPLED를 반환한다`() {
+    fun `현재 커플이 CONNECTED 단독이고 disconnect 이력이 없으면 NOT_COUPLED를 반환한다`() {
         val userId = 1L
         val currentCouple =
             createCouple(
@@ -35,26 +35,67 @@ class CoupleCookieStatusResolverTest {
             )
 
         `when`(coupleRepository.findByUserId(userId)).thenReturn(currentCouple)
+        `when`(coupleRepository.findByDisconnectedByUserId(userId)).thenReturn(null)
 
         val result = coupleCookieStatusResolver.resolve(userId)
 
         assertEquals(CoupleCookieStatus.NOT_COUPLED, result)
-        verify(coupleRepository, never()).findByDisconnectedByUserId(userId)
+        verify(coupleRepository).findByDisconnectedByUserId(userId)
     }
 
     @Test
-    fun `currentCouple가 없을 때만 disconnectedByMe fallback을 사용한다`() {
+    fun `currentCouple가 없어도 reconnect 대상이 없으면 DISCONNECTED_EXPIRED를 반환한다`() {
         val userId = 1L
         val disconnectedByMe =
             createCouple(
                 id = 200L,
                 name = "old",
+                userIds = emptyList(),
                 status = CoupleStatus.DISCONNECTED,
                 disconnectedByUserId = userId,
             )
 
         `when`(coupleRepository.findByUserId(userId)).thenReturn(null)
         `when`(coupleRepository.findByDisconnectedByUserId(userId)).thenReturn(disconnectedByMe)
+
+        val result = coupleCookieStatusResolver.resolve(userId)
+
+        assertEquals(CoupleCookieStatus.DISCONNECTED_EXPIRED, result)
+    }
+
+    @Test
+    fun `현재 커플이 CONNECTED 단독이어도 reconnect 가능 대상이 있으면 DISCONNECTED_BY_ME를 반환한다`() {
+        val userId = 1L
+        val partnerId = 2L
+        val currentSoloCouple =
+            createCouple(
+                id = 210L,
+                name = "default",
+                userIds = listOf(userId),
+                status = CoupleStatus.CONNECTED,
+            )
+        val disconnectedByMe =
+            createCouple(
+                id = 200L,
+                name = "old",
+                userIds = listOf(partnerId),
+                status = CoupleStatus.DISCONNECTED,
+                disconnectedAt = LocalDateTime.now().minusDays(5),
+                disconnectedByUserId = userId,
+            )
+        val partnerCurrentCouple =
+            createCouple(
+                id = 200L,
+                name = "old",
+                userIds = listOf(partnerId),
+                status = CoupleStatus.DISCONNECTED,
+                disconnectedAt = LocalDateTime.now().minusDays(5),
+                disconnectedByUserId = userId,
+            )
+
+        `when`(coupleRepository.findByUserId(userId)).thenReturn(currentSoloCouple)
+        `when`(coupleRepository.findByDisconnectedByUserId(userId)).thenReturn(disconnectedByMe)
+        `when`(coupleRepository.findByUserId(partnerId)).thenReturn(partnerCurrentCouple)
 
         val result = coupleCookieStatusResolver.resolve(userId)
 

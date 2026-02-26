@@ -18,38 +18,51 @@ class CoupleCookieStatusResolver(
         }
 
         if (currentCouple != null && currentCouple.status.isDisconnectedOrExpired) {
-            return if (currentCouple.disconnectedByUserId == userId) {
-                CoupleCookieStatus.DISCONNECTED_BY_ME
-            } else {
-                resolveDisconnectedByPartner(currentCouple)
-            }
-        }
-
-        if (currentCouple != null) {
-            return CoupleCookieStatus.NOT_COUPLED
+            return resolveDisconnectedStatus(currentCouple, userId)
         }
 
         val disconnectedByMe = coupleRepository.findByDisconnectedByUserId(userId)
-        if (disconnectedByMe?.status?.isDisconnectedOrExpired == true) {
-            return CoupleCookieStatus.DISCONNECTED_BY_ME
+        if (disconnectedByMe != null) {
+            return resolveDisconnectedStatus(disconnectedByMe, userId)
         }
 
         return CoupleCookieStatus.NOT_COUPLED
     }
 
-    private fun resolveDisconnectedByPartner(couple: Couple): CoupleCookieStatus {
-        if (couple.status == CoupleStatus.EXPIRED || couple.isReconnectWindowExpired()) {
+    private fun resolveDisconnectedStatus(
+        couple: Couple,
+        userId: Long,
+    ): CoupleCookieStatus {
+        if (couple.status == CoupleStatus.EXPIRED || couple.isReconnectWindowExpired() ||
+            !couple.hasRemainingMemberForReconnect()
+        ) {
             return CoupleCookieStatus.DISCONNECTED_EXPIRED
         }
 
-        val disconnectedByUserId = couple.disconnectedByUserId
-        if (disconnectedByUserId != null) {
-            val partnerCouple = coupleRepository.findByUserId(disconnectedByUserId)
+        val disconnectedByUserId = couple.disconnectedByUserId ?: return CoupleCookieStatus.NOT_COUPLED
+        val partnerUserId = resolveCounterpartUserId(couple, userId, disconnectedByUserId)
+        if (partnerUserId != null) {
+            val partnerCouple = coupleRepository.findByUserId(partnerUserId)
             if (partnerCouple != null && partnerCouple.id != couple.id && partnerCouple.isConnectedAndFull()) {
                 return CoupleCookieStatus.DISCONNECTED_EXPIRED
             }
         }
 
-        return CoupleCookieStatus.DISCONNECTED_BY_PARTNER
+        return if (disconnectedByUserId == userId) {
+            CoupleCookieStatus.DISCONNECTED_BY_ME
+        } else {
+            CoupleCookieStatus.DISCONNECTED_BY_PARTNER
+        }
     }
+
+    private fun resolveCounterpartUserId(
+        couple: Couple,
+        userId: Long,
+        disconnectedByUserId: Long,
+    ): Long? =
+        if (disconnectedByUserId == userId) {
+            couple.userIds.firstOrNull { it != userId }
+        } else {
+            disconnectedByUserId
+        }
 }
