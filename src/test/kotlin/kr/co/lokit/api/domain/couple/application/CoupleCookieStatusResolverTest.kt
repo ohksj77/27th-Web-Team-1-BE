@@ -83,19 +83,9 @@ class CoupleCookieStatusResolverTest {
                 disconnectedAt = LocalDateTime.now().minusDays(5),
                 disconnectedByUserId = userId,
             )
-        val partnerCurrentCouple =
-            createCouple(
-                id = 200L,
-                name = "old",
-                userIds = listOf(partnerId),
-                status = CoupleStatus.DISCONNECTED,
-                disconnectedAt = LocalDateTime.now().minusDays(5),
-                disconnectedByUserId = userId,
-            )
 
         `when`(coupleRepository.findByUserIdFresh(userId)).thenReturn(currentSoloCouple)
         `when`(coupleRepository.findByDisconnectedByUserId(userId)).thenReturn(disconnectedByMe)
-        `when`(coupleRepository.findByUserIdFresh(partnerId)).thenReturn(partnerCurrentCouple)
 
         val result = coupleCookieStatusResolver.resolve(userId)
 
@@ -105,7 +95,6 @@ class CoupleCookieStatusResolverTest {
     @Test
     fun `상대가 나가고 나는 남아있는 경우 DISCONNECTED_BY_PARTNER를 반환한다`() {
         val me = 2L
-        val partner = 1L
         val disconnectedByPartner =
             createCouple(
                 id = 300L,
@@ -113,11 +102,10 @@ class CoupleCookieStatusResolverTest {
                 userIds = listOf(me),
                 status = CoupleStatus.DISCONNECTED,
                 disconnectedAt = LocalDateTime.now().minusDays(10),
-                disconnectedByUserId = partner,
+                disconnectedByUserId = 1L,
             )
 
         `when`(coupleRepository.findByUserIdFresh(me)).thenReturn(disconnectedByPartner)
-        `when`(coupleRepository.findByUserIdFresh(partner)).thenReturn(null)
 
         val result = coupleCookieStatusResolver.resolve(me)
 

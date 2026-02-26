@@ -40,13 +40,6 @@ class CoupleCookieStatusResolver(
         }
 
         val disconnectedByUserId = couple.disconnectedByUserId ?: return CoupleCookieStatus.NOT_COUPLED
-        val partnerUserId = resolveCounterpartUserId(couple, userId, disconnectedByUserId)
-        if (partnerUserId != null) {
-            val partnerCouple = coupleRepository.findByUserIdFresh(partnerUserId)
-            if (partnerCouple != null && partnerCouple.id != couple.id && partnerCouple.isConnectedAndFull()) {
-                return CoupleCookieStatus.DISCONNECTED_EXPIRED
-            }
-        }
 
         return if (disconnectedByUserId == userId) {
             CoupleCookieStatus.DISCONNECTED_BY_ME
@@ -54,15 +47,4 @@ class CoupleCookieStatusResolver(
             CoupleCookieStatus.DISCONNECTED_BY_PARTNER
         }
     }
-
-    private fun resolveCounterpartUserId(
-        couple: Couple,
-        userId: Long,
-        disconnectedByUserId: Long,
-    ): Long? =
-        if (disconnectedByUserId == userId) {
-            couple.userIds.firstOrNull { it != userId }
-        } else {
-            disconnectedByUserId
-        }
 }
