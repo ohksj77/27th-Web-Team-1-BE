@@ -22,6 +22,8 @@ interface CoupleRepositoryPort {
 
     fun findByUserId(userId: Long): Couple?
 
+    fun findByUserIdFresh(userId: Long): Couple?
+
     fun deleteById(id: Long)
 
     fun removeCoupleUser(userId: Long)

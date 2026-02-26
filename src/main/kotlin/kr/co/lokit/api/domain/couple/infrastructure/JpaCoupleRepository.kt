@@ -63,12 +63,8 @@ class JpaCoupleRepository(
     override fun findByDisconnectedByUserId(userId: Long): Couple? =
         coupleJpaRepository
             .findByDisconnectedByUserIdCandidates(userId)
-            .sortedWith(
-                compareBy<CoupleEntity> { it.status.selectionPriority }
-                    .thenByDescending { it.coupleUsers.size }
-                    .thenByDescending { it.updatedAt }
-                    .thenByDescending { it.createdAt },
-            ).firstOrNull()
+            .sortedWith(coupleSelectionComparator())
+            .firstOrNull()
             ?.toDomain()
 
     @Transactional
@@ -108,12 +104,16 @@ class JpaCoupleRepository(
     override fun findByUserId(userId: Long): Couple? =
         coupleJpaRepository
             .findByUserIdCandidates(userId)
-            .sortedWith(
-                compareBy<CoupleEntity> { it.status.selectionPriority }
-                    .thenByDescending { it.coupleUsers.size }
-                    .thenByDescending { it.updatedAt }
-                    .thenByDescending { it.createdAt },
-            ).firstOrNull()
+            .sortedWith(coupleSelectionComparator())
+            .firstOrNull()
+            ?.toDomain()
+
+    @Transactional(readOnly = true)
+    override fun findByUserIdFresh(userId: Long): Couple? =
+        coupleJpaRepository
+            .findByUserIdCandidates(userId)
+            .sortedWith(coupleSelectionComparator())
+            .firstOrNull()
             ?.toDomain()
 
     @Transactional
@@ -160,4 +160,10 @@ class JpaCoupleRepository(
                 ?: throw entityNotFound<Couple>(coupleId)
         entity.firstMetDate = firstMetDate
     }
+
+    private fun coupleSelectionComparator(): Comparator<CoupleEntity> =
+        compareBy<CoupleEntity> { it.status.selectionPriority }
+            .thenByDescending { it.coupleUsers.size }
+            .thenByDescending { it.updatedAt }
+            .thenByDescending { it.createdAt }
 }

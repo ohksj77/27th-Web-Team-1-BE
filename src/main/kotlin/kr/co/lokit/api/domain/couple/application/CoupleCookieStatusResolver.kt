@@ -11,7 +11,7 @@ class CoupleCookieStatusResolver(
     private val coupleRepository: CoupleRepositoryPort,
 ) {
     fun resolve(userId: Long): CoupleCookieStatus {
-        val currentCouple = coupleRepository.findByUserId(userId)
+        val currentCouple = coupleRepository.findByUserIdFresh(userId)
 
         if (currentCouple?.isConnectedAndFull() == true) {
             return CoupleCookieStatus.COUPLED
@@ -42,7 +42,7 @@ class CoupleCookieStatusResolver(
         val disconnectedByUserId = couple.disconnectedByUserId ?: return CoupleCookieStatus.NOT_COUPLED
         val partnerUserId = resolveCounterpartUserId(couple, userId, disconnectedByUserId)
         if (partnerUserId != null) {
-            val partnerCouple = coupleRepository.findByUserId(partnerUserId)
+            val partnerCouple = coupleRepository.findByUserIdFresh(partnerUserId)
             if (partnerCouple != null && partnerCouple.id != couple.id && partnerCouple.isConnectedAndFull()) {
                 return CoupleCookieStatus.DISCONNECTED_EXPIRED
             }

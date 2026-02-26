@@ -34,7 +34,7 @@ class CoupleCookieStatusResolverTest {
                 status = CoupleStatus.CONNECTED,
             )
 
-        `when`(coupleRepository.findByUserId(userId)).thenReturn(currentCouple)
+        `when`(coupleRepository.findByUserIdFresh(userId)).thenReturn(currentCouple)
         `when`(coupleRepository.findByDisconnectedByUserId(userId)).thenReturn(null)
 
         val result = coupleCookieStatusResolver.resolve(userId)
@@ -55,7 +55,7 @@ class CoupleCookieStatusResolverTest {
                 disconnectedByUserId = userId,
             )
 
-        `when`(coupleRepository.findByUserId(userId)).thenReturn(null)
+        `when`(coupleRepository.findByUserIdFresh(userId)).thenReturn(null)
         `when`(coupleRepository.findByDisconnectedByUserId(userId)).thenReturn(disconnectedByMe)
 
         val result = coupleCookieStatusResolver.resolve(userId)
@@ -93,9 +93,9 @@ class CoupleCookieStatusResolverTest {
                 disconnectedByUserId = userId,
             )
 
-        `when`(coupleRepository.findByUserId(userId)).thenReturn(currentSoloCouple)
+        `when`(coupleRepository.findByUserIdFresh(userId)).thenReturn(currentSoloCouple)
         `when`(coupleRepository.findByDisconnectedByUserId(userId)).thenReturn(disconnectedByMe)
-        `when`(coupleRepository.findByUserId(partnerId)).thenReturn(partnerCurrentCouple)
+        `when`(coupleRepository.findByUserIdFresh(partnerId)).thenReturn(partnerCurrentCouple)
 
         val result = coupleCookieStatusResolver.resolve(userId)
 
@@ -116,8 +116,8 @@ class CoupleCookieStatusResolverTest {
                 disconnectedByUserId = partner,
             )
 
-        `when`(coupleRepository.findByUserId(me)).thenReturn(disconnectedByPartner)
-        `when`(coupleRepository.findByUserId(partner)).thenReturn(null)
+        `when`(coupleRepository.findByUserIdFresh(me)).thenReturn(disconnectedByPartner)
+        `when`(coupleRepository.findByUserIdFresh(partner)).thenReturn(null)
 
         val result = coupleCookieStatusResolver.resolve(me)
 
@@ -139,12 +139,12 @@ class CoupleCookieStatusResolverTest {
                 disconnectedByUserId = partner,
             )
 
-        `when`(coupleRepository.findByUserId(me)).thenReturn(expiredDisconnected)
+        `when`(coupleRepository.findByUserIdFresh(me)).thenReturn(expiredDisconnected)
 
         val result = coupleCookieStatusResolver.resolve(me)
 
         assertEquals(CoupleCookieStatus.DISCONNECTED_EXPIRED, result)
-        verify(coupleRepository, never()).findByUserId(partner)
+        verify(coupleRepository, never()).findByUserIdFresh(partner)
         verify(coupleRepository, never()).findByDisconnectedByUserId(me)
     }
 }
