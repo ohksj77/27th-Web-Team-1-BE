@@ -44,7 +44,7 @@ class CoupleCookieStatusResolverTest {
     }
 
     @Test
-    fun `currentCouple가 없어도 reconnect 대상이 없으면 DISCONNECTED_EXPIRED를 반환한다`() {
+    fun `currentCouple가 없어도 31일 내 disconnect 이력이 있으면 DISCONNECTED_BY_ME를 반환한다`() {
         val userId = 1L
         val disconnectedByMe =
             createCouple(
@@ -52,6 +52,7 @@ class CoupleCookieStatusResolverTest {
                 name = "old",
                 userIds = emptyList(),
                 status = CoupleStatus.DISCONNECTED,
+                disconnectedAt = LocalDateTime.now().minusDays(2),
                 disconnectedByUserId = userId,
             )
 
@@ -60,7 +61,7 @@ class CoupleCookieStatusResolverTest {
 
         val result = coupleCookieStatusResolver.resolve(userId)
 
-        assertEquals(CoupleCookieStatus.DISCONNECTED_EXPIRED, result)
+        assertEquals(CoupleCookieStatus.DISCONNECTED_BY_ME, result)
     }
 
     @Test

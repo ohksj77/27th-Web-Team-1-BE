@@ -33,9 +33,7 @@ class CoupleCookieStatusResolver(
         couple: Couple,
         userId: Long,
     ): CoupleCookieStatus {
-        if (couple.status == CoupleStatus.EXPIRED || couple.isReconnectWindowExpired() ||
-            !couple.hasRemainingMemberForReconnect()
-        ) {
+        if (couple.status == CoupleStatus.EXPIRED || couple.isReconnectWindowExpired()) {
             return CoupleCookieStatus.DISCONNECTED_EXPIRED
         }
 

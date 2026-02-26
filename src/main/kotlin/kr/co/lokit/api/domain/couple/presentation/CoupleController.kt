@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
 import kr.co.lokit.api.common.annotation.CurrentUserId
+import kr.co.lokit.api.config.cache.evictUserCoupleCache
 import kr.co.lokit.api.config.web.CookieGenerator
 import kr.co.lokit.api.domain.couple.application.CoupleCommandService
 import kr.co.lokit.api.domain.couple.application.CoupleCookieStatusResolver
@@ -19,6 +20,7 @@ import kr.co.lokit.api.domain.couple.dto.VerifyInviteCodeRequest
 import kr.co.lokit.api.domain.couple.presentation.mapping.toResponse
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
+import org.springframework.cache.CacheManager
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
@@ -37,6 +39,7 @@ class CoupleController(
     private val coupleCommandService: CoupleCommandService,
     private val coupleCookieStatusResolver: CoupleCookieStatusResolver,
     private val cookieGenerator: CookieGenerator,
+    private val cacheManager: CacheManager,
 ) : CoupleApi {
     @GetMapping("me/status")
     override fun getMyStatus(
@@ -135,6 +138,7 @@ class CoupleController(
         req: HttpServletRequest,
         res: HttpServletResponse,
     ) {
+        cacheManager.evictUserCoupleCache(userId)
         val coupleStatus = coupleCookieStatusResolver.resolve(userId)
         res.addHeader(HttpHeaders.SET_COOKIE, cookieGenerator.createCoupleStatusCookie(req, coupleStatus).toString())
     }

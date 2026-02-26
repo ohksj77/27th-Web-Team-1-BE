@@ -29,6 +29,7 @@ import org.mockito.Mockito.doReturn
 import org.mockito.Mockito.doThrow
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
+import org.springframework.cache.CacheManager
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseCookie
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication
@@ -81,6 +82,9 @@ class CoupleControllerTest {
 
     @MockitoBean
     lateinit var coupleCommandService: CoupleCommandService
+
+    @MockitoBean
+    lateinit var cacheManager: CacheManager
 
     @Test
     fun `커플 생성 엔드포인트 없음`() {
