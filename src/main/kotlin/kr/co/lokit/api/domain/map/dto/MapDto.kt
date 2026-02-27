@@ -268,4 +268,6 @@ data class MapMeResponse(
     val clusters: List<ClusterResponse>? = null,
     @Schema(description = "개별 사진 목록 (줌 >= 15일 때)")
     val photos: List<MapPhotoResponse>? = null,
+    @Schema(description = "내 프로필 이미지 URL", example = "https://example.com/profile.jpg")
+    val profileImageUrl: String?,
 )

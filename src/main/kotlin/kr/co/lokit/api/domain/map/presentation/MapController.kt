@@ -1,5 +1,6 @@
 package kr.co.lokit.api.domain.map.presentation
 
+import kr.co.lokit.api.common.annotation.CurrentUser
 import kr.co.lokit.api.common.annotation.CurrentUserId
 import kr.co.lokit.api.domain.map.application.port.`in`.GetMapUseCase
 import kr.co.lokit.api.domain.map.application.port.`in`.SearchLocationUseCase
@@ -9,6 +10,7 @@ import kr.co.lokit.api.domain.map.dto.LocationInfoResponse
 import kr.co.lokit.api.domain.map.dto.MapMeResponse
 import kr.co.lokit.api.domain.map.dto.PlaceSearchResponse
 import kr.co.lokit.api.domain.map.presentation.mapping.toResponse
+import kr.co.lokit.api.domain.user.domain.User
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -24,21 +26,22 @@ class MapController(
 ) : MapApi {
     @GetMapping("me")
     override fun getMe(
-        @CurrentUserId userId: Long,
+        @CurrentUser user: User,
         @RequestParam longitude: Double,
         @RequestParam latitude: Double,
         @RequestParam zoom: Double,
         @RequestParam(required = false) albumId: Long?,
         @RequestParam(required = false) lastDataVersion: Long?,
     ): MapMeResponse =
-        getMapUseCase.getMe(
-            userId,
-            longitude,
-            latitude,
-            zoom,
-            albumId,
-            lastDataVersion,
-        ).toResponse()
+        getMapUseCase
+            .getMe(
+                user,
+                longitude,
+                latitude,
+                zoom,
+                albumId,
+                lastDataVersion,
+            ).toResponse()
 
     @GetMapping("clusters/{clusterId}/photos")
     override fun getClusterPhotos(

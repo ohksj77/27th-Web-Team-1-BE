@@ -7,8 +7,8 @@ import kr.co.lokit.api.config.web.CookieGenerator
 import kr.co.lokit.api.config.web.CookieProperties
 import kr.co.lokit.api.domain.map.application.port.`in`.GetMapUseCase
 import kr.co.lokit.api.domain.map.application.port.`in`.SearchLocationUseCase
-import kr.co.lokit.api.domain.map.domain.AlbumThumbnails
 import kr.co.lokit.api.domain.map.domain.AlbumMapInfoReadModel
+import kr.co.lokit.api.domain.map.domain.AlbumThumbnails
 import kr.co.lokit.api.domain.map.domain.BoundingBoxReadModel
 import kr.co.lokit.api.domain.map.domain.Clusters
 import kr.co.lokit.api.domain.map.domain.LocationInfoReadModel
@@ -22,6 +22,10 @@ import org.mockito.ArgumentMatchers.anyDouble
 import org.mockito.ArgumentMatchers.anyLong
 import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito.doReturn
+import org.mockito.kotlin.any
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.isNull
+import org.mockito.kotlin.verify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication
@@ -29,8 +33,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
-import org.mockito.kotlin.eq
-import org.mockito.kotlin.verify
 
 @WebMvcTest(MapController::class)
 class MapControllerTest {
@@ -70,6 +72,7 @@ class MapControllerTest {
             dataVersion = 1L,
             clusters = Clusters.empty(),
             photos = null,
+            profileImageUrl = "https://example.com/profile.jpg",
         )
 
     @Test
@@ -124,12 +127,12 @@ class MapControllerTest {
         doReturn(createMapMeResponse())
             .`when`(getMapUseCase)
             .getMe(
-                anyLong(),
+                any(),
                 anyDouble(),
                 anyDouble(),
                 anyDouble(),
-                org.mockito.ArgumentMatchers.isNull<Long>(),
-                org.mockito.ArgumentMatchers.isNull<Long>(),
+                isNull(),
+                isNull(),
             )
 
         mockMvc
@@ -141,7 +144,7 @@ class MapControllerTest {
                     .param("zoom", "12.0"),
             ).andExpect(status().isOk)
 
-        verify(getMapUseCase).getMe(eq(1L), eq(127.0), eq(37.5), eq(12.0), eq(null), eq(null))
+        verify(getMapUseCase).getMe(any(), eq(127.0), eq(37.5), eq(12.0), isNull(), isNull())
     }
 
     @Test

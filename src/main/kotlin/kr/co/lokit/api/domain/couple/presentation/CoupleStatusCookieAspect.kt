@@ -42,7 +42,10 @@ class CoupleStatusCookieAspect(
         response.setHeader(HttpHeaders.CACHE_CONTROL, "no-store, no-cache, must-revalidate, max-age=0")
         response.setHeader("Pragma", "no-cache")
         response.setDateHeader("Expires", 0)
-        response.addHeader(HttpHeaders.SET_COOKIE, cookieGenerator.createCoupleStatusCookie(request, coupleStatus).toString())
+        response.addHeader(
+            HttpHeaders.SET_COOKIE,
+            cookieGenerator.createCoupleStatusCookie(request, coupleStatus).toString(),
+        )
     }
 
     private fun resolveCurrentUserId(joinPoint: JoinPoint): Long? {

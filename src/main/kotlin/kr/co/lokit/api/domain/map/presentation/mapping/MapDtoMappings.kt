@@ -2,15 +2,15 @@ package kr.co.lokit.api.domain.map.presentation.mapping
 
 import kr.co.lokit.api.domain.map.domain.AlbumMapInfoReadModel
 import kr.co.lokit.api.domain.map.domain.AlbumThumbnailsReadModel
-import kr.co.lokit.api.domain.map.domain.ClusterPhotos
 import kr.co.lokit.api.domain.map.domain.BoundingBoxReadModel
 import kr.co.lokit.api.domain.map.domain.ClusterPhotoReadModel
+import kr.co.lokit.api.domain.map.domain.ClusterPhotos
 import kr.co.lokit.api.domain.map.domain.ClusterReadModel
 import kr.co.lokit.api.domain.map.domain.LocationInfoReadModel
 import kr.co.lokit.api.domain.map.domain.MapMeReadModel
 import kr.co.lokit.api.domain.map.domain.MapPhotoReadModel
-import kr.co.lokit.api.domain.map.domain.PlaceSearchReadModel
 import kr.co.lokit.api.domain.map.domain.PlaceReadModel
+import kr.co.lokit.api.domain.map.domain.PlaceSearchReadModel
 import kr.co.lokit.api.domain.map.dto.AlbumMapInfoResponse
 import kr.co.lokit.api.domain.map.dto.BoundingBoxResponse
 import kr.co.lokit.api.domain.map.dto.ClusterPhotoResponse
@@ -31,6 +31,7 @@ fun MapMeReadModel.toResponse(): MapMeResponse =
         dataVersion = dataVersion,
         clusters = clusters?.asList()?.map { it.toResponse() },
         photos = photos?.asList()?.map { it.toResponse() },
+        profileImageUrl = profileImageUrl,
     )
 
 fun ClusterPhotos.toResponse(): List<ClusterPhotoResponse> = asList().map { it.toResponse() }
