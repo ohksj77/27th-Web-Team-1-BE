@@ -7,10 +7,10 @@ import kr.co.lokit.api.config.cache.clearPermissionCaches
 import kr.co.lokit.api.config.cache.evictUserCoupleCache
 import kr.co.lokit.api.domain.couple.application.port.CoupleRepositoryPort
 import kr.co.lokit.api.domain.couple.application.port.`in`.CreateCoupleUseCase
-import kr.co.lokit.api.domain.couple.domain.CoupleDisconnectAction
-import kr.co.lokit.api.domain.couple.domain.Couple
-import org.slf4j.LoggerFactory
 import kr.co.lokit.api.domain.couple.application.port.`in`.DisconnectCoupleUseCase
+import kr.co.lokit.api.domain.couple.domain.Couple
+import kr.co.lokit.api.domain.couple.domain.CoupleDisconnectAction
+import org.slf4j.LoggerFactory
 import org.springframework.cache.CacheManager
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -37,10 +37,15 @@ class CoupleDisconnectService(
                     errors = errorDetailsOf(ErrorField.COUPLE_ID to couple.id),
                 )
             }
-            CoupleDisconnectAction.REMOVE_MEMBER_ONLY -> coupleRepository.removeCoupleUser(userId)
+
+            CoupleDisconnectAction.REMOVE_MEMBER_ONLY -> {
+                coupleRepository.removeCoupleUser(userId)
+            }
+
             CoupleDisconnectAction.DISCONNECT_AND_REMOVE -> {
                 coupleRepository.disconnect(couple.id, userId)
                 coupleRepository.removeCoupleUser(userId)
+                coupleRepository.deleteById(couple.id)
             }
         }
         cacheManager.evictUserCoupleCache(userId, *couple.userIds.filter { it != userId }.toLongArray())

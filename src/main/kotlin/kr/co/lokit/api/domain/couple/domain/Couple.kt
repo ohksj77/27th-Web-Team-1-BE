@@ -20,8 +20,6 @@ data class Couple(
 
     fun isFull(): Boolean = userIds.size >= MAX_MEMBERS
 
-    fun isDisconnected(): Boolean = status == CoupleStatus.DISCONNECTED
-
     fun isReconnectWindowExpired(now: LocalDateTime = LocalDateTime.now()): Boolean =
         disconnectedAt
             ?.plusDays(GracePeriodPolicy.RECONNECT_DAYS)
@@ -56,22 +54,4 @@ data class Couple(
         const val DEFAULT_COUPLE_NAME = "default"
         const val MAX_MEMBERS = 2
     }
-}
-
-enum class CoupleDisconnectAction {
-    DISCONNECT_AND_REMOVE,
-    REMOVE_MEMBER_ONLY,
-    ALREADY_DISCONNECTED_BY_REQUESTER,
-}
-
-enum class CoupleReconnectRejection {
-    NOT_DISCONNECTED,
-    RECONNECT_WINDOW_EXPIRED,
-    NO_REMAINING_MEMBER,
-}
-
-enum class CoupleReconnectRejectReason(
-    val code: String,
-) {
-    NO_REMAINING_MEMBER("no_remaining_member"),
 }

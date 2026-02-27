@@ -5,33 +5,32 @@ import kr.co.lokit.api.common.concurrency.withPermit
 import kr.co.lokit.api.domain.album.application.port.AlbumRepositoryPort
 import kr.co.lokit.api.domain.album.domain.Album
 import kr.co.lokit.api.domain.couple.application.port.CoupleRepositoryPort
+import kr.co.lokit.api.domain.map.application.mapping.toAlbumMapReadModel
+import kr.co.lokit.api.domain.map.application.mapping.toBoundingBoxReadModel
+import kr.co.lokit.api.domain.map.application.mapping.toClusterPhotoReadModels
 import kr.co.lokit.api.domain.map.application.port.AlbumBoundsRepositoryPort
 import kr.co.lokit.api.domain.map.application.port.MapClientPort
 import kr.co.lokit.api.domain.map.application.port.MapQueryPort
 import kr.co.lokit.api.domain.map.application.port.`in`.GetMapUseCase
 import kr.co.lokit.api.domain.map.application.port.`in`.SearchLocationUseCase
+import kr.co.lokit.api.domain.map.domain.AlbumMapInfoReadModel
+import kr.co.lokit.api.domain.map.domain.AlbumThumbnails
+import kr.co.lokit.api.domain.map.domain.AlbumThumbnailsReadModel
 import kr.co.lokit.api.domain.map.domain.BBox
 import kr.co.lokit.api.domain.map.domain.BoundsIdType
 import kr.co.lokit.api.domain.map.domain.ClusterId
-import kr.co.lokit.api.domain.map.domain.GridValues
-import kr.co.lokit.api.domain.map.domain.AlbumThumbnailsReadModel
-import kr.co.lokit.api.domain.map.domain.AlbumThumbnails
-import kr.co.lokit.api.domain.map.domain.MapZoom
-import kr.co.lokit.api.domain.map.domain.MercatorProjection
-import kr.co.lokit.api.domain.map.domain.AlbumMapInfoReadModel
-import kr.co.lokit.api.domain.map.domain.ClusterPhotoReadModel
 import kr.co.lokit.api.domain.map.domain.ClusterPhotos
 import kr.co.lokit.api.domain.map.domain.Clusters
+import kr.co.lokit.api.domain.map.domain.GridValues
 import kr.co.lokit.api.domain.map.domain.LocationInfoReadModel
 import kr.co.lokit.api.domain.map.domain.MapMeReadModel
-import kr.co.lokit.api.domain.map.domain.MapPhotosReadModel
 import kr.co.lokit.api.domain.map.domain.MapPhotos
+import kr.co.lokit.api.domain.map.domain.MapPhotosReadModel
+import kr.co.lokit.api.domain.map.domain.MapZoom
+import kr.co.lokit.api.domain.map.domain.MercatorProjection
 import kr.co.lokit.api.domain.map.domain.PlaceSearchReadModel
-import kr.co.lokit.api.domain.map.domain.Places
 import kr.co.lokit.api.domain.map.domain.ThumbnailUrls
-import kr.co.lokit.api.domain.map.application.mapping.toAlbumMapReadModel
-import kr.co.lokit.api.domain.map.application.mapping.toClusterPhotoReadModels
-import kr.co.lokit.api.domain.map.application.mapping.toBoundingBoxReadModel
+import kr.co.lokit.api.domain.user.domain.User
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.concurrent.Semaphore
@@ -97,7 +96,12 @@ class MapQueryService(
             return ClusterPhotos.empty()
         }
         val parsedClusterId = ClusterId.parseDetailed(clusterId)
-        val gridCell = kr.co.lokit.api.domain.map.domain.GridCell(parsedClusterId.zoom, parsedClusterId.cellX, parsedClusterId.cellY)
+        val gridCell =
+            kr.co.lokit.api.domain.map.domain.GridCell(
+                parsedClusterId.zoom,
+                parsedClusterId.cellX,
+                parsedClusterId.cellY,
+            )
         val expandedBBox = expandedClusterSearchBBox(gridCell) ?: return ClusterPhotos.empty()
         val photos =
             mapQueryPort.findPhotosInGridCell(
@@ -155,7 +159,7 @@ class MapQueryService(
     }
 
     override fun getMe(
-        userId: Long,
+        user: User,
         longitude: Double,
         latitude: Double,
         zoom: Double,
@@ -168,7 +172,7 @@ class MapQueryService(
                 .clampToKorea() ?: BBox.KOREA_BOUNDS
 
         val mapZoom = MapZoom.from(zoom)
-        val context = resolveViewerContext(userId = userId, albumId = albumId)
+        val context = resolveViewerContext(userId = user.id, albumId = albumId)
         val currentVersion =
             mapPhotosCacheService.getDataVersion(
                 zoom = mapZoom.level,
@@ -211,7 +215,8 @@ class MapQueryService(
             dataVersion = currentVersion,
             clusters = photosResponse.clusters,
             photos = photosResponse.photos,
-            totalHistoryCount = albumRepository.photoCountSumByUserId(userId),
+            totalHistoryCount = albumRepository.photoCountSumByUserId(user.id),
+            profileImageUrl = user.profileImageUrl,
         )
     }
 
@@ -227,63 +232,6 @@ class MapQueryService(
 
     override fun searchPlaces(query: String): PlaceSearchReadModel =
         PlaceSearchReadModel(places = mapClientPort.searchPlaces(query))
-
-    private fun getMeByBBox(
-        userId: Long,
-        centerLongitude: Double,
-        centerLatitude: Double,
-        zoom: Double,
-        bbox: BBox,
-        albumId: Long?,
-        lastDataVersion: Long?,
-    ): MapMeReadModel {
-        val mapZoom = MapZoom.from(zoom)
-        val context = resolveViewerContext(userId = userId, albumId = albumId)
-        val currentVersion =
-            mapPhotosCacheService.getDataVersion(
-                zoom = mapZoom.level,
-                bbox = bbox,
-                coupleId = context.coupleId,
-                albumId = context.albumId,
-            )
-
-        val (locationFuture, albumsFuture, photosFuture) =
-            StructuredConcurrency.run { scope ->
-                Triple(
-                    scope.fork { mapClientPort.reverseGeocode(centerLongitude, centerLatitude) },
-                    scope.fork {
-                        dbSemaphore.withPermit {
-                            findAlbumsForCouple(context.coupleId)
-                        }
-                    },
-                    scope.fork {
-                        dbSemaphore.withPermit {
-                            getPhotos(
-                                zoom = mapZoom.level,
-                                bbox = bbox,
-                                context = context,
-                                lastDataVersion = lastDataVersion,
-                                currentDataVersion = currentVersion,
-                            )
-                        }
-                    },
-                )
-            }
-
-        val formattedLocation = formatLocation(locationFuture.get())
-        val photosResponse = photosFuture.get()
-        val albums = albumsFuture.get()
-
-        return MapMeReadModel(
-            location = formattedLocation,
-            boundingBox = bbox.toBoundingBoxReadModel(),
-            albums = albums.toAlbumThumbnailsReadModels(),
-            dataVersion = currentVersion,
-            clusters = photosResponse.clusters,
-            photos = photosResponse.photos,
-            totalHistoryCount = albumRepository.photoCountSumByUserId(userId),
-        )
-    }
 
     private fun resolveEffectiveAlbumId(
         userId: Long?,

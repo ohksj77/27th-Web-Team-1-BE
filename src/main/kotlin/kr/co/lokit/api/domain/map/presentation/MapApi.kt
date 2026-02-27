@@ -14,6 +14,7 @@ import kr.co.lokit.api.domain.map.dto.ClusterPhotoResponse
 import kr.co.lokit.api.domain.map.dto.LocationInfoResponse
 import kr.co.lokit.api.domain.map.dto.MapMeResponse
 import kr.co.lokit.api.domain.map.dto.PlaceSearchResponse
+import kr.co.lokit.api.domain.user.domain.User
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestParam
 
@@ -51,7 +52,7 @@ interface MapApi {
         ],
     )
     fun getMe(
-        @Parameter(hidden = true) userId: Long,
+        @Parameter(hidden = true) user: User,
         @Parameter(
             description = "경도",
             example = "127.0276",

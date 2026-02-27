@@ -28,7 +28,7 @@ class CoupleCookieStatusResolverTest {
         val userId = 1L
         val currentCouple =
             createCouple(
-                id = 100L,
+                id = 1L,
                 name = "default",
                 userIds = listOf(userId),
                 status = CoupleStatus.CONNECTED,

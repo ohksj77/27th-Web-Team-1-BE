@@ -17,6 +17,7 @@ import kr.co.lokit.api.domain.map.domain.Places
 import kr.co.lokit.api.fixture.createAlbum
 import kr.co.lokit.api.fixture.createAlbumBounds
 import kr.co.lokit.api.fixture.createCouple
+import kr.co.lokit.api.fixture.createUser
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -212,7 +213,7 @@ class MapServiceTest {
 
         val result =
             mapService.getMe(
-                userId = 1L,
+                user = createUser(id = 1L),
                 longitude = 127.0,
                 latitude = 37.5,
                 zoom = 14.0,
@@ -241,7 +242,7 @@ class MapServiceTest {
         `when`(albumRepository.photoCountSumByUserId(1L)).thenReturn(0)
 
         mapService.getMe(
-            userId = 1L,
+            user = createUser(id = 1L),
             longitude = 127.0,
             latitude = 37.5,
             zoom = 14.0,
@@ -267,7 +268,7 @@ class MapServiceTest {
         `when`(albumRepository.photoCountSumByUserId(1L)).thenReturn(0)
 
         mapService.getMe(
-            userId = 1L,
+            user = createUser(id = 1L),
             longitude = 127.0,
             latitude = 37.5,
             zoom = zoom.toDouble(),
@@ -289,7 +290,7 @@ class MapServiceTest {
 
         val result =
             mapService.getMe(
-                userId = 1L,
+                user = createUser(id = 1L),
                 longitude = 127.0,
                 latitude = 37.5,
                 zoom = 14.0,
@@ -324,7 +325,7 @@ class MapServiceTest {
         `when`(albumRepository.photoCountSumByUserId(1L)).thenReturn(0)
 
         mapService.getMe(
-            userId = 1L,
+            user = createUser(id = 1L),
             longitude = 127.0,
             latitude = 37.5,
             zoom = 14.0,
